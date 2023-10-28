@@ -1,0 +1,189 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Style TargetType="ListViewItem">
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+    </Style>
+    <GridView x:Key="PricesGridView">
+        <GridView.Columns>
+            <GridViewColumn Header="Unique id">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding UniqueId}" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="Instrument type">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding InstrumentType}" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="Instrument id">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding InstrumentId}" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="Timestamp">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Timestamp, StringFormat = {}{0:yyyy-MM-dd}}" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="Open">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Open}" HorizontalAlignment="Right" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="High">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding High}" HorizontalAlignment="Right" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="Low">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Low}" HorizontalAlignment="Right" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="Close">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Close}" HorizontalAlignment="Right" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="Value">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Value}" HorizontalAlignment="Right" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="Volume">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Volume}" HorizontalAlignment="Right" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+        </GridView.Columns>
+    </GridView>
+    <GridView x:Key="InstrumentsGridView">
+        <GridView.Columns>
+            <GridViewColumn Header="Unique id">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding UniqueId}" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="ISIN">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding ISIN}" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="Ticker">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Ticker}" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="Instrument id">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding InstrumentId}" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="Instrument type">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding InstrumentType}" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="Name">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Name}" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="Issuer">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Name}" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="Maturity">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Maturity, StringFormat = {}{0:yyyy-MM-dd}}" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="CouponType">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding CouponType}" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="CouponRate">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding CouponRate}" HorizontalAlignment="Right" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="CouponFreq">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding CouponFreq}" HorizontalAlignment="Right" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="UnitPrice">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding UnitPrice}" HorizontalAlignment="Right" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="Currency">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Currency}" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="Day count convention">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding DayCountConvention}" HorizontalAlignment="Right" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="End of month convention">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding EndOfMonthConvention}" HorizontalAlignment="Right" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+        </GridView.Columns>
+    </GridView>
+</ResourceDictionary>
