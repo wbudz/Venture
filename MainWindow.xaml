@@ -26,6 +26,7 @@
             <TreeViewItem Header="Definitions">
                 <TreeViewItem Header="Prices" Selected="TreeViewItem_Selected" />
                 <TreeViewItem Header="Instruments" Selected="TreeViewItem_Selected" />
+                <TreeViewItem Header="Transactions" Selected="TreeViewItem_Selected" />
             </TreeViewItem>
         </TreeView>
         <Grid x:Name="CurrentModule" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" />

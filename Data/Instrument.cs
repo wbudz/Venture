@@ -44,7 +44,7 @@ namespace Budziszewski.Venture.Data
 
         public EndOfMonthConvention EndOfMonthConvention { get; private set; } = EndOfMonthConvention.Undefined;
 
-        public override void FromCSV(string[] headers, string[] line)
+        public override void FromCSV(string[] headers, string[] line, int index)
         {
             for (int i = 0; i < Math.Min(headers.Length, line.Length); i++)
             {

@@ -12,7 +12,7 @@ namespace Budziszewski.Venture.Data
         protected static readonly CultureInfo cultureIntegerWithDotSeparator = new CultureInfo("") { NumberFormat = new NumberFormatInfo() { NumberDecimalSeparator = "." } };
         protected static readonly CultureInfo cultureIntegerWithCommaSeparator = new CultureInfo("") { NumberFormat = new NumberFormatInfo() { NumberDecimalSeparator = "," } };
 
-        public abstract void FromCSV(string[] headers, string[] line);
+        public abstract void FromCSV(string[] headers, string[] line, int index);
 
         protected static DateTime ConvertToDateTime(string text)
         {

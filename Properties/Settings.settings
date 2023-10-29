@@ -3,10 +3,13 @@
   <Profiles />
   <Settings>
     <Setting Name="PricesSource" Type="System.String" Scope="User">
-      <Value Profile="(Default)">prices.csv</Value>
+      <Value Profile="(Default)">input\prices.csv</Value>
     </Setting>
     <Setting Name="InstrumentsSource" Type="System.String" Scope="User">
-      <Value Profile="(Default)">instruments.csv</Value>
+      <Value Profile="(Default)">input\instruments.csv</Value>
+    </Setting>
+    <Setting Name="TransactionsSource" Type="System.String" Scope="User">
+      <Value Profile="(Default)">input\transactions.csv</Value>
     </Setting>
   </Settings>
 </SettingsFile>

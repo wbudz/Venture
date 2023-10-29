@@ -5,6 +5,7 @@ using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Transactions;
 
 namespace Budziszewski.Venture.Data
 {
@@ -13,6 +14,7 @@ namespace Budziszewski.Venture.Data
     {
         public static ObservableCollection<Price> Prices = new ObservableCollection<Price>();
         public static ObservableCollection<Instrument> Instruments = new ObservableCollection<Instrument>();
+        public static ObservableCollection<Transaction> Transactions = new ObservableCollection<Transaction>();
 
         public static void Load()
         {
@@ -28,6 +30,13 @@ namespace Budziszewski.Venture.Data
             foreach (var item in csv.Interpret<Instrument>().ToArray())
             {
                 Instruments.Add(item);
+            }
+
+            csv = new CSV(Properties.Settings.Default.TransactionsSource);
+            csv.Read();
+            foreach (var item in csv.Interpret<Transaction>().ToArray())
+            {
+                Transactions.Add(item);
             }
         }
     }

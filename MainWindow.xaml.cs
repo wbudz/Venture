@@ -55,6 +55,7 @@ namespace Budziszewski.Venture
             CurrentModule.Children.Clear();
             if ((sender as TreeViewItem)?.Header.ToString() == "Prices") CurrentModule.Children.Add(new Modules.DefinitionsView(typeof(Data.Price)));
             if ((sender as TreeViewItem)?.Header.ToString() == "Instruments") CurrentModule.Children.Add(new Modules.DefinitionsView(typeof(Data.Instrument)));
+            if ((sender as TreeViewItem)?.Header.ToString() == "Transactions") CurrentModule.Children.Add(new Modules.DefinitionsView(typeof(Data.Transaction)));
         }
 
         #region Commands

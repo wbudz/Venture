@@ -25,7 +25,7 @@ namespace Budziszewski.Venture.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("prices.csv")]
+        [global::System.Configuration.DefaultSettingValueAttribute("input\\prices.csv")]
         public string PricesSource {
             get {
                 return ((string)(this["PricesSource"]));
@@ -37,13 +37,25 @@ namespace Budziszewski.Venture.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("instruments.csv")]
+        [global::System.Configuration.DefaultSettingValueAttribute("input\\instruments.csv")]
         public string InstrumentsSource {
             get {
                 return ((string)(this["InstrumentsSource"]));
             }
             set {
                 this["InstrumentsSource"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("input\\transactions.csv")]
+        public string TransactionsSource {
+            get {
+                return ((string)(this["TransactionsSource"]));
+            }
+            set {
+                this["TransactionsSource"] = value;
             }
         }
     }

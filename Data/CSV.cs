@@ -89,21 +89,17 @@ namespace Budziszewski.Venture.Data
             var headers = Headers.Select(x => x.ToLower()).ToArray();
 
             T newItem;
-           
-            foreach (var line in Lines)
+
+            for (int i = 0; i < Lines.Length; i++)
             {
                 try
                 {
                     newItem = new();
-
-                    for (int i = 0; i < Headers.Length; i++)
-                    {
-                        newItem.FromCSV(headers, line);
-                    }
+                    newItem.FromCSV(headers, Lines[i], i);
                 }
                 catch (Exception ex)
                 {
-                    throw new IOException($"Error interpreting CSV file (line: {line}; exception: {ex}).");
+                    throw new IOException($"Error interpreting CSV file (line: {Lines[i].Aggregate((a, b) => a + ";" + b)}; exception: {ex}).");
                 }
 
                 yield return newItem;

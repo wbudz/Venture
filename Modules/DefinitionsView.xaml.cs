@@ -44,6 +44,11 @@ namespace Budziszewski.Venture.Modules
                 lv.View = (GridView)Resources["InstrumentsGridView"];
                 lv.ItemsSource = Data.Definitions.Instruments;
             }
+            if (DataPointType == typeof(Data.Transaction))
+            {
+                lv.View = (GridView)Resources["TransactionsGridView"];
+                lv.ItemsSource = Data.Definitions.Transactions;
+            }
         }
 
         private void UserControl_Loaded(object sender, RoutedEventArgs e)

@@ -28,7 +28,7 @@ namespace Budziszewski.Venture.Data
 
         public decimal Value { get { return Close; } }
 
-        public override void FromCSV(string[] headers, string[] line)
+        public override void FromCSV(string[] headers, string[] line, int index)
         {
             for (int i = 0; i < Math.Min(headers.Length, line.Length); i++)
             {
