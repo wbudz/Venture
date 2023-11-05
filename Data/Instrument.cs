@@ -22,7 +22,7 @@ namespace Budziszewski.Venture.Data
 
         public string InstrumentId { get; private set; } = "";
 
-        public string InstrumentType { get; private set; } = "Equity";
+        public InstrumentType InstrumentType { get; private set; } = InstrumentType.Undefined;
 
         public string Name { get; private set; } = "";
 
@@ -44,6 +44,16 @@ namespace Budziszewski.Venture.Data
 
         public EndOfMonthConvention EndOfMonthConvention { get; private set; } = EndOfMonthConvention.Undefined;
 
+        /// <summary>
+        /// If true, asset is recognized or derecognized on trade date, otherwise on settlement date.
+        /// </summary>
+        public bool RecognitionOnTradeDate { 
+            get
+            {
+                return InstrumentType != InstrumentType.Bond && InstrumentType != InstrumentType.Equity;
+            }
+        }
+
         public override void FromCSV(string[] headers, string[] line, int index)
         {
             for (int i = 0; i < Math.Min(headers.Length, line.Length); i++)
@@ -51,7 +61,7 @@ namespace Budziszewski.Venture.Data
                 if (headers[i] == "isin") ISIN = line[i];
                 if (headers[i] == "ticker") Ticker = line[i];
                 if (headers[i] == "instrumentid") InstrumentId = line[i];
-                if (headers[i] == "instrumenttype") InstrumentType = line[i];
+                if (headers[i] == "instrumenttype") InstrumentType = ConvertToEnum<InstrumentType>(line[i]);
                 if (headers[i] == "name") Name = line[i];
                 if (headers[i] == "issuer") Issuer = line[i];
                 if (headers[i] == "maturity") Maturity = ConvertToDateTime(line[i]);
@@ -62,6 +72,7 @@ namespace Budziszewski.Venture.Data
                 if (headers[i] == "currency") Currency = line[i];
                 if (headers[i] == "daycountconvention") DayCountConvention = ConvertToEnum<DayCountConvention>(line[i]);
                 if (headers[i] == "endofmonthconvention") EndOfMonthConvention = ConvertToEnum<EndOfMonthConvention>(line[i]);
+                if (headers[i] == "active") Active = ConvertToBool(line[i]);
             }
         }
     }

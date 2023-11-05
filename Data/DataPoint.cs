@@ -12,6 +12,8 @@ namespace Budziszewski.Venture.Data
         protected static readonly CultureInfo cultureIntegerWithDotSeparator = new CultureInfo("") { NumberFormat = new NumberFormatInfo() { NumberDecimalSeparator = "." } };
         protected static readonly CultureInfo cultureIntegerWithCommaSeparator = new CultureInfo("") { NumberFormat = new NumberFormatInfo() { NumberDecimalSeparator = "," } };
 
+        public bool Active { get; protected set; } = true;
+
         public abstract void FromCSV(string[] headers, string[] line, int index);
 
         protected static DateTime ConvertToDateTime(string text)
@@ -38,10 +40,17 @@ namespace Budziszewski.Venture.Data
         protected static decimal ConvertToDecimal(string text)
         {
             decimal result;
-            if (Decimal.TryParse(text, NumberStyles.Float, cultureIntegerWithDotSeparator, out result)) return result;
+            text = text.Replace(" ", "");
+            if (Decimal.TryParse(text, NumberStyles.Float , cultureIntegerWithDotSeparator, out result)) return result;
             if (Decimal.TryParse(text, NumberStyles.Float, cultureIntegerWithCommaSeparator, out result)) return result;
             if (Decimal.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out result)) return result;
             else return 0;
+        }
+        protected static bool ConvertToBool(string text)
+        {
+            bool result;
+            if (Boolean.TryParse(text, out result)) return result;
+            else return false;
         }
 
         protected static T ConvertToEnum<T>(string text) where T:Enum

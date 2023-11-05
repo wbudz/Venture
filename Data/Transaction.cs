@@ -10,8 +10,6 @@ namespace Budziszewski.Venture.Data
 
     public enum TransactionType { Undefined, Buy, Sell, Cash }
 
-    public enum ValuationClass { Undefined, Trading, AvailableForSale, HeldToMaturity }
-
     public class Transaction : DataPoint
     {
         public string UniqueId { get { return $"{TradeDate:yyyyMMddTHHmmss}_{InstrumentId}_{TransactionType}_{Index}"; } }
@@ -80,6 +78,7 @@ namespace Budziszewski.Venture.Data
                     else FXRate = ConvertToDecimal(line[i]);
                 }
                 if (headers[i] == "paymenttype") PaymentType = ConvertToEnum<PaymentType>(line[i]);
+                if (headers[i] == "active") Active = ConvertToBool(line[i]);
             }
         }
     }

@@ -18,6 +18,10 @@ namespace Budziszewski.Venture.Data
 
         public static void Load()
         {
+            Prices.Clear();
+            Instruments.Clear();
+            Transactions.Clear();
+
             CSV csv = new CSV(Properties.Settings.Default.PricesSource);
             csv.Read();
             foreach (var item in csv.Interpret<Price>().ToArray())

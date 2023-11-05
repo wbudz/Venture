@@ -96,6 +96,7 @@ namespace Budziszewski.Venture.Data
                 {
                     newItem = new();
                     newItem.FromCSV(headers, Lines[i], i);
+                    if (!newItem.Active) continue;
                 }
                 catch (Exception ex)
                 {

@@ -10,11 +10,13 @@
     <Window.CommandBindings>
         <CommandBinding Command="{x:Static local:MainWindow.ExitCommand}" Executed="ExitCommand_Executed" CanExecute="ExitCommand_CanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.LoadDataCommand}" Executed="LoadDataCommand_Executed" CanExecute="LoadDataCommand_CanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.GenerateAssetsCommand}" Executed="GenerateAssetsCommand_Executed" CanExecute="GenerateAssetsCommand_CanExecute"/>
     </Window.CommandBindings>
     <DockPanel LastChildFill="True">
         <Menu DockPanel.Dock="Top" Height="20">
             <MenuItem Header="File">
                 <MenuItem Header="Load data" Command="{x:Static local:MainWindow.LoadDataCommand}" />
+                <MenuItem Header="Generate assets" Command="{x:Static local:MainWindow.GenerateAssetsCommand}" />
                 <Separator />
                 <MenuItem Header="Exit" Command="{x:Static local:MainWindow.ExitCommand}" />
             </MenuItem>
@@ -27,6 +29,9 @@
                 <TreeViewItem Header="Prices" Selected="TreeViewItem_Selected" />
                 <TreeViewItem Header="Instruments" Selected="TreeViewItem_Selected" />
                 <TreeViewItem Header="Transactions" Selected="TreeViewItem_Selected" />
+            </TreeViewItem>
+            <TreeViewItem Header="Assets">
+                <TreeViewItem Header="Assets" Selected="TreeViewItem_Selected" />
             </TreeViewItem>
         </TreeView>
         <Grid x:Name="CurrentModule" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" />

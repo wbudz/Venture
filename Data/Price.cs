@@ -40,6 +40,7 @@ namespace Budziszewski.Venture.Data
                 if (headers[i] == "high") High = ConvertToDecimal(line[i]);
                 if (headers[i] == "low") Low = ConvertToDecimal(line[i]);
                 if (headers[i] == "close") Close = ConvertToDecimal(line[i]);
+                if (headers[i] == "active") Active = ConvertToBool(line[i]);
             }
         }
     }
