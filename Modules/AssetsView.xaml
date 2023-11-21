@@ -15,8 +15,14 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
-    <DockPanel>
-        <ToolBar Template="{DynamicResource ToolBarTemplate}" Height="26" VerticalAlignment="Top" DockPanel.Dock="Top" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" ItemsSource="{Binding Mode=OneWay}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="26"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <ToolBar Template="{DynamicResource ToolBarTemplate}" Height="26" VerticalAlignment="Top" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" ItemsSource="{Binding Mode=OneWay}">
             <ToolBar.Items>
                 <Button x:Name="RefreshButton" Content="Refresh" Click="RefreshButton_Click" />
                 <Separator />
@@ -38,11 +44,30 @@
                 </ComboBox>
             </ToolBar.Items>
         </ToolBar>
-        <ListView x:Name="lv" ItemsSource="{Binding AssetEntries}">
-            <ListView.View>
-                <GridView x:Name="gv">
-                </GridView>
-            </ListView.View>
-        </ListView>
-    </DockPanel>
+        <ListView x:Name="lvAssets" 
+                  ItemsSource="{Binding AssetEntries}" 
+                  View="{Binding Mode=OneWay, Source={StaticResource AssetsGridView}}" 
+                  Grid.Row="1"/>
+        <GridSplitter Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Center" Grid.Row="2" />
+        <TabControl Grid.Row="3" >
+            <TabItem Header="Events" IsSelected="True">
+                <ListView x:Name="lvEvents" 
+                      ItemsSource="{Binding Events}" 
+                      DataContext="{Binding SelectedItem, ElementName=lvAssets}" 
+                      View="{Binding Mode=OneWay, Source={StaticResource EventsGridView}}" 
+                      Grid.Row="1" 
+                      VerticalAlignment="Stretch"/>
+            </TabItem>
+        </TabControl>
+        <!--<Grid Grid.Row="3" >
+            <Grid.RowDefinitions>
+                <RowDefinition Height="20"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Grid Grid.Row="0" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" VerticalAlignment="Stretch">
+                <TextBlock HorizontalAlignment="Left" Margin="10,0,0,0" TextWrapping="Wrap" Text="Events:" VerticalAlignment="Center"/>
+            </Grid>
+            
+        </Grid>-->
+    </Grid>
 </UserControl>

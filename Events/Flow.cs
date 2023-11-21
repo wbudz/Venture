@@ -16,12 +16,9 @@ namespace Budziszewski.Venture.Events
 
         public FlowType Type { get; protected set; }
 
-        public decimal Amount { get; protected set; } // coupon rate * nominal amount
-
-        public decimal FXRate { get; protected set; } = 1;
-
         public Flow(Assets.Asset parentAsset, DateTime timestamp, FlowType type, decimal amount, decimal fxRate) : base(parentAsset)
         {
+            Direction = PaymentDirection.Inflow;
             Timestamp = timestamp;
             Type = type;
             Amount = amount;

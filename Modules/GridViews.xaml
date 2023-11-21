@@ -318,10 +318,10 @@
     </GridView>
     <GridView x:Key="AssetsGridView">
         <GridView.Columns>
-            <GridViewColumn Header="Unique id">
+            <GridViewColumn Header="Type">
                 <GridViewColumn.CellTemplate>
                     <DataTemplate>
-                        <TextBlock Text="{Binding UniqueId}" />
+                        <TextBlock Text="{Binding AssetType}" ToolTip="{Binding UniqueId}"/>
                     </DataTemplate>
                 </GridViewColumn.CellTemplate>
             </GridViewColumn>
@@ -352,7 +352,88 @@
                         <TextBlock Text="{Binding Currency}" />
                     </DataTemplate>
                 </GridViewColumn.CellTemplate>
-            </GridViewColumn>            
+            </GridViewColumn>
+            <GridViewColumn Header="Valuation class">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding ValuationClass}" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="Count">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Count}"  HorizontalAlignment="Right"/>
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="Nominal amount">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding NominalAmount, StringFormat = {}{0:0.00}}"  HorizontalAlignment="Right"/>
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="Amortized cost value">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding AmortizedCostValue, StringFormat = {}{0:0.00}}"  HorizontalAlignment="Right"/>
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="Market value">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding MarketValue, StringFormat = {}{0:0.00}}"  HorizontalAlignment="Right"/>
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="Accrued interest">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding AccruedInterest, StringFormat = {}{0:0.00}}"  HorizontalAlignment="Right"/>
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+        </GridView.Columns>
+    </GridView>
+    <GridView x:Key="EventsGridView">
+        <GridView.Columns>
+            <GridViewColumn Header="Type">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding EventType}" ToolTip="{Binding UniqueId}"/>
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="Timestamp">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Timestamp, StringFormat = {}{0:yyyy-MM-dd}}"/>
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="Direction">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Direction}" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="Amount">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Amount, StringFormat = {}{0:0.00}}" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="FX rate">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding FXRate, StringFormat = {}{0:0.0000}}" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
         </GridView.Columns>
     </GridView>
 </ResourceDictionary>

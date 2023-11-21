@@ -31,13 +31,12 @@ namespace Budziszewski.Venture.Modules
 
         public void Refresh()
         {
-            if (lv == null) return;
+            if (lvAssets == null) return;
             AssetEntries.Clear();
             foreach (var asset in Common.Assets)
             {
-                AssetEntries.Add(asset.GenerateAssetViewEntry());
+                AssetEntries.Add(asset.GenerateAssetViewEntry(Common.CurrentDate));
             }
-            lv.View = (GridView)Resources["AssetsGridView"];
         }
 
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
@@ -52,7 +51,6 @@ namespace Budziszewski.Venture.Modules
 
         private void DateComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            Refresh();
             try
             {
                 int year = YearComboBox?.SelectedItem != null ? Int32.Parse(YearComboBox.SelectedItem?.ToString()?? "") : DateTime.Now.Year;
@@ -64,6 +62,10 @@ namespace Budziszewski.Venture.Modules
             catch (Exception ex)
             {
                 throw new Exception($"Error setting current date: {ex}.");
+            }
+            finally
+            {
+                Refresh();
             }
         }
     }

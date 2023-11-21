@@ -15,10 +15,11 @@ namespace Budziszewski.Venture.Assets
             UniqueId = $"{tr.AccountDst}_{tr.SettlementDate:yyyyMMdd}_{tr.NominalAmount:0.00}";
             Portfolio = tr.PortfolioDst;
             CashAccount = tr.AccountDst;
+            CustodyAccount = "";
             Currency = tr.Currency;
             ValuationClass = ValuationClass.AvailableForSale;
 
-            Events.Add(new Events.Payment(this, tr));
+            AddEvent(new Events.Payment(this, tr, Venture.Events.PaymentDirection.Inflow));
         }
 
         public Cash(Events.Flow fl)
@@ -28,10 +29,11 @@ namespace Budziszewski.Venture.Assets
             UniqueId = "";
             Portfolio = fl.ParentAsset.Portfolio;
             CashAccount = fl.ParentAsset.CashAccount;
+            CustodyAccount = "";
             Currency = fl.ParentAsset.Currency;
             ValuationClass = ValuationClass.AvailableForSale;
 
-            Events.Add(new Events.Payment(this, fl));
+            AddEvent(new Events.Payment(this, fl, Venture.Events.PaymentDirection.Inflow));
         }
 
         protected override void GenerateFlows()
@@ -39,21 +41,77 @@ namespace Budziszewski.Venture.Assets
             // No events to be generated.
         }
 
-        public override AssetsViewEntry GenerateAssetViewEntry()
-        {
-            return new AssetsViewEntry()
-            {
-                UniqueId = this.UniqueId,
-                Portfolio = this.Portfolio,
-                CashAccount = this.CashAccount,
-                Currency = this.Currency,
-                ValuationClass = this.ValuationClass
-            };
-        }
-
         public override string ToString()
         {
             return $"Asset:Cash {UniqueId}";
         }
+
+        public override decimal GetCount(TimeArg time)
+        {
+            return GetNominalAmount(time) != 0 ? 1 : 0;
+        }
+
+        public override double GetCouponRate(DateTime date)
+        {
+            return 0;
+        }
+
+        #region Price
+
+        public override double GetPurchasePrice(TimeArg time, bool dirty)
+        {
+            return IsActive(time) ? 1 : 0;
+        }
+
+        public override double GetMarketPrice(TimeArg time, bool dirty)
+        {
+            return IsActive(time) ? 1 : 0;
+        }
+
+        public override double GetAmortizedCostPrice(TimeArg time, bool dirty)
+        {
+            return IsActive(time) ? 1 : 0;
+        }
+        public override decimal GetAccruedInterest(DateTime date)
+        {
+            return 0;
+        }
+
+        #endregion
+
+        #region Asset amount
+
+        public override decimal GetNominalAmount(TimeArg time)
+        {
+            decimal amount = 0;
+            foreach (Events.Event e in GetEvents(time))
+            {
+                if (e.Direction == Venture.Events.PaymentDirection.Inflow) amount += e.Amount;
+                if (e.Direction == Venture.Events.PaymentDirection.Outflow) amount -= e.Amount;
+            }
+            return Math.Round(amount, 2);
+        }
+
+        public override decimal GetInterestAmount(TimeArg time)
+        {
+            return 0;
+        }
+
+        public override decimal GetPurchaseAmount(TimeArg time, bool dirty)
+        {
+            return GetNominalAmount(time);
+        }
+
+        public override decimal GetMarketValue(TimeArg time, bool dirty)
+        {
+            return Math.Round((decimal)GetMarketPrice(time, dirty) * GetNominalAmount(time), 2);
+        }
+
+        public override decimal GetAmortizedCostValue(TimeArg time, bool dirty)
+        {
+            return Math.Round((decimal)GetAmortizedCostPrice(time, dirty) * GetNominalAmount(time), 2);
+        }
+
+        #endregion
     }
 }

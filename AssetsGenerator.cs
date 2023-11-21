@@ -23,8 +23,6 @@ namespace Budziszewski.Venture
                 // Go through pending events that come before (influence) current transaction - e.g. dividends, coupons that may add new cash
                 foreach (var ev in events.Where(x => x.Timestamp <= tr.SettlementDate))
                 {
-                    //var index = output.FindIndex(x => x.Events.First().Timestamp > ev.Timestamp);
-                    //output.Insert(index == -1 ? output.Count : index, new Cash(ev));
                     AddAsset(output, new Cash(ev), ev.Timestamp);
                     events.Remove(ev);
                 }
@@ -38,17 +36,38 @@ namespace Budziszewski.Venture
                         AddAsset(output, new Cash(tr), tr.SettlementDate);
                     }
                     // Register cash deduction
-                    if (!String.IsNullOrEmpty(tr.AccountSrc)) RegisterCashDeduction(null);
+                    if (!String.IsNullOrEmpty(tr.AccountSrc))
+                    {
+                        RegisterCashDeduction(output, tr);
+                    }
                 }
             }
 
             return output;
         }
 
-        public static Assets.Cash RegisterCashDeduction(Data.Transaction tr)
+        public static void RegisterCashDeduction(List<Assets.Asset> list, Data.Transaction tr)
         {
             if (tr.TransactionType != Data.TransactionType.Cash) throw new ArgumentException("RegisterCashDeduction was called for transaction type other than cash transaction.");
-            return null;
+
+            decimal remainingAmount = tr.NominalAmount;
+
+            var cash = list.OfType<Cash>().Where(x => x.Currency == tr.Currency && x.CashAccount == tr.AccountSrc && x.Portfolio == tr.PortfolioSrc).OrderBy(y => y.Index);
+            foreach (var c in cash)
+            {
+                var currentAmount = c.GetNominalAmount(new TimeArg(TimeArgDirection.Start, tr.SettlementDate, tr.Index));
+                if (currentAmount == 0) continue;
+                var evt = new Events.Payment(c, tr, Math.Min(currentAmount, remainingAmount), Events.PaymentDirection.Outflow);
+                c.AddEvent(evt);
+                remainingAmount -= evt.Amount;
+                if (remainingAmount <= 0) break;
+            }
+
+            if (remainingAmount > 0)
+            {
+                //Log.Report(Severity.Error, "No possible source for cash deduction.", e);
+                throw new Exception($"No possible source for cash deduction: {tr}.");
+            }
         }
 
         public static void AddAsset(List<Assets.Asset> list, Assets.Asset asset, DateTime timestamp)
