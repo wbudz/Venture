@@ -1,4 +1,5 @@
 ﻿using Budziszewski.Venture.Assets;
+using Budziszewski.Venture.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,6 +29,33 @@ namespace Budziszewski.Venture
                 }
 
                 // Process the transaction
+                if (tr.TransactionType == Data.TransactionType.Buy)
+                {
+                    var security = Data.Definitions.Instruments.FirstOrDefault(x => x.InstrumentId == tr.InstrumentId);
+                    if (security == null) throw new Exception("Purchase transaction definition pointed to unknown instrument id.");
+
+                    Asset asset;
+                    DateTime date;
+                    switch (security.InstrumentType)
+                    {
+                        case InstrumentType.Undefined: throw new Exception("Tried creating asset with undefined instrument type.");
+                        case InstrumentType.Cash: throw new Exception("Tried creating asset with purchase transaction and cash instrument type.");
+                        case InstrumentType.Equity: asset = new Assets.Equity(tr, security); date = tr.TradeDate; break;
+                        case InstrumentType.Bond: throw new NotImplementedException();
+                        case InstrumentType.ETF: throw new NotImplementedException();
+                        case InstrumentType.Fund: throw new NotImplementedException();
+                        case InstrumentType.Futures: throw new NotImplementedException();
+                        default: throw new Exception("Tried creating asset with unknown instrument type.");
+                    }
+
+                    AddAsset(output, asset, date);
+                        //if (transaction.TradeDate != transaction.SettlementDate)
+                        //{
+                        //    RegisterPayable(new Events.Inflow(transaction, false), new Events.Outflow(transaction, true)); // create payable if necessary
+                        //}
+                    // Subtract cash used for purchase
+                    RegisterCashDeduction(output, tr);
+                }
                 if (tr.TransactionType == Data.TransactionType.Cash)
                 {
                     // Register cash addition
@@ -43,16 +71,26 @@ namespace Budziszewski.Venture
                 }
             }
 
+            Common.RefreshReportingYears();
             return output;
         }
 
         public static void RegisterCashDeduction(List<Assets.Asset> list, Data.Transaction tr)
         {
-            if (tr.TransactionType != Data.TransactionType.Cash) throw new ArgumentException("RegisterCashDeduction was called for transaction type other than cash transaction.");
+            decimal remainingAmount = tr.Amount + tr.Fee;
 
-            decimal remainingAmount = tr.NominalAmount;
+            string portfolio = "";
+            switch (tr.TransactionType)
+            {
+                case TransactionType.Undefined: throw new Exception("Tried deducting cash with undefined transaction type.");
+                case TransactionType.Buy: portfolio = tr.PortfolioDst; break;
+                case TransactionType.Sell: throw new Exception("Tried deducting cash with sale transaction type.");
+                case TransactionType.Cash: portfolio = tr.PortfolioSrc; break;
+                default: throw new Exception("Tried deducting cash with unknown transaction type.");
+            }
+            if (String.IsNullOrEmpty(portfolio)) throw new Exception("Portfolio not specified for cash deduction.");
 
-            var cash = list.OfType<Cash>().Where(x => x.Currency == tr.Currency && x.CashAccount == tr.AccountSrc && x.Portfolio == tr.PortfolioSrc).OrderBy(y => y.Index);
+            var cash = list.OfType<Cash>().Where(x => x.Currency == tr.Currency && x.CashAccount == tr.AccountSrc && x.Portfolio == portfolio);
             foreach (var c in cash)
             {
                 var currentAmount = c.GetNominalAmount(new TimeArg(TimeArgDirection.Start, tr.SettlementDate, tr.Index));

@@ -58,5 +58,17 @@ namespace Budziszewski.Venture.Properties {
                 this["TransactionsSource"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("input\\dividends.csv")]
+        public string DividendsSource {
+            get {
+                return ((string)(this["DividendsSource"]));
+            }
+            set {
+                this["DividendsSource"] = value;
+            }
+        }
     }
 }

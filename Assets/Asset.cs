@@ -20,7 +20,13 @@ namespace Budziszewski.Venture.Assets
         /// Unique identifier of the asset. Based on identifier of the transaction that results in asset creation.
         /// Includes: date, ticker, transaction index - depending on the asset type.
         /// </summary>
-        public string UniqueId { get; protected set; } = "";
+        public string UniqueId
+        {
+            get
+            {
+                return $"{AssetType}_{GetPurchaseDate():yyyy-MM-dd}_{Index}_{Portfolio}_{CustodyAccount ?? CashAccount ?? ""}_{GetNominalAmount()}_{Guid.NewGuid()}";
+            }
+        }
 
         public string AssetType
         {
@@ -29,11 +35,6 @@ namespace Budziszewski.Venture.Assets
                 return GetType().Name;
             }
         }
-
-        /// <summary>
-        /// Underlying security (where applicable).
-        /// </summary>
-        //public Data.Instrument? Security { get; protected set; } = null;
 
         /// <summary>
         /// Portfolio which the investment belongs to.
@@ -63,22 +64,15 @@ namespace Budziszewski.Venture.Assets
         /// </summary>
         public ValuationClass ValuationClass { get; protected set; } = ValuationClass.AvailableForSale;
 
+        protected (DateTime startDate, int startIndex, DateTime endDate, int endIndex) bounds;
+
+        public DateTime BoundsStart { get { return bounds.startDate; } }
+
+        public DateTime BoundsEnd { get { return bounds.endDate; } }
+
         public Asset(Data.Transaction tr)
         {
             Index = tr.Index;
-            if (tr.TransactionType == Data.TransactionType.Cash)
-            {
-
-            }
-            else if (tr.TransactionType == Data.TransactionType.Buy)
-            {
-
-            }
-            else if (tr.TransactionType == Data.TransactionType.Sell)
-            {
-
-            }
-            else throw new ArgumentException("An attempt to create a new Asset was made but transaction type is unknown.");
         }
 
         public Asset()
@@ -90,6 +84,8 @@ namespace Budziszewski.Venture.Assets
         /// Generates events resulting from cashflow occurences, i.e. redemptions, coupons, dividends, etc.
         /// </summary>
         protected abstract void GenerateFlows();
+
+        protected abstract void RecalculateBounds();
 
         public AssetsViewEntry GenerateAssetViewEntry(DateTime date)
         {
@@ -108,7 +104,7 @@ namespace Budziszewski.Venture.Assets
                 AmortizedCostValue = this.GetAmortizedCostValue(time, true),
                 MarketValue = this.GetMarketValue(time, true),
                 AccruedInterest = this.GetAccruedInterest(date),
-                Events = new System.Collections.ObjectModel.ObservableCollection<Events.Event>(this.Events)
+                Events = new System.Collections.ObjectModel.ObservableCollection<Events.Event>(this.GetEvents(time))
             };
         }
 
@@ -116,6 +112,7 @@ namespace Budziszewski.Venture.Assets
         {
             var index = events.FindIndex(x => x.Timestamp > e.Timestamp);
             events.Insert(index == -1 ? events.Count : index, e);
+            RecalculateBounds();
         }
 
         /// <summary>
@@ -123,7 +120,52 @@ namespace Budziszewski.Venture.Assets
         /// </summary>
         public bool IsActive(TimeArg time)
         {
-            return GetCount(time) != 0;
+            if (time.Date < bounds.startDate) return false;
+            if (time.Date > bounds.endDate) return false;
+            if (time.Date > bounds.startDate && time.Date < bounds.endDate) return true;
+
+            bool afterStart = time.Date > bounds.startDate;
+            bool beforeEnd = time.Date < bounds.endDate;
+
+            if (time.Date == bounds.startDate)
+            {
+                if (time.TransactionIndex == -1)
+                {
+                    if (time.Direction == TimeArgDirection.Start) afterStart = false;
+                    if (time.Direction == TimeArgDirection.End) afterStart = true;
+                }
+                else
+                {
+                    if (time.TransactionIndex < bounds.startIndex) afterStart = false;
+                    if (time.TransactionIndex > bounds.startIndex) afterStart = true;
+                    if (time.TransactionIndex == bounds.startIndex)
+                    {
+                        if (time.Direction == TimeArgDirection.Start) afterStart = false;
+                        if (time.Direction == TimeArgDirection.End) afterStart = true;
+                    }
+                }
+            }
+
+            if (time.Date == bounds.endDate)
+            {
+                if (time.TransactionIndex == -1)
+                {
+                    if (time.Direction == TimeArgDirection.Start) beforeEnd = true;
+                    if (time.Direction == TimeArgDirection.End) beforeEnd = false;
+                }
+                else
+                {
+                    if (time.TransactionIndex < bounds.startIndex) beforeEnd = true;
+                    if (time.TransactionIndex > bounds.startIndex) beforeEnd = false;
+                    if (time.TransactionIndex == bounds.startIndex)
+                    {
+                        if (time.Direction == TimeArgDirection.Start) beforeEnd = true;
+                        if (time.Direction == TimeArgDirection.End) beforeEnd = false;
+                    }
+                }
+            }
+
+            return afterStart && beforeEnd;
         }
 
         public IEnumerable<Events.Event> GetEvents(TimeArg time)
@@ -172,7 +214,7 @@ namespace Budziszewski.Venture.Assets
         /// <returns>Maturity date of the investment or null if there is no maturity date (e.g. in case of equity instruments)</returns>
         public DateTime? GetMaturityDate()
         {
-            return events.OfType<Events.Flow>().LastOrDefault(x => x.Type == Venture.Events.FlowType.Redemption)?.Timestamp;
+            return events.OfType<Events.Flow>().LastOrDefault(x => x.FlowType == Venture.Events.FlowType.Redemption)?.Timestamp;
         }
 
         /// <summary>
@@ -182,7 +224,7 @@ namespace Budziszewski.Venture.Assets
         /// <returns>Date of the next coupon or null if there is no next coupon date (e.g. in case of equity instruments)</returns>
         public DateTime? GetNextCouponDate(DateTime date)
         {
-            return events.OfType<Events.Flow>().FirstOrDefault(x => x.Timestamp > date && x.Type == Venture.Events.FlowType.Coupon || x.Type == Venture.Events.FlowType.Redemption)?.Timestamp;
+            return events.OfType<Events.Flow>().FirstOrDefault(x => x.Timestamp > date && x.FlowType == Venture.Events.FlowType.Coupon || x.FlowType == Venture.Events.FlowType.Redemption)?.Timestamp;
         }
 
         /// <summary>
@@ -197,7 +239,7 @@ namespace Budziszewski.Venture.Assets
         /// </summary>
         /// <param name="date">The date at which coupon rate is given, if no coupon falls on the given date, then the next coupon is given</param>
         /// <returns>Coupon rate</returns>
-        public abstract double GetCouponRate(DateTime date);
+        public abstract decimal GetCouponRate(DateTime date);
 
         #region Price
 
@@ -207,7 +249,7 @@ namespace Budziszewski.Venture.Assets
         /// <param name="time">Time at which price is given (it matters for average cost expense method where there could be multiple purchases)</param>
         /// <param name="dirty">If true, dirty price (including interest) will be given</param>
         /// <returns>Purchase price of the investment</returns>
-        public abstract double GetPurchasePrice(TimeArg time, bool dirty);
+        public abstract decimal GetPurchasePrice(TimeArg time, bool dirty);
 
         /// <summary>
         /// Gets market price of the investment, i.e. price taken from an active market or equivalent. If no market price is available at the given date:
@@ -219,7 +261,7 @@ namespace Budziszewski.Venture.Assets
         /// <param name="time">Time at which price is given</param>
         /// <param name="dirty">If true, dirty price (including interest) will be given</param>
         /// <returns>Market price of the investment</returns>
-        public abstract double GetMarketPrice(TimeArg time, bool dirty);
+        public abstract decimal GetMarketPrice(TimeArg time, bool dirty);
 
         /// <summary>
         /// Gets amortized cost price of the investment, i.e. purchase price modified if applicable by change of valuation resulting from passing of time, calculated using internal rate of return (effective rate).
@@ -227,7 +269,7 @@ namespace Budziszewski.Venture.Assets
         /// <param name="time">Time at which price is given</param>
         /// <param name="dirty">If true, dirty price (including interest) will be given</param>
         /// <returns>Amortized cost price of the investment</returns>
-        public abstract double GetAmortizedCostPrice(TimeArg time, bool dirty);
+        public abstract decimal GetAmortizedCostPrice(TimeArg time, bool dirty);
 
         #endregion
 
@@ -243,6 +285,8 @@ namespace Budziszewski.Venture.Assets
         /// <param name="time">Time at which amount is given</param>
         /// <returns>Nominal amount of the investment</returns>
         public abstract decimal GetNominalAmount(TimeArg time);
+
+        public abstract decimal GetNominalAmount();
 
         /// <summary>
         /// Gets amount of accrued interest of the investment.

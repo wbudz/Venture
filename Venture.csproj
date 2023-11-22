@@ -24,6 +24,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="input\dividends.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="input\instruments.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

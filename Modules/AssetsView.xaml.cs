@@ -35,6 +35,7 @@ namespace Budziszewski.Venture.Modules
             AssetEntries.Clear();
             foreach (var asset in Common.Assets)
             {
+                if (!asset.IsActive(new TimeArg(TimeArgDirection.End, Common.CurrentDate))) continue;
                 AssetEntries.Add(asset.GenerateAssetViewEntry(Common.CurrentDate));
             }
         }
@@ -53,7 +54,7 @@ namespace Budziszewski.Venture.Modules
         {
             try
             {
-                int year = YearComboBox?.SelectedItem != null ? Int32.Parse(YearComboBox.SelectedItem?.ToString()?? "") : DateTime.Now.Year;
+                int year = YearComboBox?.SelectedItem != null ? Int32.Parse(YearComboBox.SelectedItem?.ToString() ?? "") : DateTime.Now.Year;
                 int month = MonthComboBox?.SelectedItem != null ? Int32.Parse(MonthComboBox.SelectedItem?.ToString() ?? "") : 12;
                 DateTime date = new DateTime(year, month, 1);
                 date = Financial.Calendar.GetEndDate(date, Financial.Calendar.TimeStep.Monthly);

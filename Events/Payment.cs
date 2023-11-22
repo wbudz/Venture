@@ -12,8 +12,6 @@ namespace Budziszewski.Venture.Events
     {
         public Payment(Assets.Asset parentAsset, Data.Transaction tr, decimal amount, PaymentDirection direction) : base(parentAsset)
         {
-            if (tr.TransactionType != Data.TransactionType.Cash) throw new ArgumentException("An attempt was made to create Payment event with transaction type other than Cash.");
-
             Direction = direction;
             TransactionIndex = tr.Index;
             Timestamp = tr.SettlementDate;

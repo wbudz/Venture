@@ -15,12 +15,14 @@ namespace Budziszewski.Venture.Data
         public static ObservableCollection<Price> Prices = new ObservableCollection<Price>();
         public static ObservableCollection<Instrument> Instruments = new ObservableCollection<Instrument>();
         public static ObservableCollection<Transaction> Transactions = new ObservableCollection<Transaction>();
+        public static ObservableCollection<Dividend> Dividends = new ObservableCollection<Dividend>();
 
         public static void Load()
         {
             Prices.Clear();
             Instruments.Clear();
             Transactions.Clear();
+            Dividends.Clear();
 
             CSV csv = new CSV(Properties.Settings.Default.PricesSource);
             csv.Read();
@@ -41,6 +43,13 @@ namespace Budziszewski.Venture.Data
             foreach (var item in csv.Interpret<Transaction>().ToArray())
             {
                 Transactions.Add(item);
+            }
+
+            csv = new CSV(Properties.Settings.Default.DividendsSource);
+            csv.Read();
+            foreach (var item in csv.Interpret<Dividend>().ToArray())
+            {
+                Dividends.Add(item);
             }
         }
     }

@@ -41,6 +41,7 @@ namespace Budziszewski.Venture
             if ((sender as TreeViewItem)?.Header.ToString() == "Prices") CurrentModule.Children.Add(new Modules.DefinitionsView(typeof(Data.Price)));
             if ((sender as TreeViewItem)?.Header.ToString() == "Instruments") CurrentModule.Children.Add(new Modules.DefinitionsView(typeof(Data.Instrument)));
             if ((sender as TreeViewItem)?.Header.ToString() == "Transactions") CurrentModule.Children.Add(new Modules.DefinitionsView(typeof(Data.Transaction)));
+            if ((sender as TreeViewItem)?.Header.ToString() == "Dividends") CurrentModule.Children.Add(new Modules.DefinitionsView(typeof(Data.Dividend)));
 
             if ((sender as TreeViewItem)?.Header.ToString() == "Assets") CurrentModule.Children.Add(new Modules.AssetsView());
         }

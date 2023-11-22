@@ -48,6 +48,25 @@ namespace Budziszewski.Venture.Data
 
         public PaymentType PaymentType { get; private set; } = PaymentType.Undefined;
 
+        public decimal Amount
+        {
+            get
+            {
+                if (NominalAmount != 0 && Count != 0)
+                {
+                    return Math.Round(Price / NominalAmount * Count, 2);
+                }
+                else if (Count != 0)
+                {
+                    return Math.Round(Price * Count, 2);
+                }
+                else
+                {
+                    return Math.Round(NominalAmount, 2);
+                }
+            }
+        }
+
         public override void FromCSV(string[] headers, string[] line, int index)
         {
             Index = index + 1;

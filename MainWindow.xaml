@@ -29,6 +29,7 @@
                 <TreeViewItem Header="Prices" Selected="TreeViewItem_Selected" />
                 <TreeViewItem Header="Instruments" Selected="TreeViewItem_Selected" />
                 <TreeViewItem Header="Transactions" Selected="TreeViewItem_Selected" />
+                <TreeViewItem Header="Dividends" Selected="TreeViewItem_Selected" />
             </TreeViewItem>
             <TreeViewItem Header="Assets">
                 <TreeViewItem Header="Assets" Selected="TreeViewItem_Selected" />

@@ -11,7 +11,7 @@ namespace Budziszewski.Venture
     public class TimeArg
     {
         public TimeArgDirection Direction { get; protected set; } = TimeArgDirection.Unspecified;
-        public DateTime? Date { get; protected set; } = null;
+        public DateTime Date { get; protected set; }
         public int TransactionIndex { get; protected set; } = -1;
 
         public TimeArg(TimeArgDirection direction, DateTime date, int transactionIndex = -1)
@@ -19,6 +19,18 @@ namespace Budziszewski.Venture
             this.Direction = direction;
             this.Date = date;
             this.TransactionIndex = transactionIndex;
+        }
+
+        public override string ToString()
+        {
+            if (TransactionIndex > -1)
+            {
+                return $"TimeArg: {Direction} {Date} @ {TransactionIndex}";
+            }
+            else
+            {
+                return $"TimeArg: {Direction} {Date}";
+            }
         }
     }
 }

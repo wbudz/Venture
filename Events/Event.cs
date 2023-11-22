@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Budziszewski.Venture.Events
 {
-    public enum PaymentDirection { Unspecified, Inflow, Outflow }
+    public enum PaymentDirection { Unspecified, Neutral, Inflow, Outflow }
 
     public abstract class Event
     {
@@ -34,7 +34,9 @@ namespace Budziszewski.Venture.Events
 
         public PaymentDirection Direction { get; protected set; } = PaymentDirection.Unspecified;
 
-        public decimal Amount { get; protected set; } = 0; // coupon rate * nominal amount
+        public decimal Amount { get; protected set; } = 0;
+
+        public decimal Count { get; protected set; } = 0;
 
         public decimal FXRate { get; protected set; } = 1;
 

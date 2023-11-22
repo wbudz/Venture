@@ -11,5 +11,8 @@
     <Setting Name="TransactionsSource" Type="System.String" Scope="User">
       <Value Profile="(Default)">input\transactions.csv</Value>
     </Setting>
+    <Setting Name="DividendsSource" Type="System.String" Scope="User">
+      <Value Profile="(Default)">input\dividends.csv</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

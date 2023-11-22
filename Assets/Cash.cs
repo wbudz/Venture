@@ -12,7 +12,6 @@ namespace Budziszewski.Venture.Assets
     {
         public Cash(Data.Transaction tr) : base(tr)
         {
-            UniqueId = $"{tr.AccountDst}_{tr.SettlementDate:yyyyMMdd}_{tr.NominalAmount:0.00}";
             Portfolio = tr.PortfolioDst;
             CashAccount = tr.AccountDst;
             CustodyAccount = "";
@@ -20,13 +19,11 @@ namespace Budziszewski.Venture.Assets
             ValuationClass = ValuationClass.AvailableForSale;
 
             AddEvent(new Events.Payment(this, tr, Venture.Events.PaymentDirection.Inflow));
+            GenerateFlows();
         }
 
-        public Cash(Events.Flow fl)
+        public Cash(Events.Flow fl): base()
         {
-            UniqueId = $"{fl.ParentAsset.CashAccount}_{fl.Timestamp:yyyyMMdd}_{fl.Amount:0.00}";
-
-            UniqueId = "";
             Portfolio = fl.ParentAsset.Portfolio;
             CashAccount = fl.ParentAsset.CashAccount;
             CustodyAccount = "";
@@ -34,11 +31,38 @@ namespace Budziszewski.Venture.Assets
             ValuationClass = ValuationClass.AvailableForSale;
 
             AddEvent(new Events.Payment(this, fl, Venture.Events.PaymentDirection.Inflow));
+            GenerateFlows();
         }
 
         protected override void GenerateFlows()
         {
             // No events to be generated.
+        }
+
+        protected override void RecalculateBounds()
+        {
+            decimal amount = 0;
+            foreach (Events.Event e in Events)
+            {
+                if (e.Direction == Venture.Events.PaymentDirection.Inflow)
+                {
+                    amount = e.Amount;
+                    bounds.startDate = e.Timestamp;
+                    bounds.startIndex = e.TransactionIndex;
+                }
+                if (e.Direction == Venture.Events.PaymentDirection.Outflow)
+                {
+                    amount -= e.Amount;
+                    if (amount <= 0)
+                    {
+                        bounds.endDate = e.Timestamp;
+                        bounds.endIndex = e.TransactionIndex;
+                        return;
+                    }
+                }
+            }
+            bounds.endDate = Common.FinalDate;
+            bounds.endIndex = -1;
         }
 
         public override string ToString()
@@ -48,27 +72,27 @@ namespace Budziszewski.Venture.Assets
 
         public override decimal GetCount(TimeArg time)
         {
-            return GetNominalAmount(time) != 0 ? 1 : 0;
+            return 0;
         }
 
-        public override double GetCouponRate(DateTime date)
+        public override decimal GetCouponRate(DateTime date)
         {
             return 0;
         }
 
         #region Price
 
-        public override double GetPurchasePrice(TimeArg time, bool dirty)
+        public override decimal GetPurchasePrice(TimeArg time, bool dirty)
         {
             return IsActive(time) ? 1 : 0;
         }
 
-        public override double GetMarketPrice(TimeArg time, bool dirty)
+        public override decimal GetMarketPrice(TimeArg time, bool dirty)
         {
             return IsActive(time) ? 1 : 0;
         }
 
-        public override double GetAmortizedCostPrice(TimeArg time, bool dirty)
+        public override decimal GetAmortizedCostPrice(TimeArg time, bool dirty)
         {
             return IsActive(time) ? 1 : 0;
         }
@@ -83,6 +107,8 @@ namespace Budziszewski.Venture.Assets
 
         public override decimal GetNominalAmount(TimeArg time)
         {
+            if (!IsActive(time)) return 0;
+
             decimal amount = 0;
             foreach (Events.Event e in GetEvents(time))
             {
@@ -90,6 +116,11 @@ namespace Budziszewski.Venture.Assets
                 if (e.Direction == Venture.Events.PaymentDirection.Outflow) amount -= e.Amount;
             }
             return Math.Round(amount, 2);
+        }
+
+        public override decimal GetNominalAmount()
+        {
+            return Events.Where(x=>x.Direction==Venture.Events.PaymentDirection.Inflow).FirstOrDefault()?.Amount ?? 0;
         }
 
         public override decimal GetInterestAmount(TimeArg time)

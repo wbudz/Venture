@@ -17,6 +17,8 @@ namespace Budziszewski.Venture
 
         public static DateTime CurrentDate = Financial.Calendar.GetEndDate(DateTime.Now.AddMonths(-1), Financial.Calendar.TimeStep.Monthly);
 
+        public static DateTime FinalDate = Financial.Calendar.GetEndDate(DateTime.Now, Financial.Calendar.TimeStep.Yearly).AddDays(1);
+
         public static ObservableCollection<DateTime> ReportingDates = new();
 
         public static ObservableCollection<int> ReportingYears = new();
@@ -27,8 +29,26 @@ namespace Budziszewski.Venture
 
         public static void RefreshReportingYears()
         {
+            DateTime start = CurrentDate;
+            DateTime end = CurrentDate;
+
+            foreach (var asset in Assets)
+            {
+                if (asset.BoundsStart < start) start = asset.BoundsStart;
+                if (asset.BoundsEnd > end) end = asset.BoundsEnd;
+            }
+
+            start = Financial.Calendar.GetEndDate(start.AddMonths(-1), Financial.Calendar.TimeStep.Monthly);
+            end = Financial.Calendar.GetEndDate(end, Financial.Calendar.TimeStep.Yearly);
+
+            FinalDate = end.AddDays(1);
+
             ReportingDates.Clear();
-            ReportingDates.Add(CurrentDate);
+            foreach (var date in Financial.Calendar.GenerateReportingDates(start, end, Financial.Calendar.TimeStep.Monthly))
+            {
+                ReportingDates.Add(date);
+            }
+
             ReportingYears.Clear();
             foreach (var year in ReportingDates.Select(x => x.Year).Distinct().Order())
             {
