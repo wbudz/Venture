@@ -36,6 +36,8 @@ namespace Budziszewski.Venture.Modules
             foreach (var asset in Common.Assets)
             {
                 if (!asset.IsActive(new TimeArg(TimeArgDirection.End, Common.CurrentDate))) continue;
+                if (PortfolioComboBox.SelectedItem.ToString() != "*" && PortfolioComboBox.SelectedItem.ToString() != asset.Portfolio) continue;
+                if (BrokerComboBox.SelectedItem.ToString() != "*" && BrokerComboBox.SelectedItem.ToString() != asset.Broker) continue;
                 AssetEntries.Add(asset.GenerateAssetViewEntry(Common.CurrentDate));
             }
         }
@@ -50,24 +52,9 @@ namespace Budziszewski.Venture.Modules
             Refresh();
         }
 
-        private void DateComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            try
-            {
-                int year = YearComboBox?.SelectedItem != null ? Int32.Parse(YearComboBox.SelectedItem?.ToString() ?? "") : DateTime.Now.Year;
-                int month = MonthComboBox?.SelectedItem != null ? Int32.Parse(MonthComboBox.SelectedItem?.ToString() ?? "") : 12;
-                DateTime date = new DateTime(year, month, 1);
-                date = Financial.Calendar.GetEndDate(date, Financial.Calendar.TimeStep.Monthly);
-                Common.CurrentDate = date;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error setting current date: {ex}.");
-            }
-            finally
-            {
-                Refresh();
-            }
+            Refresh();
         }
     }
 }

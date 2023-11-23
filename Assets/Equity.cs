@@ -12,7 +12,7 @@ namespace Budziszewski.Venture.Assets
     {
         public Equity(Data.Transaction tr, Data.Instrument definition) : base(tr, definition)
         {
-            AddEvent(new Events.Purchase(this, tr));
+            AddEvent(new Events.Purchase(this, tr, definition.RecognitionOnTradeDate ? tr.TradeDate : tr.SettlementDate));
             GenerateFlows();
         }
 
@@ -69,7 +69,15 @@ namespace Budziszewski.Venture.Assets
 
         public override decimal GetNominalAmount()
         {
-            return Events.OfType<Events.Purchase>().FirstOrDefault()?.Amount ?? 0;
+            var evt = Events.OfType<Events.Purchase>().FirstOrDefault();
+            if (evt!=null)
+            {
+                return GetNominalAmount(new TimeArg(TimeArgDirection.End, evt.Timestamp, evt.TransactionIndex));
+            }
+            else
+            {
+                return 0;
+            }
         }
 
         public override decimal GetInterestAmount(TimeArg time)
@@ -79,7 +87,7 @@ namespace Budziszewski.Venture.Assets
 
         public override decimal GetPurchaseAmount(TimeArg time, bool dirty)
         {
-            return Math.Round(GetPurchasePrice(time, dirty) * GetCount(time),2);
+            return Math.Round(GetPurchasePrice(time, dirty) * GetCount(time), 2);
         }
 
         public override decimal GetMarketValue(TimeArg time, bool dirty)

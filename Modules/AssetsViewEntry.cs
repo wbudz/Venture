@@ -33,6 +33,12 @@ namespace Budziszewski.Venture.Modules
 
         public decimal AccruedInterest { get; set; } = 0;
 
-        public ObservableCollection<Events.Event> Events { get; set; } = new ObservableCollection<Events.Event>();
+        public ObservableCollection<Events.Purchase> Purchases { get; set; } = new ObservableCollection<Events.Purchase>();
+
+        public ObservableCollection<Events.Sale> Sales { get; set; } = new ObservableCollection<Events.Sale>();
+
+        public ObservableCollection<Events.Flow> Flows { get; set; } = new ObservableCollection<Events.Flow>();
+
+        public ObservableCollection<Events.Payment> Payments { get; set; } = new ObservableCollection<Events.Payment>();
     }
 }

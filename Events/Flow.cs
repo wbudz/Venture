@@ -18,7 +18,6 @@ namespace Budziszewski.Venture.Events
 
         public Flow(Assets.Asset parentAsset, DateTime timestamp, FlowType type, decimal amount, decimal fxRate) : base(parentAsset)
         {
-            Direction = PaymentDirection.Inflow;
             Timestamp = timestamp;
             FlowType = type;
             Amount = amount;

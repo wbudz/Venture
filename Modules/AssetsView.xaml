@@ -18,30 +18,22 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="26"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="*" MinHeight="100"/>
             <RowDefinition Height="5"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="*" MinHeight="100"/>
         </Grid.RowDefinitions>
         <ToolBar Template="{DynamicResource ToolBarTemplate}" Height="26" VerticalAlignment="Top" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" ItemsSource="{Binding Mode=OneWay}">
             <ToolBar.Items>
                 <Button x:Name="RefreshButton" Content="Refresh" Click="RefreshButton_Click" />
                 <Separator />
-                <TextBlock TextWrapping="Wrap" Text="Date" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5,0,5,0"/>
-                <ComboBox x:Name="YearComboBox" HorizontalAlignment="Left" VerticalAlignment="Center" Width="80" ItemsSource="{x:Static local:Common.ReportingYears}" SelectedIndex="0" SelectionChanged="DateComboBox_SelectionChanged"/>
-                <ComboBox x:Name="MonthComboBox" HorizontalAlignment="Left" VerticalAlignment="Center" Width="50" SelectedIndex="11" SelectionChanged="DateComboBox_SelectionChanged">
-                    <sys:Int32>1</sys:Int32>
-                    <sys:Int32>2</sys:Int32>
-                    <sys:Int32>3</sys:Int32>
-                    <sys:Int32>4</sys:Int32>
-                    <sys:Int32>5</sys:Int32>
-                    <sys:Int32>6</sys:Int32>
-                    <sys:Int32>7</sys:Int32>
-                    <sys:Int32>8</sys:Int32>
-                    <sys:Int32>9</sys:Int32>
-                    <sys:Int32>10</sys:Int32>
-                    <sys:Int32>11</sys:Int32>
-                    <sys:Int32>12</sys:Int32>
-                </ComboBox>
+                <TextBlock Text="Date" VerticalAlignment="Center" Margin="5,0,5,0"/>
+                <ComboBox x:Name="YearComboBox" VerticalAlignment="Center" Width="80" DataContext="{Binding Mode=OneWay, Source={StaticResource Filters}}" ItemsSource="{Binding ReportingYears}" SelectedItem="{Binding CurrentYear}" SelectionChanged="ComboBox_SelectionChanged" />
+                <ComboBox x:Name="MonthComboBox" VerticalAlignment="Center" Width="50" DataContext="{Binding Mode=OneWay, Source={StaticResource Filters}}" ItemsSource="{Binding ReportingMonths}" SelectedItem="{Binding CurrentMonth}" SelectionChanged="ComboBox_SelectionChanged" />
+                <Separator />
+                <TextBlock Text="Portfolio" VerticalAlignment="Center" Margin="5,0,5,0"/>
+                <ComboBox x:Name="PortfolioComboBox" VerticalAlignment="Center" Width="80" DataContext="{Binding Mode=OneWay, Source={StaticResource Filters}}" ItemsSource="{Binding Portfolios}" SelectedItem="{Binding CurrentPortfolio}" SelectionChanged="ComboBox_SelectionChanged" />
+                <TextBlock Text="Broker" VerticalAlignment="Center" Margin="5,0,5,0"/>
+                <ComboBox x:Name="BrokerComboBox" VerticalAlignment="Center" Width="80" DataContext="{Binding Mode=OneWay, Source={StaticResource Filters}}" ItemsSource="{Binding Brokers}" SelectedItem="{Binding CurrentBroker}" SelectionChanged="ComboBox_SelectionChanged" />
             </ToolBar.Items>
         </ToolBar>
         <ListView x:Name="lvAssets" 
@@ -49,25 +41,35 @@
                   View="{Binding Mode=OneWay, Source={StaticResource AssetsGridView}}" 
                   Grid.Row="1"/>
         <GridSplitter Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Center" Grid.Row="2" />
-        <TabControl Grid.Row="3" >
-            <TabItem Header="Events" IsSelected="True">
-                <ListView x:Name="lvEvents" 
-                      ItemsSource="{Binding Events}" 
+        <TabControl Grid.Row="3">
+            <TabItem Header="Purchase" IsSelected="True">
+                <ListView
+                      ItemsSource="{Binding Purchases}" 
                       DataContext="{Binding SelectedItem, ElementName=lvAssets}" 
-                      View="{Binding Mode=OneWay, Source={StaticResource EventsGridView}}" 
-                      Grid.Row="1" 
+                      View="{Binding Mode=OneWay, Source={StaticResource PurchasesGridView}}"
+                      VerticalAlignment="Stretch"/>
+            </TabItem>
+            <TabItem Header="Sales">
+                <ListView
+                      ItemsSource="{Binding Sales}" 
+                      DataContext="{Binding SelectedItem, ElementName=lvAssets}" 
+                      View="{Binding Mode=OneWay, Source={StaticResource SalesGridView}}"
+                      VerticalAlignment="Stretch"/>
+            </TabItem>
+            <TabItem Header="Flows">
+                <ListView
+                      ItemsSource="{Binding Flows}" 
+                      DataContext="{Binding SelectedItem, ElementName=lvAssets}" 
+                      View="{Binding Mode=OneWay, Source={StaticResource FlowsGridView}}"
+                      VerticalAlignment="Stretch"/>
+            </TabItem>
+            <TabItem Header="Payments">
+                <ListView
+                      ItemsSource="{Binding Payments}" 
+                      DataContext="{Binding SelectedItem, ElementName=lvAssets}" 
+                      View="{Binding Mode=OneWay, Source={StaticResource PaymentsGridView}}"
                       VerticalAlignment="Stretch"/>
             </TabItem>
         </TabControl>
-        <!--<Grid Grid.Row="3" >
-            <Grid.RowDefinitions>
-                <RowDefinition Height="20"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-            <Grid Grid.Row="0" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" VerticalAlignment="Stretch">
-                <TextBlock HorizontalAlignment="Left" Margin="10,0,0,0" TextWrapping="Wrap" Text="Events:" VerticalAlignment="Center"/>
-            </Grid>
-            
-        </Grid>-->
     </Grid>
 </UserControl>

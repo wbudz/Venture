@@ -8,19 +8,27 @@ namespace Budziszewski.Venture.Events
 {
     public class Sale: Event
     {
+        public decimal Count { get; protected set; } = 0;
+
         public decimal Price { get; protected set; } = 0;
 
-        public Sale(Assets.Asset parentAsset, Data.Transaction tr, decimal amount) : base(parentAsset)
+        public Sale(Assets.Asset parentAsset, Data.Transaction tr, decimal count, DateTime date) : base(parentAsset)
         {
             ParentAsset = parentAsset;
 
-            Direction = PaymentDirection.Outflow;
             TransactionIndex = tr.Index;
-            Timestamp = tr.SettlementDate;
-            FXRate = tr.FXRate;
+            Timestamp = date;
             Price = tr.Price;
-            Count = tr.Count;
-            Amount = amount;
+            Count = count;
+            if (tr.NominalAmount != 0)
+            {
+                Amount = tr.Price * tr.Count / tr.NominalAmount;
+            }
+            else
+            {
+                Amount = tr.Price * tr.Count;
+            }
+            FXRate = tr.FXRate;
         }
     }
 }

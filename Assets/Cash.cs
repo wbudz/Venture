@@ -42,26 +42,26 @@ namespace Budziszewski.Venture.Assets
         protected override void RecalculateBounds()
         {
             decimal amount = 0;
-            foreach (Events.Event e in Events)
+            foreach (Events.Payment p in Events.OfType<Events.Payment>())
             {
-                if (e.Direction == Venture.Events.PaymentDirection.Inflow)
+                if (p.Direction == Venture.Events.PaymentDirection.Inflow)
                 {
-                    amount = e.Amount;
-                    bounds.startDate = e.Timestamp;
-                    bounds.startIndex = e.TransactionIndex;
+                    amount = p.Amount;
+                    bounds.startDate = p.Timestamp;
+                    bounds.startIndex = p.TransactionIndex;
                 }
-                if (e.Direction == Venture.Events.PaymentDirection.Outflow)
+                if (p.Direction == Venture.Events.PaymentDirection.Outflow)
                 {
-                    amount -= e.Amount;
+                    amount -= p.Amount;
                     if (amount <= 0)
                     {
-                        bounds.endDate = e.Timestamp;
-                        bounds.endIndex = e.TransactionIndex;
+                        bounds.endDate = p.Timestamp;
+                        bounds.endIndex = p.TransactionIndex;
                         return;
                     }
                 }
             }
-            bounds.endDate = Common.FinalDate;
+            bounds.endDate = Common.FinalDate.AddDays(1);
             bounds.endIndex = -1;
         }
 
@@ -110,17 +110,17 @@ namespace Budziszewski.Venture.Assets
             if (!IsActive(time)) return 0;
 
             decimal amount = 0;
-            foreach (Events.Event e in GetEvents(time))
+            foreach (Events.Payment p in Events.OfType<Events.Payment>())
             {
-                if (e.Direction == Venture.Events.PaymentDirection.Inflow) amount += e.Amount;
-                if (e.Direction == Venture.Events.PaymentDirection.Outflow) amount -= e.Amount;
+                if (p.Direction == Venture.Events.PaymentDirection.Inflow) amount += p.Amount;
+                if (p.Direction == Venture.Events.PaymentDirection.Outflow) amount -= p.Amount;
             }
             return Math.Round(amount, 2);
         }
 
         public override decimal GetNominalAmount()
         {
-            return Events.Where(x=>x.Direction==Venture.Events.PaymentDirection.Inflow).FirstOrDefault()?.Amount ?? 0;
+            return Events.OfType<Events.Payment>().Where(x=>x.Direction==Venture.Events.PaymentDirection.Inflow).FirstOrDefault()?.Amount ?? 0;
         }
 
         public override decimal GetInterestAmount(TimeArg time)

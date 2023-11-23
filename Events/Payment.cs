@@ -10,6 +10,8 @@ namespace Budziszewski.Venture.Events
 
     public class Payment: Event
     {
+        public PaymentDirection Direction { get; protected set; } = PaymentDirection.Unspecified;
+
         public Payment(Assets.Asset parentAsset, Data.Transaction tr, decimal amount, PaymentDirection direction) : base(parentAsset)
         {
             Direction = direction;

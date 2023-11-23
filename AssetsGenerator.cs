@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Transactions;
 using System.Windows.Documents;
 
 namespace Budziszewski.Venture
@@ -49,12 +50,19 @@ namespace Budziszewski.Venture
                     }
 
                     AddAsset(output, asset, date);
-                        //if (transaction.TradeDate != transaction.SettlementDate)
-                        //{
-                        //    RegisterPayable(new Events.Inflow(transaction, false), new Events.Outflow(transaction, true)); // create payable if necessary
-                        //}
                     // Subtract cash used for purchase
                     RegisterCashDeduction(output, tr);
+                }
+                if (tr.TransactionType == Data.TransactionType.Sell)
+                {
+                    var definition = Data.Definitions.Instruments.FirstOrDefault(x => x.InstrumentId == tr.InstrumentId);
+                    if (definition == null) throw new Exception("Sale transaction definition pointed to unknown instrument id.");
+
+                    RegisterSale(output, definition, tr);
+
+                    // Add cash gained from sale
+                    AddAsset(output, new Cash(tr), definition.RecognitionOnTradeDate ? tr.TradeDate : tr.SettlementDate);
+
                 }
                 if (tr.TransactionType == Data.TransactionType.Cash)
                 {
@@ -71,7 +79,6 @@ namespace Budziszewski.Venture
                 }
             }
 
-            Common.RefreshReportingYears();
             return output;
         }
 
@@ -105,6 +112,42 @@ namespace Budziszewski.Venture
             {
                 //Log.Report(Severity.Error, "No possible source for cash deduction.", e);
                 throw new Exception($"No possible source for cash deduction: {tr}.");
+            }
+        }
+
+        public static void RegisterSale(List<Assets.Asset> list, Data.Instrument definition, Data.Transaction tr)
+        {
+            decimal remainingCount = tr.Count;
+
+            Type assetType;
+            switch (definition.InstrumentType)
+            {
+                case InstrumentType.Undefined: throw new Exception("Tried selling an asset with undefined instrument type.");
+                case InstrumentType.Cash: throw new Exception("Tried selling an asset with cash type; cash transaction should be used instead.");
+                case InstrumentType.Equity: assetType = typeof(Assets.Equity); break;
+                case InstrumentType.Bond: throw new NotImplementedException();
+                case InstrumentType.ETF: throw new NotImplementedException();
+                case InstrumentType.Fund: throw new NotImplementedException();
+                case InstrumentType.Futures: throw new NotImplementedException();
+                default: throw new Exception("Tried selling an asset with unknown instrument type.");
+            }
+            if (String.IsNullOrEmpty(tr.PortfolioSrc)) throw new Exception("Portfolio not specified for sale.");
+
+            var src = list.Where(x => x.GetType() == assetType && x.Currency == tr.Currency && x.CashAccount == tr.AccountSrc && x.Portfolio == tr.PortfolioSrc);
+
+            foreach (var s in src)
+            {
+                var currentCount = s.GetCount(new TimeArg(TimeArgDirection.Start, tr.SettlementDate, tr.Index));
+                if (currentCount == 0) continue;
+                var evt = new Events.Sale(s, tr, Math.Min(currentCount, remainingCount), definition.RecognitionOnTradeDate ? tr.TradeDate : tr.SettlementDate);
+                s.AddEvent(evt);
+                remainingCount -= evt.Count;
+                if (remainingCount <= 0) break;
+            }
+
+            if (remainingCount > 0)
+            {
+                throw new Exception($"No possible source for sale: {tr}.");
             }
         }
 

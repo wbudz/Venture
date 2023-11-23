@@ -8,19 +8,27 @@ namespace Budziszewski.Venture.Events
 {
     public class Purchase : Event
     {
+        public decimal Count { get; protected set; } = 0;
+
         public decimal Price { get; protected set; } = 0;
 
-        public Purchase(Assets.Asset parentAsset, Data.Transaction tr) : base(parentAsset)
+        public Purchase(Assets.Asset parentAsset, Data.Transaction tr, DateTime date) : base(parentAsset)
         {
             if (tr.TransactionType != Data.TransactionType.Buy) throw new ArgumentException("An attempt was made to create Purchase event with transaction type other than Buy.");
 
-            Direction = PaymentDirection.Inflow;
             TransactionIndex = tr.Index;
-            Timestamp = tr.SettlementDate;
-            FXRate = tr.FXRate;
+            Timestamp = date;
             Price = tr.Price;
             Count = tr.Count;
-            Amount = tr.Amount;
+            if (tr.NominalAmount != 0)
+            {
+                Amount = tr.Price * tr.Count / tr.NominalAmount;
+            }
+            else
+            {
+                Amount = tr.Price * tr.Count;
+            }
+            FXRate = tr.FXRate;
         }
     }
 }

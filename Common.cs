@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace Budziszewski.Venture
 {
@@ -15,19 +16,15 @@ namespace Budziszewski.Venture
     {
         public static List<Assets.Asset> Assets = new List<Assets.Asset>();
 
-        public static DateTime CurrentDate = Financial.Calendar.GetEndDate(DateTime.Now.AddMonths(-1), Financial.Calendar.TimeStep.Monthly);
+        public static FiltersViewModel FVM { get { return (FiltersViewModel)Application.Current.Resources["Filters"]; } }
+             
+        public static DateTime CurrentDate { get { return new DateTime(FVM.CurrentYear, FVM.CurrentMonth, DateTime.DaysInMonth(FVM.CurrentYear, FVM.CurrentMonth)); } }
 
-        public static DateTime FinalDate = Financial.Calendar.GetEndDate(DateTime.Now, Financial.Calendar.TimeStep.Yearly).AddDays(1);
-
-        public static ObservableCollection<DateTime> ReportingDates = new();
-
-        public static ObservableCollection<int> ReportingYears = new();
-
-        //public List<string> CustodyAccounts { get { return Assets.Select(x => x.CustodyAccount).Distinct().ToList(); } }
+        public static DateTime FinalDate { get; set; } = Financial.Calendar.GetEndDate(DateTime.Now, Financial.Calendar.TimeStep.Yearly);
 
         public static List<string> CashAccounts { get { return Assets.Select(x => x.CashAccount).Distinct().ToList(); } }
 
-        public static void RefreshReportingYears()
+        public static void RefreshCommonData()
         {
             DateTime start = CurrentDate;
             DateTime end = CurrentDate;
@@ -41,19 +38,19 @@ namespace Budziszewski.Venture
             start = Financial.Calendar.GetEndDate(start.AddMonths(-1), Financial.Calendar.TimeStep.Monthly);
             end = Financial.Calendar.GetEndDate(end, Financial.Calendar.TimeStep.Yearly);
 
-            FinalDate = end.AddDays(1);
+            FinalDate = end;
 
-            ReportingDates.Clear();
-            foreach (var date in Financial.Calendar.GenerateReportingDates(start, end, Financial.Calendar.TimeStep.Monthly))
-            {
-                ReportingDates.Add(date);
-            }
+            FVM.ReportingDates = new ObservableCollection<DateTime>(Financial.Calendar.GenerateReportingDates(start, end, Financial.Calendar.TimeStep.Monthly));
 
-            ReportingYears.Clear();
-            foreach (var year in ReportingDates.Select(x => x.Year).Distinct().Order())
-            {
-                ReportingYears.Add(year);
-            }
+            FVM.ReportingYears = new ObservableCollection<int>(FVM.ReportingDates.Select(x => x.Year).Distinct().Order());
+
+            List<string> portfolios = new List<string>() { "*" };
+            portfolios.AddRange(Assets.Select(x => x.Portfolio).Distinct().Order());
+            FVM.Portfolios = new ObservableCollection<string>(portfolios);
+
+            List<string> brokers = new List<string>() { "*" };
+            brokers.AddRange(Assets.Select(x => x.Broker).Distinct().Order());
+            FVM.Brokers = new ObservableCollection<string>(brokers);
         }
     }
 }

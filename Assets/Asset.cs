@@ -42,17 +42,25 @@ namespace Budziszewski.Venture.Assets
         public string Portfolio { get; protected set; } = "";
 
         /// <summary>
-        /// In case of securities, custody account where the instrument is kept; otherwise empty.
-        /// </summary>
-        //public string CustodyAccount { get; protected set; } = "";
-
-        /// <summary>
         /// For securities, cash account which receives potential flows; by default cash account from which the purchase was made.
         /// In case of cash instruments (e.g. deposit, cash, receivable), bank account where the cash resides or where it would flow at the maturity.
         /// </summary>
         public string CashAccount { get; protected set; } = "";
 
+        /// <summary>
+        /// In case of securities, custody account where the instrument is kept; otherwise empty.
+        /// </summary>
         public string CustodyAccount { get; protected set; } = "";
+
+        public string Broker
+        {
+            get
+            {
+                if (CustodyAccount.IndexOf(":") > 0) return CustodyAccount.Split(":")[1];
+                if (CashAccount.IndexOf(":") > 0) return CashAccount.Split(":")[1];
+                return "";
+            }
+        }
 
         /// <summary>
         /// Currency in which the investment is denominated.
@@ -90,6 +98,7 @@ namespace Budziszewski.Venture.Assets
         public AssetsViewEntry GenerateAssetViewEntry(DateTime date)
         {
             TimeArg time = new TimeArg(TimeArgDirection.End, date);
+            var events = this.GetEvents(time);
             return new AssetsViewEntry()
             {
                 UniqueId = this.UniqueId,
@@ -104,7 +113,10 @@ namespace Budziszewski.Venture.Assets
                 AmortizedCostValue = this.GetAmortizedCostValue(time, true),
                 MarketValue = this.GetMarketValue(time, true),
                 AccruedInterest = this.GetAccruedInterest(date),
-                Events = new System.Collections.ObjectModel.ObservableCollection<Events.Event>(this.GetEvents(time))
+                Purchases = new (events.OfType<Events.Purchase>()),
+                Sales = new(events.OfType<Events.Sale>()),
+                Flows = new(events.OfType<Events.Flow>()),
+                Payments = new(events.OfType<Events.Payment>())
             };
         }
 

@@ -29,22 +29,22 @@ namespace Budziszewski.Venture.Assets
 
         protected override void RecalculateBounds()
         {
-            decimal amount = 0;
+            decimal count = 0;
             foreach (Events.Event e in Events)
             {
-                if (e is Events.Purchase)
+                if (e is Events.Purchase p)
                 {
-                    amount = e.Amount;
-                    bounds.startDate = e.Timestamp;
-                    bounds.startIndex = e.TransactionIndex;
+                    count = p.Count;
+                    bounds.startDate = p.Timestamp;
+                    bounds.startIndex = p.TransactionIndex;
                 }
-                if (e is Events.Sale)
+                if (e is Events.Sale s)
                 {
-                    amount -= e.Amount;
-                    if (amount <= 0)
+                    count -= s.Count;
+                    if (count <= 0)
                     {
-                        bounds.endDate = e.Timestamp;
-                        bounds.endIndex = e.TransactionIndex;
+                        bounds.endDate = s.Timestamp;
+                        bounds.endIndex = s.TransactionIndex;
                         return;
                     }
                 }
@@ -58,7 +58,7 @@ namespace Budziszewski.Venture.Assets
                     }
                 }
             }
-            bounds.endDate = Common.FinalDate;
+            bounds.endDate = Common.FinalDate.AddDays(1);
             bounds.endIndex = -1;
         }
 
@@ -67,8 +67,8 @@ namespace Budziszewski.Venture.Assets
             decimal count = 0;
             foreach (Events.Event e in GetEvents(time))
             {
-                if (e.Direction == Venture.Events.PaymentDirection.Inflow) count += e.Count;
-                if (e.Direction == Venture.Events.PaymentDirection.Outflow) count -= e.Count;
+                if (e is Events.Purchase p) count += p.Count;
+                if (e is Events.Sale s) count -= s.Count;
                 if ((e is Events.Flow f) && f.FlowType == Venture.Events.FlowType.Redemption) count = 0;
             }
             return count;

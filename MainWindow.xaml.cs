@@ -96,7 +96,7 @@ namespace Budziszewski.Venture
             Stopwatch sw = new Stopwatch();
             sw.Start();
             Common.Assets = AssetsGenerator.GenerateAssets();
-            Common.RefreshReportingYears();
+            Common.RefreshCommonData();
             sw.Stop();
             StatusText.Text = $"Assets generation took: {(sw.ElapsedMilliseconds / 1000.0):0.000} seconds.";
         }

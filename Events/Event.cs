@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Budziszewski.Venture.Data;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -32,11 +33,7 @@ namespace Budziszewski.Venture.Events
 
         public Assets.Asset ParentAsset { get; set; }
 
-        public PaymentDirection Direction { get; protected set; } = PaymentDirection.Unspecified;
-
-        public decimal Amount { get; protected set; } = 0;
-
-        public decimal Count { get; protected set; } = 0;
+        public decimal Amount { get; set; }
 
         public decimal FXRate { get; protected set; } = 1;
 
