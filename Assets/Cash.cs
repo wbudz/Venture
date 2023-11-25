@@ -12,23 +12,36 @@ namespace Budziszewski.Venture.Assets
     {
         public Cash(Data.Transaction tr) : base(tr)
         {
-            Portfolio = tr.PortfolioDst;
+            decimal amount;
+            switch (tr.TransactionType)
+            {
+                case Data.TransactionType.Undefined: throw new Exception("Tried creating cash with undefined transaction type.");
+                case Data.TransactionType.Buy: throw new Exception("Tried creating cash with buy transaction type.");
+                case Data.TransactionType.Sell: Portfolio = tr.PortfolioSrc; amount = tr.Amount - tr.Fee; break;
+                case Data.TransactionType.Cash: Portfolio = tr.PortfolioDst; amount = tr.Amount; break;
+                default: throw new Exception("Tried creating cash with unknown transaction type.");
+            }
+            AssetType = AssetType.Cash;
             CashAccount = tr.AccountDst;
             CustodyAccount = "";
             Currency = tr.Currency;
             ValuationClass = ValuationClass.AvailableForSale;
 
-            AddEvent(new Events.Payment(this, tr, Venture.Events.PaymentDirection.Inflow));
+            AddEvent(new Events.Payment(this, tr, amount, Venture.Events.PaymentDirection.Inflow));
             GenerateFlows();
         }
 
-        public Cash(Events.Flow fl): base()
+        public Cash(Events.Flow fl) : base()
         {
+            AssetType = AssetType.Cash;
             Portfolio = fl.ParentAsset.Portfolio;
             CashAccount = fl.ParentAsset.CashAccount;
             CustodyAccount = "";
             Currency = fl.ParentAsset.Currency;
             ValuationClass = ValuationClass.AvailableForSale;
+
+            // Recalculate current amount of flow
+            fl.RecalculateAmount();
 
             AddEvent(new Events.Payment(this, fl, Venture.Events.PaymentDirection.Inflow));
             GenerateFlows();
@@ -110,7 +123,7 @@ namespace Budziszewski.Venture.Assets
             if (!IsActive(time)) return 0;
 
             decimal amount = 0;
-            foreach (Events.Payment p in Events.OfType<Events.Payment>())
+            foreach (Events.Payment p in GetEvents(time).OfType<Events.Payment>())
             {
                 if (p.Direction == Venture.Events.PaymentDirection.Inflow) amount += p.Amount;
                 if (p.Direction == Venture.Events.PaymentDirection.Outflow) amount -= p.Amount;
@@ -120,7 +133,7 @@ namespace Budziszewski.Venture.Assets
 
         public override decimal GetNominalAmount()
         {
-            return Events.OfType<Events.Payment>().Where(x=>x.Direction==Venture.Events.PaymentDirection.Inflow).FirstOrDefault()?.Amount ?? 0;
+            return Events.OfType<Events.Payment>().Where(x => x.Direction == Venture.Events.PaymentDirection.Inflow).FirstOrDefault()?.Amount ?? 0;
         }
 
         public override decimal GetInterestAmount(TimeArg time)
@@ -141,6 +154,64 @@ namespace Budziszewski.Venture.Assets
         public override decimal GetAmortizedCostValue(TimeArg time, bool dirty)
         {
             return Math.Round((decimal)GetAmortizedCostPrice(time, dirty) * GetNominalAmount(time), 2);
+        }
+
+        #endregion
+
+        #region Parameters
+
+        public override double GetTenor(DateTime date)
+        {
+            return 0;
+        }
+
+        public override double GetModifiedDuration(DateTime date)
+        {
+            return 0;
+        }
+
+        public override double GetYieldToMaturity(DateTime date, double price)
+        {
+            return 0;
+        }
+
+        #endregion
+
+        public override decimal GetUnrealizedPurchaseFee(TimeArg time)
+        {
+            return 0;
+        }
+
+        #region Income
+
+        public override decimal GetTimeValueOfMoneyIncome(TimeArg time)
+        {
+            return 0;
+        }
+
+        public override decimal GetCashflowIncome(TimeArg time)
+        {
+            return 0;
+        }
+
+        public override decimal GetRealizedGainsLossesFromValuation(Events.Event e)
+        {
+            return 0;
+        }
+
+        public override decimal GetUnrealizedGainsLossesFromValuation(TimeArg time)
+        {
+            return 0;
+        }
+
+        public override decimal GetRealizedGainsLossesFromFX(Events.Event e)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override decimal GetUnrealizedGainsLossesFromFX(TimeArg time)
+        {
+            throw new NotImplementedException();
         }
 
         #endregion

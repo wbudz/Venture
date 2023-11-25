@@ -12,6 +12,8 @@ namespace Budziszewski.Venture.Events
 
         public decimal Price { get; protected set; } = 0;
 
+        public decimal Fee { get; protected set; } = 0;
+
         public Sale(Assets.Asset parentAsset, Data.Transaction tr, decimal count, DateTime date) : base(parentAsset)
         {
             ParentAsset = parentAsset;
@@ -19,6 +21,7 @@ namespace Budziszewski.Venture.Events
             TransactionIndex = tr.Index;
             Timestamp = date;
             Price = tr.Price;
+            Fee = tr.Fee;
             Count = count;
             if (tr.NominalAmount != 0)
             {

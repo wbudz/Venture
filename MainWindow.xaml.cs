@@ -44,6 +44,7 @@ namespace Budziszewski.Venture
             if ((sender as TreeViewItem)?.Header.ToString() == "Dividends") CurrentModule.Children.Add(new Modules.DefinitionsView(typeof(Data.Dividend)));
 
             if ((sender as TreeViewItem)?.Header.ToString() == "Assets") CurrentModule.Children.Add(new Modules.AssetsView());
+            if ((sender as TreeViewItem)?.Header.ToString() == "Reports") CurrentModule.Children.Add(new Modules.AssetsReports());
         }
 
         #region Commands

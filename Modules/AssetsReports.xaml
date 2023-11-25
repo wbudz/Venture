@@ -1,0 +1,73 @@
+﻿<UserControl x:Class="Budziszewski.Venture.Modules.AssetsReports"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Budziszewski.Venture"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800" Loaded="UserControl_Loaded">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="ToolbarTemplate.xaml" />
+                <ResourceDictionary Source="GridViews.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="26"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <ToolBar Template="{DynamicResource ToolBarTemplate}" Height="26" VerticalAlignment="Top" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" ItemsSource="{Binding Mode=OneWay}">
+            <ToolBar.Items>
+                <Button x:Name="RefreshButton" Content="Refresh" Click="RefreshButton_Click" />
+                <Separator />
+                <ComboBox x:Name="OptionComboBox" SelectedIndex="3" Width="150">
+                    <ComboBox.Items>
+                        <sys:String>Count</sys:String>
+                        <sys:String>Market price (clean)</sys:String>
+                        <sys:String>Purchase price (clean)</sys:String>
+                        <sys:String>Book value</sys:String>
+                        <sys:String>Valuation gains/losses</sys:String>
+                    </ComboBox.Items>
+                </ComboBox>
+                <Separator />
+                <TextBlock Text="Year" VerticalAlignment="Center" Margin="5,0,5,0"/>
+                <ComboBox x:Name="StartYearComboBox" VerticalAlignment="Center" Width="50" DataContext="{Binding Mode=OneWay, Source={StaticResource Filters}}" ItemsSource="{Binding ReportingYears}" SelectedItem="{Binding CurrentYear, Mode=OneWay}" SelectionChanged="ComboBox_SelectionChanged" />
+                <TextBlock Text="-" VerticalAlignment="Center" Margin="5,0,5,0"/>
+                <ComboBox x:Name="EndYearComboBox" VerticalAlignment="Center" Width="50" DataContext="{Binding Mode=OneWay, Source={StaticResource Filters}}" ItemsSource="{Binding ReportingYears}" SelectedItem="{Binding CurrentYear, Mode=OneWay}" SelectionChanged="ComboBox_SelectionChanged" />
+                <Separator />
+                <TextBlock Text="Portfolio" VerticalAlignment="Center" Margin="5,0,5,0"/>
+                <ComboBox x:Name="PortfolioComboBox" VerticalAlignment="Center" Width="80" DataContext="{Binding Mode=OneWay, Source={StaticResource Filters}}" ItemsSource="{Binding Portfolios}" SelectedItem="{Binding CurrentPortfolio}" SelectionChanged="ComboBox_SelectionChanged" />
+                <TextBlock Text="Broker" VerticalAlignment="Center" Margin="5,0,5,0"/>
+                <ComboBox x:Name="BrokerComboBox" VerticalAlignment="Center" Width="80" DataContext="{Binding Mode=OneWay, Source={StaticResource Filters}}" ItemsSource="{Binding Brokers}" SelectedItem="{Binding CurrentBroker}" SelectionChanged="ComboBox_SelectionChanged" />
+            </ToolBar.Items>
+        </ToolBar>
+        <ListView x:Name="lvReport" 
+                  ItemsSource="{Binding ReportEntries}"
+                  Grid.Row="1">
+            <ListView.View>
+                <GridView x:Name="gvReport" >
+                    <GridView.Columns>
+                        <GridViewColumn Header="1">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding [0]}"/>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="2">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding [1]}"/>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                    </GridView.Columns>
+                </GridView>
+            </ListView.View>
+        </ListView>
+    </Grid>
+</UserControl>

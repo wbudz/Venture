@@ -32,24 +32,40 @@ namespace Budziszewski.Venture
                 // Process the transaction
                 if (tr.TransactionType == Data.TransactionType.Buy)
                 {
-                    var security = Data.Definitions.Instruments.FirstOrDefault(x => x.InstrumentId == tr.InstrumentId);
-                    if (security == null) throw new Exception("Purchase transaction definition pointed to unknown instrument id.");
+                    var definition = Data.Definitions.Instruments.FirstOrDefault(x => x.InstrumentId == tr.InstrumentId);
+                    if (definition == null) throw new Exception("Purchase transaction definition pointed to unknown instrument id.");
 
                     Asset asset;
                     DateTime date;
-                    switch (security.InstrumentType)
+                    switch (definition.InstrumentType)
                     {
-                        case InstrumentType.Undefined: throw new Exception("Tried creating asset with undefined instrument type.");
-                        case InstrumentType.Cash: throw new Exception("Tried creating asset with purchase transaction and cash instrument type.");
-                        case InstrumentType.Equity: asset = new Assets.Equity(tr, security); date = tr.TradeDate; break;
-                        case InstrumentType.Bond: throw new NotImplementedException();
-                        case InstrumentType.ETF: throw new NotImplementedException();
-                        case InstrumentType.Fund: throw new NotImplementedException();
-                        case InstrumentType.Futures: throw new NotImplementedException();
+                        case AssetType.Undefined: throw new Exception("Tried creating asset with undefined instrument type.");
+                        case AssetType.Cash: throw new Exception("Tried creating asset with purchase transaction and cash instrument type.");
+                        case AssetType.Equity: asset = new Assets.Equity(tr, definition); date = tr.TradeDate; break;
+                        case AssetType.FixedTreasuryBonds:
+                        case AssetType.FloatingTreasuryBonds:
+                        case AssetType.RetailFixedTreasuryBonds:
+                        case AssetType.RetailFloatingTreasuryBonds:
+                        case AssetType.RetailIndexedTreasuryBonds:
+                        case AssetType.FixedCorporateBonds:
+                        case AssetType.FloatingCorporateBonds:
+                            throw new NotImplementedException();
+                        case AssetType.ETF: throw new NotImplementedException();
+                        case AssetType.MoneyMarketFund:
+                        case AssetType.EquityMixedFund:
+                        case AssetType.TreasuryBondsFund:
+                        case AssetType.CorporateBondsFund:
+                            throw new NotImplementedException();
+                        case AssetType.Futures: throw new NotImplementedException();
                         default: throw new Exception("Tried creating asset with unknown instrument type.");
                     }
 
                     AddAsset(output, asset, date);
+                    // Add pending events
+                    foreach (var evt in asset.Events.OfType<Events.Flow>())
+                    {
+                        events.Add(evt);
+                    }
                     // Subtract cash used for purchase
                     RegisterCashDeduction(output, tr);
                 }
@@ -122,18 +138,30 @@ namespace Budziszewski.Venture
             Type assetType;
             switch (definition.InstrumentType)
             {
-                case InstrumentType.Undefined: throw new Exception("Tried selling an asset with undefined instrument type.");
-                case InstrumentType.Cash: throw new Exception("Tried selling an asset with cash type; cash transaction should be used instead.");
-                case InstrumentType.Equity: assetType = typeof(Assets.Equity); break;
-                case InstrumentType.Bond: throw new NotImplementedException();
-                case InstrumentType.ETF: throw new NotImplementedException();
-                case InstrumentType.Fund: throw new NotImplementedException();
-                case InstrumentType.Futures: throw new NotImplementedException();
+                case AssetType.Undefined: throw new Exception("Tried selling an asset with undefined instrument type.");
+                case AssetType.Cash: throw new Exception("Tried selling an asset with cash type; cash transaction should be used instead.");
+                case AssetType.Equity: assetType = typeof(Assets.Equity); break;
+                case AssetType.FixedTreasuryBonds:
+                case AssetType.FloatingTreasuryBonds:
+                case AssetType.RetailFixedTreasuryBonds:
+                case AssetType.RetailFloatingTreasuryBonds:
+                case AssetType.RetailIndexedTreasuryBonds:
+                case AssetType.FixedCorporateBonds:
+                case AssetType.FloatingCorporateBonds:
+                    throw new NotImplementedException();
+                case AssetType.ETF: throw new NotImplementedException();
+                case AssetType.MoneyMarketFund:
+                case AssetType.EquityMixedFund:
+                case AssetType.TreasuryBondsFund:
+                case AssetType.CorporateBondsFund:
+                    throw new NotImplementedException();
+                case AssetType.Futures: throw new NotImplementedException();
                 default: throw new Exception("Tried selling an asset with unknown instrument type.");
             }
+
             if (String.IsNullOrEmpty(tr.PortfolioSrc)) throw new Exception("Portfolio not specified for sale.");
 
-            var src = list.Where(x => x.GetType() == assetType && x.Currency == tr.Currency && x.CashAccount == tr.AccountSrc && x.Portfolio == tr.PortfolioSrc);
+            var src = list.Where(x => x.GetType() == assetType && x.Currency == tr.Currency && x.CustodyAccount == tr.AccountSrc && x.Portfolio == tr.PortfolioSrc);
 
             foreach (var s in src)
             {

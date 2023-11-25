@@ -1,9 +1,11 @@
-﻿using System;
+﻿using Budziszewski.Venture.Events;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Budziszewski.Venture.Modules
 {
@@ -21,7 +23,9 @@ namespace Budziszewski.Venture.Modules
 
         public string Currency { get; set; } = "PLN";
 
-        public ValuationClass ValuationClass { get; set; } = ValuationClass.AvailableForSale;
+        public string ValuationClass { get; set; } = "";
+
+        public string InstrumentId { get; set; } = "";
 
         public decimal Count { get; set; } = 0;
 
@@ -32,6 +36,8 @@ namespace Budziszewski.Venture.Modules
         public decimal MarketValue { get; set; } = 0;
 
         public decimal AccruedInterest { get; set; } = 0;
+
+        public decimal BookValue { get; set; } = 0;
 
         public ObservableCollection<Events.Purchase> Purchases { get; set; } = new ObservableCollection<Events.Purchase>();
 

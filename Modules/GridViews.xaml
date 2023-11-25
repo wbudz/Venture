@@ -407,6 +407,13 @@
                     </DataTemplate>
                 </GridViewColumn.CellTemplate>
             </GridViewColumn>
+            <GridViewColumn Header="Instrument">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding InstrumentId}" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
             <GridViewColumn Header="Count">
                 <GridViewColumn.CellTemplate>
                     <DataTemplate>
@@ -439,6 +446,13 @@
                 <GridViewColumn.CellTemplate>
                     <DataTemplate>
                         <TextBlock Text="{Binding AccruedInterest, StringFormat = {}{0:0.00}}" HorizontalAlignment="Right"/>
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="Value">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding BookValue, StringFormat = {}{0:0.00}}" HorizontalAlignment="Right" FontWeight="Bold"/>
                     </DataTemplate>
                 </GridViewColumn.CellTemplate>
             </GridViewColumn>
@@ -593,4 +607,5 @@
             </GridViewColumn>
         </GridView.Columns>
     </GridView>
+    
 </ResourceDictionary>

@@ -16,6 +16,7 @@ namespace Budziszewski.Venture.Assets
 
         public int Index { get; protected set; } = -1;
 
+        private string guid = Guid.NewGuid().ToString();
         /// <summary>
         /// Unique identifier of the asset. Based on identifier of the transaction that results in asset creation.
         /// Includes: date, ticker, transaction index - depending on the asset type.
@@ -24,17 +25,11 @@ namespace Budziszewski.Venture.Assets
         {
             get
             {
-                return $"{AssetType}_{GetPurchaseDate():yyyy-MM-dd}_{Index}_{Portfolio}_{CustodyAccount ?? CashAccount ?? ""}_{GetNominalAmount()}_{Guid.NewGuid()}";
+                return $"{AssetType}_{GetPurchaseDate():yyyy-MM-dd}_{Index}_{Portfolio}_{Broker}_{GetNominalAmount()}_{guid}";
             }
         }
 
-        public string AssetType
-        {
-            get
-            {
-                return GetType().Name;
-            }
-        }
+        public AssetType AssetType { get; protected set; } = AssetType.Undefined;
 
         /// <summary>
         /// Portfolio which the investment belongs to.
@@ -102,18 +97,20 @@ namespace Budziszewski.Venture.Assets
             return new AssetsViewEntry()
             {
                 UniqueId = this.UniqueId,
-                AssetType = this.AssetType,
+                AssetType = this.AssetType.ToString(),
                 Portfolio = this.Portfolio,
                 CashAccount = this.CashAccount,
                 CustodyAccount = this.CustodyAccount,
                 Currency = this.Currency,
-                ValuationClass = this.ValuationClass,
+                ValuationClass = Common.ValuationClassToString(this.ValuationClass),
+                InstrumentId = this is Security ? ((Security)this).SecurityDefinition.InstrumentId : "",
                 Count = this.GetCount(time),
                 NominalAmount = this.GetNominalAmount(time),
                 AmortizedCostValue = this.GetAmortizedCostValue(time, true),
                 MarketValue = this.GetMarketValue(time, true),
                 AccruedInterest = this.GetAccruedInterest(date),
-                Purchases = new (events.OfType<Events.Purchase>()),
+                BookValue = this.GetValue(time),
+                Purchases = new(events.OfType<Events.Purchase>()),
                 Sales = new(events.OfType<Events.Sale>()),
                 Flows = new(events.OfType<Events.Flow>()),
                 Payments = new(events.OfType<Events.Payment>())
@@ -124,6 +121,15 @@ namespace Budziszewski.Venture.Assets
         {
             var index = events.FindIndex(x => x.Timestamp > e.Timestamp);
             events.Insert(index == -1 ? events.Count : index, e);
+
+            if (e is Events.Sale)
+            {
+                for (int i = index + 1; i < events.Count; i++)
+                {
+                    if (events[i] is Events.Flow f) f.RecalculateAmount();
+                }
+            }
+
             RecalculateBounds();
         }
 
@@ -178,6 +184,18 @@ namespace Budziszewski.Venture.Assets
             }
 
             return afterStart && beforeEnd;
+        }
+
+        public bool IsActive(DateTime start, DateTime end)
+        {
+            if (start > end) throw new ArgumentException("Start time must be less than end time when checking if an asset is active.");
+
+            if (bounds.startDate > end) return false;
+            if (bounds.endDate < start) return false;
+            if (bounds.startDate >= start && bounds.startDate <= end) return true;
+            if (bounds.endDate >= start && bounds.endDate <= end) return true;
+
+            return false;
         }
 
         public IEnumerable<Events.Event> GetEvents(TimeArg time)
@@ -337,6 +355,122 @@ namespace Budziszewski.Venture.Assets
         /// <param name="date">Date at which interest is given</param>
         /// <returns>Amount of accrued interest.</returns>
         public abstract decimal GetAccruedInterest(DateTime date);
+
+        public decimal GetValue(TimeArg time)
+        {
+            switch (ValuationClass)
+            {
+                case ValuationClass.Undefined: return GetAmortizedCostValue(time, true);
+                case ValuationClass.Trading: return GetMarketValue(time, true);
+                case ValuationClass.AvailableForSale: return GetMarketValue(time, true);
+                case ValuationClass.HeldToMaturity: return GetAmortizedCostValue(time, true);
+                default: return GetAmortizedCostValue(time, true);
+            }
+        }
+
+        #endregion
+
+        #region Parameters
+
+        /// <summary>
+        /// Gets tenor, i.e. amount of years (taking into account day count convention) that remains until maturity.
+        /// </summary>
+        /// <param name="date">Date at which tenor is given</param>
+        /// <returns>Returns tenor of the investment or 0 if there is no tenor (no specific maturity date).</returns>
+        public abstract double GetTenor(DateTime date);
+
+        /// <summary>
+        /// Gets modified duration, i.e. sensitivity of value to change in market rates for fixed income instruments.
+        /// </summary>
+        /// <param name="date">Date at which modified duration is given</param>
+        /// <returns>Returns tenor of the investment or 0 if there is no modified duration (instrument not applicable).</returns>
+        public abstract double GetModifiedDuration(DateTime date);
+
+        /// <summary>
+        /// Gets yield to maturity of the investment, i.e. income rate per annum it would generate until maturity.
+        /// </summary>
+        /// <param name="date">Date at which yield to maturity is given</param>
+        /// <param name="price">Current clean price of the investment at the given date, acquired e.g. by specific function to get market value or amortized cost value. </param>
+        /// <returns>Returns yield to maturity of the investment or 0 if there is no modified duration (instrument not applicable).</returns>
+        public abstract double GetYieldToMaturity(DateTime date, double price);
+
+        #endregion
+
+        /// <summary>
+        /// Gets amount of purchase fees for the amount of investment that still has not been sold (redeemed) - for tax calculations.
+        /// </summary>
+        /// <param name="time">Time of the calculation (inclusive)</param>
+        /// <param name="local">If true, amount will be calculated in the local currency</param>
+        /// <param name="tax">If true, rules regarding tax calculation will be applied, if needed (usually needed in case of this measure)</param>
+        /// <returns>Purchase fee accountable to unsold amount</returns>
+        public abstract decimal GetUnrealizedPurchaseFee(TimeArg time);
+
+        #region Income
+
+        /// <summary>
+        /// Gets income resulting from passing of time and resulting revaluation of cashflows (change of amortized cost value).
+        /// </summary>
+        /// <param name="start">Starting time of the calculation (exclusive)</param>
+        /// <param name="end">Ending time of the calculation (inclusive)</param>
+        /// <param name="local">If true, amount will be calculated in the local currency</param>
+        /// <param name="tax">If true, rules regarding tax calculation will be applied, if needed</param>
+        /// <returns>Time value of money income</returns>
+        public abstract decimal GetTimeValueOfMoneyIncome(TimeArg time);
+
+        /// <summary>
+        /// Gets income resulting from incoming cashflows, e.g. redemptions, coupons, dividends.
+        /// </summary>
+        /// <param name="start">Starting time of the calculation (exclusive)</param>
+        /// <param name="end">Ending time of the calculation (inclusive)</param>
+        /// <param name="local">If true, amount will be calculated in the local currency</param>
+        /// <param name="tax">If true, rules regarding tax calculation will be applied, if needed</param>
+        /// <returns>Cash flow income</returns>
+        public abstract decimal GetCashflowIncome(TimeArg time);
+
+        /// <summary>
+        /// Gets income resulting from sale of instrument and recognition of previous market valuation of the investment, i.e. difference between market valuation (market prices) and amortized cost valuation, as realized gain or loss.
+        /// </summary>
+        /// <param name="start">Starting time of the calculation (exclusive)</param>
+        /// <param name="end">Ending time of the calculation (inclusive)</param>
+        /// <param name="local">If true, amount will be calculated in the local currency</param>
+        /// <param name="tax">If true, rules regarding tax calculation will be applied, if needed</param>
+        /// <param name="yearly">If true, unrealized gains/losses from the current year will be derecognized, otherwise from the point of initial recognition</param>
+        /// <returns>Market valuation gain or loss</returns>
+        public abstract decimal GetRealizedGainsLossesFromValuation(Events.Event e);
+
+        /// <summary>
+        /// Gets income resulting from market valuation of the investment, i.e. difference between market valuation (market prices) and amortized cost valuation. Resulting difference may be booked, depending on accounting environment, in profit and loss statement or as other comprehensive income (capital).
+        /// </summary>
+        /// <param name="start">Starting time of the calculation (exclusive)</param>
+        /// <param name="end">Ending time of the calculation (inclusive)</param>
+        /// <param name="local">If true, amount will be calculated in the local currency</param>
+        /// <param name="tax">If true, rules regarding tax calculation will be applied, if needed</param>
+        /// <param name="yearly">If true, unrealized gains/losses from the current year will be derecognized, otherwise from the point of initial recognition</param>
+        /// <param name="net">If true, the amount of unrealized gains/losses subtracted due to disinvestments (and recognition as realized gains/losses) would be deducted, otherwise only gross increase would be shown.</param>
+        /// <returns>Market valuation gain or loss</returns>
+        public abstract decimal GetUnrealizedGainsLossesFromValuation(TimeArg time);
+
+        /// <summary>
+        /// Gets income resulting from sale of instrument and recognition of previous FX effects of the investment, as realized FX differences.
+        /// </summary>
+        /// <param name="start">Starting time of the calculation (exclusive)</param>
+        /// <param name="end">Ending time of the calculation (inclusive)</param>
+        /// <param name="local">If true, amount will be calculated in the local currency</param>
+        /// <param name="tax">If true, rules regarding tax calculation will be applied, if needed</param>
+        /// <param name="yearly">If true, unrealized gains/losses from the current year will be derecognized, otherwise from the point of initial recognition</param>
+        /// <returns>FX gain or loss</returns>
+        public abstract decimal GetRealizedGainsLossesFromFX(Events.Event e);
+
+        /// <summary>
+        /// Gets income resulting from FX effects of the investment.
+        /// </summary>
+        /// <param name="start">Starting time of the calculation (exclusive)</param>
+        /// <param name="end">Ending time of the calculation (inclusive)</param>
+        /// <param name="local">If true, amount will be calculated in the local currency</param>
+        /// <param name="tax">If true, rules regarding tax calculation will be applied, if needed</param>
+        /// <param name="yearly">If true, unrealized gains/losses from the current year will be derecognized, otherwise from the point of initial recognition</param>
+        /// <returns>FX gain or loss</returns>
+        public abstract decimal GetUnrealizedGainsLossesFromFX(TimeArg time);
 
         #endregion
 

@@ -12,6 +12,8 @@ namespace Budziszewski.Venture.Events
 
         public decimal Price { get; protected set; } = 0;
 
+        public decimal Fee { get; protected set; } = 0;
+
         public Purchase(Assets.Asset parentAsset, Data.Transaction tr, DateTime date) : base(parentAsset)
         {
             if (tr.TransactionType != Data.TransactionType.Buy) throw new ArgumentException("An attempt was made to create Purchase event with transaction type other than Buy.");
@@ -19,6 +21,7 @@ namespace Budziszewski.Venture.Events
             TransactionIndex = tr.Index;
             Timestamp = date;
             Price = tr.Price;
+            Fee = tr.Fee;
             Count = tr.Count;
             if (tr.NominalAmount != 0)
             {

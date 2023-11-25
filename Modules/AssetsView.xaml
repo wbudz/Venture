@@ -39,7 +39,7 @@
         <ListView x:Name="lvAssets" 
                   ItemsSource="{Binding AssetEntries}" 
                   View="{Binding Mode=OneWay, Source={StaticResource AssetsGridView}}" 
-                  Grid.Row="1"/>
+                  Grid.Row="1" Margin="0,0,0,25"/>
         <GridSplitter Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Center" Grid.Row="2" />
         <TabControl Grid.Row="3">
             <TabItem Header="Purchase" IsSelected="True">
@@ -71,5 +71,6 @@
                       VerticalAlignment="Stretch"/>
             </TabItem>
         </TabControl>
+        <TextBlock x:Name="TotalValueTextBlock" Text="Total value: ..." VerticalAlignment="Bottom" Margin="10,0,0,6" Grid.Row="1" HorizontalAlignment="Left" Width="250" Visibility="Collapsed"/>
     </Grid>
 </UserControl>

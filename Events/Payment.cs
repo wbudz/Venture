@@ -21,10 +21,6 @@ namespace Budziszewski.Venture.Events
             FXRate = tr.FXRate;
         }
 
-        public Payment(Assets.Asset parentAsset, Data.Transaction tr, PaymentDirection direction) : this(parentAsset, tr, tr.NominalAmount, direction)
-        {
-        }
-
         public Payment(Assets.Asset parentAsset, Events.Flow fl, PaymentDirection direction) : base(parentAsset)
         {
             Direction = direction;

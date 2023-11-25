@@ -22,7 +22,7 @@ namespace Budziszewski.Venture.Data
 
         public string InstrumentId { get; private set; } = "";
 
-        public InstrumentType InstrumentType { get; private set; } = InstrumentType.Undefined;
+        public AssetType InstrumentType { get; private set; } = AssetType.Undefined;
 
         public string Name { get; private set; } = "";
 
@@ -47,10 +47,16 @@ namespace Budziszewski.Venture.Data
         /// <summary>
         /// If true, asset is recognized or derecognized on trade date, otherwise on settlement date.
         /// </summary>
-        public bool RecognitionOnTradeDate { 
+        public bool RecognitionOnTradeDate
+        {
             get
             {
-                return InstrumentType != InstrumentType.Bond && InstrumentType != InstrumentType.Equity;
+                return InstrumentType == AssetType.Equity ||
+                    InstrumentType == AssetType.ETF ||
+                    InstrumentType == AssetType.MoneyMarketFund ||
+                    InstrumentType == AssetType.EquityMixedFund ||
+                    InstrumentType == AssetType.TreasuryBondsFund ||
+                    InstrumentType == AssetType.CorporateBondsFund;
             }
         }
 
@@ -61,7 +67,7 @@ namespace Budziszewski.Venture.Data
                 if (headers[i] == "isin") ISIN = line[i];
                 if (headers[i] == "ticker") Ticker = line[i];
                 if (headers[i] == "instrumentid") InstrumentId = line[i];
-                if (headers[i] == "instrumenttype") InstrumentType = ConvertToEnum<InstrumentType>(line[i]);
+                if (headers[i] == "instrumenttype") InstrumentType = ConvertToEnum<AssetType>(line[i]);
                 if (headers[i] == "name") Name = line[i];
                 if (headers[i] == "issuer") Issuer = line[i];
                 if (headers[i] == "maturity") Maturity = ConvertToDateTime(line[i]);

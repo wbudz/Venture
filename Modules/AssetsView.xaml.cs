@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -32,6 +33,10 @@ namespace Budziszewski.Venture.Modules
         public void Refresh()
         {
             if (lvAssets == null) return;
+
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+
             AssetEntries.Clear();
             foreach (var asset in Common.Assets)
             {
@@ -40,6 +45,12 @@ namespace Budziszewski.Venture.Modules
                 if (BrokerComboBox.SelectedItem.ToString() != "*" && BrokerComboBox.SelectedItem.ToString() != asset.Broker) continue;
                 AssetEntries.Add(asset.GenerateAssetViewEntry(Common.CurrentDate));
             }
+
+            TotalValueTextBlock.Text = $"Total value: {AssetEntries.Sum(x => x.BookValue)}";
+            TotalValueTextBlock.Visibility = Visibility.Visible;
+
+            sw.Stop();
+            ((MainWindow)Application.Current.MainWindow).StatusText.Text = $"Module refresh took: {(sw.ElapsedMilliseconds / 1000.0):0.000} seconds.";
         }
 
         private void UserControl_Loaded(object sender, RoutedEventArgs e)

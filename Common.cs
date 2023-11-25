@@ -10,19 +10,35 @@ namespace Budziszewski.Venture
 {
     public enum ValuationClass { Undefined, Trading, AvailableForSale, HeldToMaturity }
 
-    public enum InstrumentType { Undefined, Cash, Equity, Bond, ETF, Fund, Futures }
+    public enum AssetType { 
+        Undefined, 
+        Cash, 
+        Equity, 
+        FixedTreasuryBonds, 
+        FloatingTreasuryBonds,
+        RetailFixedTreasuryBonds,
+        RetailFloatingTreasuryBonds,
+        RetailIndexedTreasuryBonds,
+        FixedCorporateBonds,
+        FloatingCorporateBonds,
+        ETF, 
+        MoneyMarketFund,
+        EquityMixedFund,
+        TreasuryBondsFund,
+        CorporateBondsFund,
+        Futures }
 
     public static class Common
     {
         public static List<Assets.Asset> Assets = new List<Assets.Asset>();
-
-        public static FiltersViewModel FVM { get { return (FiltersViewModel)Application.Current.Resources["Filters"]; } }
              
         public static DateTime CurrentDate { get { return new DateTime(FVM.CurrentYear, FVM.CurrentMonth, DateTime.DaysInMonth(FVM.CurrentYear, FVM.CurrentMonth)); } }
 
         public static DateTime FinalDate { get; set; } = Financial.Calendar.GetEndDate(DateTime.Now, Financial.Calendar.TimeStep.Yearly);
 
         public static List<string> CashAccounts { get { return Assets.Select(x => x.CashAccount).Distinct().ToList(); } }
+
+        static FiltersViewModel FVM { get { return (FiltersViewModel)Application.Current.Resources["Filters"]; } }
 
         public static void RefreshCommonData()
         {
@@ -51,6 +67,18 @@ namespace Budziszewski.Venture
             List<string> brokers = new List<string>() { "*" };
             brokers.AddRange(Assets.Select(x => x.Broker).Distinct().Order());
             FVM.Brokers = new ObservableCollection<string>(brokers);
+        }
+
+        public static string ValuationClassToString(ValuationClass input)
+        {
+            switch (input)
+            {
+                case ValuationClass.Undefined: return "";
+                case ValuationClass.Trading: return "TRD";
+                case ValuationClass.AvailableForSale: return "AFS";
+                case ValuationClass.HeldToMaturity: return "HTM";
+                default: return "";
+            }
         }
     }
 }

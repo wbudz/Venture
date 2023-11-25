@@ -17,6 +17,7 @@ namespace Budziszewski.Venture.Assets
         public Security(Data.Transaction tr, Data.Instrument definition)
         {
             Index = tr.Index;
+            AssetType = definition.InstrumentType;
 
             Portfolio = tr.PortfolioDst;
             CashAccount = tr.AccountSrc;
@@ -81,6 +82,28 @@ namespace Budziszewski.Venture.Assets
             decimal price = Events.OfType<Events.Purchase>().FirstOrDefault()?.Price ?? 0;
             if (!dirty) { price -= GetAccruedInterest(time.Date); }
             return price;
+        }
+
+        public override decimal GetUnrealizedPurchaseFee(TimeArg time)
+        {
+            decimal count = 0;
+            decimal fee = 0;
+
+            foreach (Events.Event e in GetEvents(time))
+            {
+                if (e is Events.Purchase purchase)
+                {
+                    count = purchase.Count;
+                    fee += purchase.Fee;
+                }
+                if (e is Events.Sale sale)
+                {
+                    decimal current = Math.Round(sale.Count / count * fee, 2);
+                    count -= sale.Count;
+                    fee -= current;
+                }
+            }
+            return fee;
         }
     }
 }
