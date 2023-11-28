@@ -1,13 +1,13 @@
-﻿using Budziszewski.Venture.Modules;
+﻿using Venture.Modules;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Documents;
-using static Budziszewski.Financial.Calendar;
 
-namespace Budziszewski.Venture.Assets
+namespace Venture.Assets
 {
     public abstract class Asset
     {
@@ -25,7 +25,14 @@ namespace Budziszewski.Venture.Assets
         {
             get
             {
-                return $"{AssetType}_{GetPurchaseDate():yyyy-MM-dd}_{Index}_{Portfolio}_{Broker}_{GetNominalAmount()}_{guid}";
+                if (this is Security s)
+                {
+                    return $"{AssetType}_{GetPurchaseDate():yyyy-MM-dd}_{Index}_{Portfolio}_{Broker}_{s.SecurityDefinition.InstrumentId}_{GetNominalAmount()}_{guid}";
+                }
+                else
+                {
+                    return $"{AssetType}_{GetPurchaseDate():yyyy-MM-dd}_{Index}_{Portfolio}_{Broker}_{GetNominalAmount()}_{guid}";
+                }
             }
         }
 
@@ -108,7 +115,7 @@ namespace Budziszewski.Venture.Assets
                 NominalAmount = this.GetNominalAmount(time),
                 AmortizedCostValue = this.GetAmortizedCostValue(time, true),
                 MarketValue = this.GetMarketValue(time, true),
-                AccruedInterest = this.GetAccruedInterest(date),
+                AccruedInterest = this.GetInterestAmount(time),
                 BookValue = this.GetValue(time),
                 Purchases = new(events.OfType<Events.Purchase>()),
                 Sales = new(events.OfType<Events.Sale>()),
@@ -192,10 +199,15 @@ namespace Budziszewski.Venture.Assets
 
             if (bounds.startDate > end) return false;
             if (bounds.endDate < start) return false;
-            if (bounds.startDate >= start && bounds.startDate <= end) return true;
-            if (bounds.endDate >= start && bounds.endDate <= end) return true;
+            if (bounds.startDate <= start && bounds.startDate <= end) return true;
+            if (bounds.endDate >= start && bounds.endDate >= end) return true;
 
             return false;
+        }
+
+        public bool IsActive(DateTime date)
+        {
+            return IsActive(date, date);
         }
 
         public IEnumerable<Events.Event> GetEvents(TimeArg time)
@@ -233,9 +245,9 @@ namespace Budziszewski.Venture.Assets
         /// Returns purchase transaction date. In case of multiple purchases, it returns the date referring to the first transactions.
         /// </summary>
         /// <returns>Purchase transaction date</returns>
-        public DateTime? GetPurchaseDate()
+        public DateTime GetPurchaseDate()
         {
-            return events.FirstOrDefault()?.Timestamp;
+            return events.First().Timestamp;
         }
 
         /// <summary>

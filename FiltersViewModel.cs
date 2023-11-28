@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Budziszewski.Venture
+namespace Venture
 {
     public class FiltersViewModel : INotifyPropertyChanged
     {

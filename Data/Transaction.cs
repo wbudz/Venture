@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Financial.Calendar;
 
-namespace Budziszewski.Venture.Data
+namespace Venture.Data
 {
     public enum PaymentType { Undefined, ShareCapital, OtherCapital, Tax }
 
@@ -99,6 +100,11 @@ namespace Budziszewski.Venture.Data
                 if (headers[i] == "paymenttype") PaymentType = ConvertToEnum<PaymentType>(line[i]);
                 if (headers[i] == "active") Active = ConvertToBool(line[i]);
             }
+        }
+
+        public override string ToString()
+        {
+            return $"Data.Transaction: {Index}. {TransactionType}: {InstrumentId}, {(String.IsNullOrEmpty(PortfolioDst)?PortfolioSrc:PortfolioDst)}, {(String.IsNullOrEmpty(AccountDst) ? AccountSrc : AccountDst)} @{TradeDate}";
         }
     }
 }

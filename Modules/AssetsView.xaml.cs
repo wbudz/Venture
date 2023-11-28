@@ -15,7 +15,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace Budziszewski.Venture.Modules
+namespace Venture.Modules
 {
     /// <summary>
     /// Interaction logic for DefinitionsView.xaml

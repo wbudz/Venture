@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace Budziszewski.Venture
+namespace Venture
 {
     public enum ValuationClass { Undefined, Trading, AvailableForSale, HeldToMaturity }
 
@@ -16,9 +16,9 @@ namespace Budziszewski.Venture
         Equity, 
         FixedTreasuryBonds, 
         FloatingTreasuryBonds,
-        RetailFixedTreasuryBonds,
-        RetailFloatingTreasuryBonds,
-        RetailIndexedTreasuryBonds,
+        FixedRetailTreasuryBonds,
+        FloatingRetailTreasuryBonds,
+        IndexedRetailTreasuryBonds,
         FixedCorporateBonds,
         FloatingCorporateBonds,
         ETF, 

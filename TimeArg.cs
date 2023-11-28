@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Budziszewski.Venture
+namespace Venture
 {
     public enum TimeArgDirection { Unspecified, Start, End }
 

@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
 
-namespace Budziszewski.Venture.Data
+namespace Venture.Data
 {
 
     public static class Definitions
@@ -16,6 +16,7 @@ namespace Budziszewski.Venture.Data
         public static ObservableCollection<Instrument> Instruments = new ObservableCollection<Instrument>();
         public static ObservableCollection<Transaction> Transactions = new ObservableCollection<Transaction>();
         public static ObservableCollection<Dividend> Dividends = new ObservableCollection<Dividend>();
+        public static ObservableCollection<Coupon> Coupons = new ObservableCollection<Coupon>();
 
         public static void Load()
         {
@@ -23,6 +24,7 @@ namespace Budziszewski.Venture.Data
             Instruments.Clear();
             Transactions.Clear();
             Dividends.Clear();
+            Coupons.Clear();
 
             CSV csv = new CSV(Properties.Settings.Default.PricesSource);
             csv.Read();
@@ -50,6 +52,13 @@ namespace Budziszewski.Venture.Data
             foreach (var item in csv.Interpret<Dividend>().ToArray())
             {
                 Dividends.Add(item);
+            }
+
+            csv = new CSV(Properties.Settings.Default.CouponsSource);
+            csv.Read();
+            foreach (var item in csv.Interpret<Coupon>().ToArray())
+            {
+                Coupons.Add(item);
             }
         }
     }

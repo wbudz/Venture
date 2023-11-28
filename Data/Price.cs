@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Budziszewski.Venture.Data
+namespace Venture.Data
 {
     public class Price : DataPoint
     {
@@ -42,6 +42,11 @@ namespace Budziszewski.Venture.Data
                 if (headers[i] == "close") Close = ConvertToDecimal(line[i]);
                 if (headers[i] == "active") Active = ConvertToBool(line[i]);
             }
+        }
+
+        public override string ToString()
+        {
+            return $"Data.Price: {InstrumentId} ({InstrumentType}) @{Timestamp}";
         }
     }
 }

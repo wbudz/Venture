@@ -1,11 +1,11 @@
-﻿using Budziszewski.Venture.Data;
+﻿using Venture.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Budziszewski.Venture.Events
+namespace Venture.Events
 {
     public enum PaymentDirection { Unspecified, Neutral, Inflow, Outflow }
 

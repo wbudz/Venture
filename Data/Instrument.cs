@@ -4,11 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Budziszewski.Venture.Data
+namespace Venture.Data
 {
     public enum CouponType { Undefined, Fixed, Floating };
-
-    public enum DayCountConvention { Undefined, Act_Act, Act_365, Act_360 };
 
     public enum EndOfMonthConvention { Undefined, DontAlign, Align };
 
@@ -40,7 +38,7 @@ namespace Budziszewski.Venture.Data
 
         public string Currency { get; private set; } = "";
 
-        public DayCountConvention DayCountConvention { get; private set; } = DayCountConvention.Undefined;
+        public Financial.DayCountConvention DayCountConvention { get; private set; } = Financial.DayCountConvention.Actual_Actual_Excel;
 
         public EndOfMonthConvention EndOfMonthConvention { get; private set; } = EndOfMonthConvention.Undefined;
 
@@ -76,10 +74,22 @@ namespace Budziszewski.Venture.Data
                 if (headers[i] == "couponfreq") CouponFreq = ConvertToInt(line[i]);
                 if (headers[i] == "unitprice") UnitPrice = ConvertToInt(line[i]);
                 if (headers[i] == "currency") Currency = line[i];
-                if (headers[i] == "daycountconvention") DayCountConvention = ConvertToEnum<DayCountConvention>(line[i]);
+                if (headers[i] == "daycountconvention")
+                {
+                    if (line[i].ToLower().Contains("act/365")) DayCountConvention = Financial.DayCountConvention.Actual_365;
+                    else if (line[i].ToLower().Contains("act/360")) DayCountConvention = Financial.DayCountConvention.Actual_360;
+                    else if (line[i].ToLower().Contains("30/360") && line[i].ToLower().Contains("eur")) DayCountConvention = Financial.DayCountConvention.European_30_360;
+                    else if (line[i].ToLower().Contains("30/360") && line[i].ToLower().Contains("us")) DayCountConvention = Financial.DayCountConvention.US_30_360;
+                    else DayCountConvention = Financial.DayCountConvention.Actual_Actual_Excel;
+                }
                 if (headers[i] == "endofmonthconvention") EndOfMonthConvention = ConvertToEnum<EndOfMonthConvention>(line[i]);
                 if (headers[i] == "active") Active = ConvertToBool(line[i]);
             }
+        }
+
+        public override string ToString()
+        {
+            return $"Data.Instrument: {InstrumentId} ({InstrumentType})";
         }
     }
 }

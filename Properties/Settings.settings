@@ -1,5 +1,5 @@
 ﻿<?xml version='1.0' encoding='utf-8'?>
-<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="Budziszewski.Venture.Properties" GeneratedClassName="Settings">
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="Venture.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
     <Setting Name="PricesSource" Type="System.String" Scope="User">
@@ -13,6 +13,9 @@
     </Setting>
     <Setting Name="DividendsSource" Type="System.String" Scope="User">
       <Value Profile="(Default)">input\dividends.csv</Value>
+    </Setting>
+    <Setting Name="CouponsSource" Type="System.String" Scope="User">
+      <Value Profile="(Default)">input\coupons.csv</Value>
     </Setting>
   </Settings>
 </SettingsFile>

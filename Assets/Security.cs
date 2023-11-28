@@ -1,11 +1,11 @@
-﻿using Budziszewski.Venture.Events;
+﻿using Venture.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Budziszewski.Venture.Assets
+namespace Venture.Assets
 {
     public abstract class Security : Asset
     {
@@ -82,6 +82,19 @@ namespace Budziszewski.Venture.Assets
             decimal price = Events.OfType<Events.Purchase>().FirstOrDefault()?.Price ?? 0;
             if (!dirty) { price -= GetAccruedInterest(time.Date); }
             return price;
+        }
+
+        public override decimal GetNominalAmount()
+        {
+            var evt = Events.OfType<Events.Purchase>().FirstOrDefault();
+            if (evt != null)
+            {
+                return GetNominalAmount(new TimeArg(TimeArgDirection.End, evt.Timestamp, evt.TransactionIndex));
+            }
+            else
+            {
+                return 0;
+            }
         }
 
         public override decimal GetUnrealizedPurchaseFee(TimeArg time)

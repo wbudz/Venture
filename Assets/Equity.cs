@@ -1,4 +1,4 @@
-﻿using Budziszewski.Venture.Data;
+﻿using Venture.Data;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace Budziszewski.Venture.Assets
+namespace Venture.Assets
 {
     public class Equity : Security
     {
@@ -19,7 +19,6 @@ namespace Budziszewski.Venture.Assets
 
         protected override void GenerateFlows()
         {
-            if (events.Count == 0) return;
             foreach (var d in Data.Definitions.Dividends)
             {
                 if (this.SecurityDefinition.InstrumentId == d.InstrumentId && d.RecordDate >= events.First().Timestamp)
@@ -68,19 +67,6 @@ namespace Budziszewski.Venture.Assets
         public override decimal GetNominalAmount(TimeArg time)
         {
             return Math.Round(GetPurchaseAmount(time, false), 2);
-        }
-
-        public override decimal GetNominalAmount()
-        {
-            var evt = Events.OfType<Events.Purchase>().FirstOrDefault();
-            if (evt != null)
-            {
-                return GetNominalAmount(new TimeArg(TimeArgDirection.End, evt.Timestamp, evt.TransactionIndex));
-            }
-            else
-            {
-                return 0;
-            }
         }
 
         public override decimal GetInterestAmount(TimeArg time)

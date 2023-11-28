@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
-namespace Budziszewski.Venture.Events
+namespace Venture.Events
 {
 
     public class Payment: Event

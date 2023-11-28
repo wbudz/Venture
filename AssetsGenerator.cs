@@ -1,5 +1,5 @@
-﻿using Budziszewski.Venture.Assets;
-using Budziszewski.Venture.Data;
+﻿using Venture.Assets;
+using Venture.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using System.Transactions;
 using System.Windows.Documents;
 
-namespace Budziszewski.Venture
+namespace Venture
 {
     public static class AssetsGenerator
     {
@@ -36,20 +36,20 @@ namespace Budziszewski.Venture
                     if (definition == null) throw new Exception("Purchase transaction definition pointed to unknown instrument id.");
 
                     Asset asset;
-                    DateTime date;
+                    DateTime date = definition.RecognitionOnTradeDate ? tr.TradeDate : tr.SettlementDate;
                     switch (definition.InstrumentType)
                     {
                         case AssetType.Undefined: throw new Exception("Tried creating asset with undefined instrument type.");
                         case AssetType.Cash: throw new Exception("Tried creating asset with purchase transaction and cash instrument type.");
-                        case AssetType.Equity: asset = new Assets.Equity(tr, definition); date = tr.TradeDate; break;
+                        case AssetType.Equity: asset = new Assets.Equity(tr, definition); break;
                         case AssetType.FixedTreasuryBonds:
                         case AssetType.FloatingTreasuryBonds:
-                        case AssetType.RetailFixedTreasuryBonds:
-                        case AssetType.RetailFloatingTreasuryBonds:
-                        case AssetType.RetailIndexedTreasuryBonds:
+                        case AssetType.FixedRetailTreasuryBonds:
+                        case AssetType.FloatingRetailTreasuryBonds:
+                        case AssetType.IndexedRetailTreasuryBonds:
                         case AssetType.FixedCorporateBonds:
                         case AssetType.FloatingCorporateBonds:
-                            throw new NotImplementedException();
+                            asset = new Assets.Bond(tr, definition); break;
                         case AssetType.ETF: throw new NotImplementedException();
                         case AssetType.MoneyMarketFund:
                         case AssetType.EquityMixedFund:
@@ -143,12 +143,12 @@ namespace Budziszewski.Venture
                 case AssetType.Equity: assetType = typeof(Assets.Equity); break;
                 case AssetType.FixedTreasuryBonds:
                 case AssetType.FloatingTreasuryBonds:
-                case AssetType.RetailFixedTreasuryBonds:
-                case AssetType.RetailFloatingTreasuryBonds:
-                case AssetType.RetailIndexedTreasuryBonds:
+                case AssetType.FixedRetailTreasuryBonds:
+                case AssetType.FloatingRetailTreasuryBonds:
+                case AssetType.IndexedRetailTreasuryBonds:
                 case AssetType.FixedCorporateBonds:
                 case AssetType.FloatingCorporateBonds:
-                    throw new NotImplementedException();
+                    assetType = typeof(Assets.Bond); break;
                 case AssetType.ETF: throw new NotImplementedException();
                 case AssetType.MoneyMarketFund:
                 case AssetType.EquityMixedFund:
@@ -161,7 +161,11 @@ namespace Budziszewski.Venture
 
             if (String.IsNullOrEmpty(tr.PortfolioSrc)) throw new Exception("Portfolio not specified for sale.");
 
-            var src = list.Where(x => x.GetType() == assetType && x.Currency == tr.Currency && x.CustodyAccount == tr.AccountSrc && x.Portfolio == tr.PortfolioSrc);
+            var src = list.OfType<Security>().Where(x => x.GetType() == assetType &&
+                x.SecurityDefinition.InstrumentId == tr.InstrumentId &&
+                x.Currency == tr.Currency &&
+                x.CustodyAccount == tr.AccountSrc &&
+                x.Portfolio == tr.PortfolioSrc);
 
             foreach (var s in src)
             {

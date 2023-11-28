@@ -15,9 +15,9 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using static Budziszewski.Financial.Calendar;
+using static Financial.Calendar;
 
-namespace Budziszewski.Venture
+namespace Venture
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -31,7 +31,7 @@ namespace Budziszewski.Venture
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
+            //Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
         }
 
         private void TreeViewItem_Selected(object sender, RoutedEventArgs e)
@@ -42,6 +42,7 @@ namespace Budziszewski.Venture
             if ((sender as TreeViewItem)?.Header.ToString() == "Instruments") CurrentModule.Children.Add(new Modules.DefinitionsView(typeof(Data.Instrument)));
             if ((sender as TreeViewItem)?.Header.ToString() == "Transactions") CurrentModule.Children.Add(new Modules.DefinitionsView(typeof(Data.Transaction)));
             if ((sender as TreeViewItem)?.Header.ToString() == "Dividends") CurrentModule.Children.Add(new Modules.DefinitionsView(typeof(Data.Dividend)));
+            if ((sender as TreeViewItem)?.Header.ToString() == "Coupons") CurrentModule.Children.Add(new Modules.DefinitionsView(typeof(Data.Coupon)));
 
             if ((sender as TreeViewItem)?.Header.ToString() == "Assets") CurrentModule.Children.Add(new Modules.AssetsView());
             if ((sender as TreeViewItem)?.Header.ToString() == "Reports") CurrentModule.Children.Add(new Modules.AssetsReports());

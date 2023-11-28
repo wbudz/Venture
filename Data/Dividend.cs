@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 
-namespace Budziszewski.Venture.Data
+namespace Venture.Data
 {
     // InstrumentId	RecordDate	ExDate	PaymentDate	PaymentPerShare
 

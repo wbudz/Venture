@@ -1,4 +1,4 @@
-﻿using Budziszewski.Venture.Events;
+﻿using Venture.Events;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
-namespace Budziszewski.Venture.Modules
+namespace Venture.Modules
 {
     public class AssetsViewEntry
     {

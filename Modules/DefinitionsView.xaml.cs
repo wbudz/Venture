@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace Budziszewski.Venture.Modules
+namespace Venture.Modules
 {
     /// <summary>
     /// Interaction logic for DefinitionsView.xaml
@@ -54,6 +54,11 @@ namespace Budziszewski.Venture.Modules
                 lv.View = (GridView)Resources["DividendsGridView"];
                 lv.ItemsSource = Data.Definitions.Dividends;
             }
+            if (DataPointType == typeof(Data.Coupon))
+            {
+                lv.View = (GridView)Resources["CouponsGridView"];
+                lv.ItemsSource = Data.Definitions.Coupons;
+            }
         }
 
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
@@ -72,10 +77,7 @@ namespace Budziszewski.Venture.Modules
             if (type == typeof(double) || type == typeof(decimal)) { b.StringFormat = precision < 1 ? "0" : "0.".PadRight(precision + 2, '0'); }
             tbFactory.SetBinding(TextBlock.TextProperty, b);
             if (bold) tbFactory.SetValue(TextBlock.FontWeightProperty, FontWeights.Bold);
-            //tbFactory.SetValue(TextBlock.TextAlignmentProperty, TextAlignment.Right);
-            //tbFactory.SetValue(TextBlock.HorizontalAlignmentProperty, HorizontalAlignment.Right);
 
-                //set the visual tree of the data template
             dt.VisualTree = tbFactory;
             return dt;
         }

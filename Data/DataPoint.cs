@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Budziszewski.Venture.Data
+namespace Venture.Data
 {
     public abstract class DataPoint
     {
@@ -40,10 +40,16 @@ namespace Budziszewski.Venture.Data
         protected static decimal ConvertToDecimal(string text)
         {
             decimal result;
+            decimal factor = 1;
+            if (text.Contains("%"))
+            {
+                text = text.Replace("%", "");
+                factor = 100;
+            }
             text = text.Replace(" ", "");
-            if (Decimal.TryParse(text, NumberStyles.Float , cultureIntegerWithDotSeparator, out result)) return result;
-            if (Decimal.TryParse(text, NumberStyles.Float, cultureIntegerWithCommaSeparator, out result)) return result;
-            if (Decimal.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out result)) return result;
+            if (Decimal.TryParse(text, NumberStyles.Float, cultureIntegerWithDotSeparator, out result)) return result / factor;
+            if (Decimal.TryParse(text, NumberStyles.Float, cultureIntegerWithCommaSeparator, out result)) return result / factor;
+            if (Decimal.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out result)) return result / factor;
             else return 0;
         }
         protected static bool ConvertToBool(string text)
@@ -53,7 +59,7 @@ namespace Budziszewski.Venture.Data
             else return false;
         }
 
-        protected static T ConvertToEnum<T>(string text) where T:Enum
+        protected static T ConvertToEnum<T>(string text) where T : Enum
         {
             object? result;
             if (Enum.TryParse(typeof(T), text, true, out result))

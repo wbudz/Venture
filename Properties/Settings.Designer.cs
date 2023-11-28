@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Budziszewski.Venture.Properties {
+namespace Venture.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
@@ -68,6 +68,18 @@ namespace Budziszewski.Venture.Properties {
             }
             set {
                 this["DividendsSource"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("input\\coupons.csv")]
+        public string CouponsSource {
+            get {
+                return ((string)(this["CouponsSource"]));
+            }
+            set {
+                this["CouponsSource"] = value;
             }
         }
     }

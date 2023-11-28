@@ -1,12 +1,11 @@
-﻿using Budziszewski.Venture.Modules;
+﻿using Venture.Modules;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static Budziszewski.Financial.Calendar;
 
-namespace Budziszewski.Venture.Assets
+namespace Venture.Assets
 {
     public class Cash : Asset
     {

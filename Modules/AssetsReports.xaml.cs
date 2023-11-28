@@ -15,7 +15,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace Budziszewski.Venture.Modules
+namespace Venture.Modules
 {
     /// <summary>
     /// Interaction logic for DefinitionsView.xaml
@@ -51,7 +51,7 @@ namespace Budziszewski.Venture.Modules
         {
             object[] result = new object[DESCRIPTION_COLUMNS_COUNT + FVM.ReportingDates.Count];
             result[0] = (asset is Assets.Security s) ? s.SecurityDefinition.InstrumentId : throw new NotImplementedException();
-            result[1] = asset.GetPurchaseDate()?.ToString("yyyy-MM-dd") ?? "";
+            result[1] = asset.GetPurchaseDate().ToString("yyyy-MM-dd") ?? "";
             result[2] = asset.AssetType;
             result[3] = asset.Currency;
             result[4] = asset.Portfolio;
