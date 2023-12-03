@@ -74,6 +74,20 @@ namespace Venture.Assets
         /// </summary>
         public ValuationClass ValuationClass { get; protected set; } = ValuationClass.AvailableForSale;
 
+        public bool IsBond
+        {
+            get
+            {
+                return AssetType==AssetType.FixedCorporateBonds ||
+                    AssetType==AssetType.FixedRetailTreasuryBonds ||
+                    AssetType == AssetType.FixedTreasuryBonds ||
+                    AssetType == AssetType.FloatingCorporateBonds ||
+                    AssetType == AssetType.FloatingRetailTreasuryBonds ||
+                    AssetType == AssetType.FloatingTreasuryBonds ||
+                    AssetType == AssetType.IndexedRetailTreasuryBonds;
+            }
+        }
+
         protected (DateTime startDate, int startIndex, DateTime endDate, int endIndex) bounds;
 
         public DateTime BoundsStart { get { return bounds.startDate; } }
@@ -111,6 +125,7 @@ namespace Venture.Assets
                 Currency = this.Currency,
                 ValuationClass = Common.ValuationClassToString(this.ValuationClass),
                 InstrumentId = this is Security ? ((Security)this).SecurityDefinition.InstrumentId : "",
+                RecognitionDate = this.GetPurchaseDate(),
                 Count = this.GetCount(time),
                 NominalAmount = this.GetNominalAmount(time),
                 AmortizedCostValue = this.GetAmortizedCostValue(time, true),

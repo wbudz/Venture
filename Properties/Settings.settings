@@ -17,5 +17,8 @@
     <Setting Name="CouponsSource" Type="System.String" Scope="User">
       <Value Profile="(Default)">input\coupons.csv</Value>
     </Setting>
+    <Setting Name="ManualSource" Type="System.String" Scope="User">
+      <Value Profile="(Default)">input\manual.csv</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

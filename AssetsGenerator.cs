@@ -25,7 +25,8 @@ namespace Venture
                 // Go through pending events that come before (influence) current transaction - e.g. dividends, coupons that may add new cash
                 foreach (var ev in events.Where(x => x.Timestamp <= tr.SettlementDate))
                 {
-                    AddAsset(output, new Cash(ev), ev.Timestamp);
+                    var cash = new Cash(ev);
+                    if (cash.Events.Count() > 0) AddAsset(output, cash, ev.Timestamp);
                     events.Remove(ev);
                 }
 

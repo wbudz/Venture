@@ -17,6 +17,7 @@ namespace Venture.Data
         public static ObservableCollection<Transaction> Transactions = new ObservableCollection<Transaction>();
         public static ObservableCollection<Dividend> Dividends = new ObservableCollection<Dividend>();
         public static ObservableCollection<Coupon> Coupons = new ObservableCollection<Coupon>();
+        public static ObservableCollection<Manual> Manual = new ObservableCollection<Manual>();
 
         public static void Load()
         {
@@ -25,6 +26,7 @@ namespace Venture.Data
             Transactions.Clear();
             Dividends.Clear();
             Coupons.Clear();
+            Manual.Clear();
 
             CSV csv = new CSV(Properties.Settings.Default.PricesSource);
             csv.Read();
@@ -60,6 +62,18 @@ namespace Venture.Data
             {
                 Coupons.Add(item);
             }
+
+            csv = new CSV(Properties.Settings.Default.ManualSource);
+            csv.Read();
+            foreach (var item in csv.Interpret<Manual>().ToArray())
+            {
+                Manual.Add(item);
+            }
+        }
+
+        public static decimal? GetManualAdjustment(ManualAdjustmentType type, DateTime timestamp, string instrumentId)
+        {
+            return Manual.FirstOrDefault(x => x.AdjustmentType == type && x.Timestamp == timestamp && x.InstrumentId == instrumentId)?.Amount;
         }
     }
 }

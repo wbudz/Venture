@@ -23,13 +23,13 @@ namespace Venture.Events
             Price = tr.Price;
             Fee = tr.Fee;
             Count = tr.Count;
-            if (tr.NominalAmount != 0)
+            if (parentAsset.IsBond)
             {
-                Amount = tr.Price * tr.Count / tr.NominalAmount;
+                Amount = Math.Round(tr.Price / 100 * tr.Count * tr.NominalAmount, 2);
             }
             else
             {
-                Amount = tr.Price * tr.Count;
+                Amount = Math.Round(tr.Price * tr.Count, 2);
             }
             FXRate = tr.FXRate;
         }

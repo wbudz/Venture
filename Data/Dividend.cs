@@ -36,5 +36,10 @@ namespace Venture.Data
                 if (headers[i] == "active") Active = ConvertToBool(line[i]);
             }
         }
+
+        public override string ToString()
+        {
+            return $"Data.Dividend: {InstrumentId} @{ExDate:yyyy-MM-dd}/{PaymentDate:yyyy-MM-dd}: {PaymentPerShare:N2}";
+        }
     }
 }

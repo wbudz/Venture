@@ -31,12 +31,32 @@ namespace Venture.Events
         public void RecalculateAmount()
         {
             TimeArg time = new TimeArg(TimeArgDirection.End, RecordDate);
+            decimal? tax = null;
             switch (FlowType)
             {
                 case FlowType.Undefined: throw new Exception("Cannot recalculate amount for undefined flow event.");
-                case FlowType.Dividend: Amount = Math.Round(Rate * ParentAsset.GetCount(time),2); Tax = TaxCalculations.CalculateFromDividend(Amount); Amount -= Tax; break;
-                case FlowType.Coupon: Amount = Math.Round(Rate * ParentAsset.GetNominalAmount(time), 2); Tax = TaxCalculations.CalculateFromCoupon(Amount); Amount -= Tax; break;
-                case FlowType.Redemption: Amount = Math.Round(ParentAsset.GetNominalAmount(time), 2); Tax = 0; break;
+                case FlowType.Dividend:
+                    Amount = Math.Round(Rate * ParentAsset.GetCount(time), 2);
+                    tax = Data.Definitions.GetManualAdjustment(Data.ManualAdjustmentType.DividendTaxAdjustment, Timestamp, (ParentAsset as Assets.Security)?.SecurityDefinition?.InstrumentId ?? "");
+                    if (tax.HasValue)
+                    { Tax = tax.Value; }
+                    else
+                    { Tax = TaxCalculations.CalculateFromDividend(Amount); }
+                    Amount -= Tax;
+                    break;
+                case FlowType.Coupon:
+                    Amount = Math.Round(Rate * ParentAsset.GetNominalAmount(time), 2);
+                    tax = Data.Definitions.GetManualAdjustment(Data.ManualAdjustmentType.CouponTaxAdjustment, Timestamp, (ParentAsset as Assets.Security)?.SecurityDefinition?.InstrumentId ?? "");
+                    if (tax.HasValue)
+                    { Tax = tax.Value; }
+                    else
+                    { Tax = TaxCalculations.CalculateFromCoupon(Amount); }
+                    Amount -= Tax;
+                    break;
+                case FlowType.Redemption:
+                    Amount = Math.Round(ParentAsset.GetNominalAmount(time), 2);
+                    Tax = 0;
+                    break;
                 default: throw new Exception("Cannot recalculate amount for undefined flow event.");
             }
         }

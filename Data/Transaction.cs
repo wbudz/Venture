@@ -55,7 +55,7 @@ namespace Venture.Data
             {
                 if (NominalAmount != 0 && Count != 0)
                 {
-                    return Math.Round(Price / NominalAmount * Count, 2);
+                    return Math.Round(Price / 100 * NominalAmount * Count, 2);
                 }
                 else if (Count != 0)
                 {

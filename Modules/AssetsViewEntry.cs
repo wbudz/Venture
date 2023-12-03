@@ -27,6 +27,8 @@ namespace Venture.Modules
 
         public string InstrumentId { get; set; } = "";
 
+        public DateTime RecognitionDate { get; set; } = DateTime.MinValue;
+
         public decimal Count { get; set; } = 0;
 
         public decimal NominalAmount { get; set; } = 0;

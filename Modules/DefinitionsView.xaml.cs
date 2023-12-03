@@ -59,6 +59,11 @@ namespace Venture.Modules
                 lv.View = (GridView)Resources["CouponsGridView"];
                 lv.ItemsSource = Data.Definitions.Coupons;
             }
+            if (DataPointType == typeof(Data.Manual))
+            {
+                lv.View = (GridView)Resources["ManualGridView"];
+                lv.ItemsSource = Data.Definitions.Manual;
+            }
         }
 
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
@@ -66,20 +71,20 @@ namespace Venture.Modules
             Refresh();
         }
 
-        private DataTemplate GetCellTemplate(Type type, string bindingPath, bool bold, int precision = 2)
-        {
-            DataTemplate dt = new DataTemplate();
-            dt.DataType = type;
+        //private DataTemplate GetCellTemplate(Type type, string bindingPath, bool bold, int precision = 2)
+        //{
+        //    DataTemplate dt = new DataTemplate();
+        //    dt.DataType = type;
 
-            FrameworkElementFactory tbFactory = new FrameworkElementFactory(typeof(TextBlock));
-            Binding b = new Binding(bindingPath);
-            if (type == typeof(DateTime)) { b.StringFormat = "yyyy-MM-dd"; }
-            if (type == typeof(double) || type == typeof(decimal)) { b.StringFormat = precision < 1 ? "0" : "0.".PadRight(precision + 2, '0'); }
-            tbFactory.SetBinding(TextBlock.TextProperty, b);
-            if (bold) tbFactory.SetValue(TextBlock.FontWeightProperty, FontWeights.Bold);
+        //    FrameworkElementFactory tbFactory = new FrameworkElementFactory(typeof(TextBlock));
+        //    Binding b = new Binding(bindingPath);
+        //    if (type == typeof(DateTime)) { b.StringFormat = "yyyy-MM-dd"; }
+        //    if (type == typeof(double) || type == typeof(decimal)) { b.StringFormat = precision < 1 ? "0" : "0.".PadRight(precision + 2, '0'); }
+        //    tbFactory.SetBinding(TextBlock.TextProperty, b);
+        //    if (bold) tbFactory.SetValue(TextBlock.FontWeightProperty, FontWeights.Bold);
 
-            dt.VisualTree = tbFactory;
-            return dt;
-        }
+        //    dt.VisualTree = tbFactory;
+        //    return dt;
+        //}
     }
 }

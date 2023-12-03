@@ -82,5 +82,17 @@ namespace Venture.Properties {
                 this["CouponsSource"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("input\\manual.csv")]
+        public string ManualSource {
+            get {
+                return ((string)(this["ManualSource"]));
+            }
+            set {
+                this["ManualSource"] = value;
+            }
+        }
     }
 }

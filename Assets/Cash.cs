@@ -42,8 +42,11 @@ namespace Venture.Assets
             // Recalculate current amount of flow
             fl.RecalculateAmount();
 
-            AddEvent(new Events.Payment(this, fl, Venture.Events.PaymentDirection.Inflow));
-            GenerateFlows();
+            if (fl.Amount != 0)
+            {
+                AddEvent(new Events.Payment(this, fl, Venture.Events.PaymentDirection.Inflow));
+                GenerateFlows();
+            }
         }
 
         protected override void GenerateFlows()

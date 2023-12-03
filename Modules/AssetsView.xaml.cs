@@ -46,7 +46,7 @@ namespace Venture.Modules
                 AssetEntries.Add(asset.GenerateAssetViewEntry(Common.CurrentDate));
             }
 
-            TotalValueTextBlock.Text = $"Total value: {AssetEntries.Sum(x => x.BookValue)}";
+            TotalValueTextBlock.Text = $"Total value: {AssetEntries.Sum(x => x.BookValue):N2} PLN, therein cash: {AssetEntries.Where(x => x.AssetType == "Cash").Sum(x => x.BookValue):N2} PLN";
             TotalValueTextBlock.Visibility = Visibility.Visible;
 
             sw.Stop();

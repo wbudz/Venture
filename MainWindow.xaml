@@ -31,6 +31,7 @@
                 <TreeViewItem Header="Transactions" Selected="TreeViewItem_Selected" />
                 <TreeViewItem Header="Dividends" Selected="TreeViewItem_Selected" />
                 <TreeViewItem Header="Coupons" Selected="TreeViewItem_Selected" />
+                <TreeViewItem Header="Manual adjustments" Selected="TreeViewItem_Selected" />
             </TreeViewItem>
             <TreeViewItem Header="Assets">
                 <TreeViewItem Header="Assets" Selected="TreeViewItem_Selected" />
