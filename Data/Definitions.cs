@@ -71,9 +71,14 @@ namespace Venture.Data
             }
         }
 
-        public static decimal? GetManualAdjustment(ManualAdjustmentType type, DateTime timestamp, string instrumentId)
+        public static Manual? GetManualAdjustment(ManualAdjustmentType type, DateTime timestamp, string instrumentId)
         {
-            return Manual.FirstOrDefault(x => x.AdjustmentType == type && x.Timestamp == timestamp && x.InstrumentId == instrumentId)?.Amount;
+            return Manual.FirstOrDefault(x => x.AdjustmentType == type && x.Timestamp == timestamp && x.InstrumentId1 == instrumentId);
+        }
+
+        public static IEnumerable<Manual> GetManualEventSources()
+        {
+            return Manual.Where(x => x.AdjustmentType == ManualAdjustmentType.EquitySpinOff);
         }
     }
 }

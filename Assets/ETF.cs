@@ -9,17 +9,11 @@ using System.Xml.Linq;
 
 namespace Venture.Assets
 {
-    public class Equity : Security
+    public class ETF : Security
     {
-        public Equity(Data.Transaction tr, Data.Instrument definition) : base(tr, definition)
+        public ETF(Data.Transaction tr, Data.Instrument definition) : base(tr, definition)
         {
             AddEvent(new Events.Recognition(this, tr, definition.RecognitionOnTradeDate ? tr.TradeDate : tr.SettlementDate));
-            GenerateFlows();
-        }
-
-        public Equity(Equity template, Data.Instrument definition, Manual manual, decimal count, decimal price) : base(template, definition)
-        {
-            AddEvent(new Events.Recognition(this, manual, count, price));
             GenerateFlows();
         }
 
@@ -52,7 +46,6 @@ namespace Venture.Assets
             if (price == null)
             {
                 throw new Exception($"No price for: {UniqueId} at date: {time.Date:yyyy-MM-dd}.");
-                //return GetAmortizedCostPrice(time, dirty);
             }
             else
             {

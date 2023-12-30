@@ -30,13 +30,13 @@ namespace Venture.Assets
             CouponFreq = definition.CouponFreq;
             CouponType = definition.CouponType;
             MaturityDate = definition.Maturity;
-            AddEvent(new Events.Purchase(this, tr, definition.RecognitionOnTradeDate ? tr.TradeDate : tr.SettlementDate));
+            AddEvent(new Events.Recognition(this, tr, definition.RecognitionOnTradeDate ? tr.TradeDate : tr.SettlementDate));
             GenerateFlows();
         }
 
         protected override void GenerateFlows()
         {
-            DateTime? start = events.OfType<Events.Purchase>().FirstOrDefault()?.Timestamp;
+            DateTime? start = events.OfType<Events.Recognition>().FirstOrDefault()?.Timestamp;
             DateTime? end = MaturityDate;
 
             if (start == null) return;
@@ -204,13 +204,13 @@ namespace Venture.Assets
 
             foreach (var e in GetEvents(end))
             {
-                if (e is Events.Purchase p)
+                if (e is Events.Recognition p)
                 {
                     count = p.Count;
                     currentPrice = GetAmortizedCostPrice(new TimeArg(TimeArgDirection.End, p.Timestamp, p.TransactionIndex), true);
                     previousPrice = currentPrice;
                 }
-                if (e is Events.Sale s)
+                if (e is Events.Derecognition s)
                 {
                     currentPrice = GetAmortizedCostPrice(new TimeArg(TimeArgDirection.End, s.Timestamp, s.TransactionIndex), true);
                     result += Math.Round((currentPrice - previousPrice) * count / 100 * UnitPrice, 2);
@@ -255,12 +255,12 @@ namespace Venture.Assets
 
         public override decimal GetRealizedGainsLossesFromValuation(Events.Event e)
         {
-            if (!(e is Events.Sale))
+            if (!(e is Events.Derecognition))
             {
                 throw new ArgumentException("GetRealizedGainsLossesFromValuation called for different event type than sale.");
             }
 
-            Events.Sale s = (Events.Sale)e;
+            Events.Derecognition s = (Events.Derecognition)e;
 
             decimal factor = s.Count / GetCount(new TimeArg(TimeArgDirection.Start, s.Timestamp, s.TransactionIndex));
             decimal result = factor * GetUnrealizedGainsLossesFromValuation(new TimeArg(TimeArgDirection.Start, s.Timestamp, s.TransactionIndex));
@@ -277,13 +277,13 @@ namespace Venture.Assets
 
             foreach (var e in GetEvents(time))
             {
-                if (e is Events.Purchase p)
+                if (e is Events.Recognition p)
                 {
                     count = p.Count;
                     previous = (p.Price, p.Price);
                     current = (p.Price, p.Price);
                 }
-                if (e is Events.Sale s)
+                if (e is Events.Derecognition s)
                 {
                     previous = current;
                     current = (s.Price, GetAmortizedCostPrice(new TimeArg(TimeArgDirection.Start, s.Timestamp, s.TransactionIndex), true));

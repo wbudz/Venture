@@ -41,9 +41,9 @@ namespace Venture.Modules
 
         public decimal BookValue { get; set; } = 0;
 
-        public ObservableCollection<Events.Purchase> Purchases { get; set; } = new ObservableCollection<Events.Purchase>();
+        public ObservableCollection<Events.Recognition> Purchases { get; set; } = new ObservableCollection<Events.Recognition>();
 
-        public ObservableCollection<Events.Sale> Sales { get; set; } = new ObservableCollection<Events.Sale>();
+        public ObservableCollection<Events.Derecognition> Sales { get; set; } = new ObservableCollection<Events.Derecognition>();
 
         public ObservableCollection<Events.Flow> Flows { get; set; } = new ObservableCollection<Events.Flow>();
 

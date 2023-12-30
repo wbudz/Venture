@@ -16,19 +16,23 @@ namespace Venture
         {
             List<Assets.Asset> output = new List<Assets.Asset>();
             Queue<Data.Transaction> transactions = new Queue<Data.Transaction>(Data.Definitions.Transactions);
-            HashSet<Events.Flow> events = new HashSet<Events.Flow>();
+            HashSet<Events.Flow> flowEvents = new HashSet<Events.Flow>();
+            HashSet<Manual> manual = new HashSet<Manual>(Data.Definitions.GetManualEventSources());
 
             while (transactions.Count > 0)
             {
                 Data.Transaction tr = transactions.Dequeue();
 
                 // Go through pending events that come before (influence) current transaction - e.g. dividends, coupons that may add new cash
-                foreach (var ev in events.Where(x => x.Timestamp <= tr.SettlementDate))
+                foreach (var ev in flowEvents.Where(x => x.Timestamp <= tr.SettlementDate))
                 {
                     var cash = new Cash(ev);
                     if (cash.Events.Count() > 0) AddAsset(output, cash, ev.Timestamp);
-                    events.Remove(ev);
+                    flowEvents.Remove(ev);
                 }
+
+                // Process manual entries that influence assets
+                ProcessEquitySpinOffs(manual, output, tr.SettlementDate);
 
                 // Process the transaction
                 if (tr.TransactionType == Data.TransactionType.Buy)
@@ -51,12 +55,13 @@ namespace Venture
                         case AssetType.FixedCorporateBonds:
                         case AssetType.FloatingCorporateBonds:
                             asset = new Assets.Bond(tr, definition); break;
-                        case AssetType.ETF: throw new NotImplementedException();
+                        case AssetType.ETF:
+                            asset = new Assets.ETF(tr, definition); break;
                         case AssetType.MoneyMarketFund:
                         case AssetType.EquityMixedFund:
                         case AssetType.TreasuryBondsFund:
                         case AssetType.CorporateBondsFund:
-                            throw new NotImplementedException();
+                            asset = new Assets.Fund(tr, definition); break;
                         case AssetType.Futures: throw new NotImplementedException();
                         default: throw new Exception("Tried creating asset with unknown instrument type.");
                     }
@@ -65,7 +70,7 @@ namespace Venture
                     // Add pending events
                     foreach (var evt in asset.Events.OfType<Events.Flow>())
                     {
-                        events.Add(evt);
+                        flowEvents.Add(evt);
                     }
                     // Subtract cash used for purchase
                     RegisterCashDeduction(output, tr);
@@ -96,10 +101,13 @@ namespace Venture
                 }
             }
 
+            // Process remaining manual entries that influence assets
+            ProcessEquitySpinOffs(manual, output, null);
+
             return output;
         }
 
-        public static void RegisterCashDeduction(List<Assets.Asset> list, Data.Transaction tr)
+        private static void RegisterCashDeduction(List<Assets.Asset> list, Data.Transaction tr)
         {
             decimal remainingAmount = tr.Amount + tr.Fee;
 
@@ -132,7 +140,7 @@ namespace Venture
             }
         }
 
-        public static void RegisterSale(List<Assets.Asset> list, Data.Instrument definition, Data.Transaction tr)
+        private static void RegisterSale(List<Assets.Asset> list, Data.Instrument definition, Data.Transaction tr)
         {
             decimal remainingCount = tr.Count;
 
@@ -150,12 +158,13 @@ namespace Venture
                 case AssetType.FixedCorporateBonds:
                 case AssetType.FloatingCorporateBonds:
                     assetType = typeof(Assets.Bond); break;
-                case AssetType.ETF: throw new NotImplementedException();
+                case AssetType.ETF:
+                    assetType = typeof(Assets.ETF); break;
                 case AssetType.MoneyMarketFund:
                 case AssetType.EquityMixedFund:
                 case AssetType.TreasuryBondsFund:
                 case AssetType.CorporateBondsFund:
-                    throw new NotImplementedException();
+                    assetType = typeof(Assets.Fund); break;
                 case AssetType.Futures: throw new NotImplementedException();
                 default: throw new Exception("Tried selling an asset with unknown instrument type.");
             }
@@ -172,7 +181,7 @@ namespace Venture
             {
                 var currentCount = s.GetCount(new TimeArg(TimeArgDirection.Start, tr.SettlementDate, tr.Index));
                 if (currentCount == 0) continue;
-                var evt = new Events.Sale(s, tr, Math.Min(currentCount, remainingCount), definition.RecognitionOnTradeDate ? tr.TradeDate : tr.SettlementDate);
+                var evt = new Events.Derecognition(s, tr, Math.Min(currentCount, remainingCount), definition.RecognitionOnTradeDate ? tr.TradeDate : tr.SettlementDate);
                 s.AddEvent(evt);
                 remainingCount -= evt.Count;
                 if (remainingCount <= 0) break;
@@ -184,10 +193,52 @@ namespace Venture
             }
         }
 
-        public static void AddAsset(List<Assets.Asset> list, Assets.Asset asset, DateTime timestamp)
+        private static void AddAsset(List<Assets.Asset> list, Assets.Asset asset, DateTime timestamp)
         {
             var index = list.FindIndex(x => x.Events.First().Timestamp > timestamp);
             list.Insert(index == -1 ? list.Count : index, asset);
+        }
+
+        private static void ProcessEquitySpinOffs(HashSet<Manual> manual, List<Asset> output, DateTime? timestamp)
+        {
+            foreach (var mn in manual.Where(x => x.AdjustmentType == ManualAdjustmentType.EquitySpinOff).Where(x => timestamp == null || x.Timestamp < timestamp))
+            {
+                TimeArg time = new TimeArg(TimeArgDirection.End, mn.Timestamp);
+                List<Asset> newAssets = new List<Asset>();
+                foreach (var asset in output.OfType<Equity>().Where(x => x.SecurityDefinition.InstrumentId == mn.InstrumentId1))
+                {
+                    if (!(asset.IsActive(mn.Timestamp))) continue;
+                    decimal count = asset.GetCount(time);
+                    decimal price = asset.GetPurchasePrice(time, false);
+                    decimal newPrice2 = price; //mn.Amount2 / (mn.Amount2 + mn.Amount3) * price;
+                    decimal newPrice3 = price - newPrice2;
+                    // Reduce holding
+                    if (mn.Amount1 < 1)
+                    {
+                        decimal newCount = mn.Amount1 * count;
+                        var evt = new Events.Derecognition(asset, mn, mn.Timestamp, count - newCount, price);
+                        asset.AddEvent(evt);
+                    }
+                    // Add converted equity
+                    if (mn.Amount2 > 0)
+                    {
+                        var definition = Data.Definitions.Instruments.First(x => x.InstrumentId == mn.InstrumentId2);
+                        decimal newCount = mn.Amount2 * count;
+                        var newAsset = new Equity(asset, definition, mn, newCount, newPrice2);
+                        newAssets.Add(newAsset);
+                    }
+                    // Add spun off equity
+                    if (mn.Amount3 > 0)
+                    {
+                        var definition = Data.Definitions.Instruments.First(x => x.InstrumentId == mn.InstrumentId3);
+                        decimal newCount = mn.Amount3 * count;
+                        var newAsset = new Equity(asset, definition, mn, newCount, newPrice3);
+                        newAssets.Add(newAsset);
+                    }
+                }
+                newAssets.ForEach(x => output.Add(x));
+                manual.Remove(mn);
+            }
         }
     }
 }

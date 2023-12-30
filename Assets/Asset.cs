@@ -132,8 +132,8 @@ namespace Venture.Assets
                 MarketValue = this.GetMarketValue(time, true),
                 AccruedInterest = this.GetInterestAmount(time),
                 BookValue = this.GetValue(time),
-                Purchases = new(events.OfType<Events.Purchase>()),
-                Sales = new(events.OfType<Events.Sale>()),
+                Purchases = new(events.OfType<Events.Recognition>()),
+                Sales = new(events.OfType<Events.Derecognition>()),
                 Flows = new(events.OfType<Events.Flow>()),
                 Payments = new(events.OfType<Events.Payment>())
             };
@@ -144,7 +144,7 @@ namespace Venture.Assets
             var index = events.FindIndex(x => x.Timestamp > e.Timestamp);
             events.Insert(index == -1 ? events.Count : index, e);
 
-            if (e is Events.Sale)
+            if (e is Events.Derecognition)
             {
                 for (int i = index + 1; i < events.Count; i++)
                 {

@@ -28,18 +28,31 @@ namespace Venture.Assets
             SecurityDefinition = definition;
         }
 
+        public Security(Security template, Data.Instrument definition)
+        {
+            AssetType = definition.InstrumentType;
+
+            Portfolio = template.Portfolio;
+            CashAccount = template.CashAccount;
+            CustodyAccount = template.CustodyAccount;
+            Currency = template.Currency;
+            ValuationClass = template.ValuationClass;
+
+            SecurityDefinition = definition;
+        }
+
         protected override void RecalculateBounds()
         {
             decimal count = 0;
             foreach (Events.Event e in Events)
             {
-                if (e is Events.Purchase p)
+                if (e is Events.Recognition p)
                 {
                     count = p.Count;
                     bounds.startDate = p.Timestamp;
                     bounds.startIndex = p.TransactionIndex;
                 }
-                if (e is Events.Sale s)
+                if (e is Events.Derecognition s)
                 {
                     count -= s.Count;
                     if (count <= 0)
@@ -68,8 +81,8 @@ namespace Venture.Assets
             decimal count = 0;
             foreach (Events.Event e in GetEvents(time))
             {
-                if (e is Events.Purchase p) count += p.Count;
-                if (e is Events.Sale s) count -= s.Count;
+                if (e is Events.Recognition p) count += p.Count;
+                if (e is Events.Derecognition s) count -= s.Count;
                 if ((e is Events.Flow f) && f.FlowType == Venture.Events.FlowType.Redemption) count = 0;
             }
             return count;
@@ -79,14 +92,14 @@ namespace Venture.Assets
         {
             if (!IsActive(time)) return 0;
 
-            decimal price = Events.OfType<Events.Purchase>().FirstOrDefault()?.Price ?? 0;
+            decimal price = Events.OfType<Events.Recognition>().FirstOrDefault()?.Price ?? 0;
             if (!dirty) { price -= GetAccruedInterest(time.Date); }
             return price;
         }
 
         public override decimal GetNominalAmount()
         {
-            var evt = Events.OfType<Events.Purchase>().FirstOrDefault();
+            var evt = Events.OfType<Events.Recognition>().FirstOrDefault();
             if (evt != null)
             {
                 return GetNominalAmount(new TimeArg(TimeArgDirection.End, evt.Timestamp, evt.TransactionIndex));
@@ -104,12 +117,12 @@ namespace Venture.Assets
 
             foreach (Events.Event e in GetEvents(time))
             {
-                if (e is Events.Purchase purchase)
+                if (e is Events.Recognition purchase)
                 {
                     count = purchase.Count;
                     fee += purchase.Fee;
                 }
-                if (e is Events.Sale sale)
+                if (e is Events.Derecognition sale)
                 {
                     decimal current = Math.Round(sale.Count / count * fee, 2);
                     count -= sale.Count;
