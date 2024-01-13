@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -7,6 +9,7 @@ using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Shapes;
+using Venture.Modules;
 
 namespace Venture.Data
 {
@@ -126,6 +129,40 @@ namespace Venture.Data
             }
 
             return d;
+        }
+
+        public static string Export<T>(IEnumerable<T> list)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            if (typeof(T) is IEnumerable)
+            {
+                foreach (var line in list)
+                {
+                    sb.AppendJoin('\t', line);
+                }
+                sb.AppendLine();
+            }
+            else
+            {
+                var properties = typeof(T).GetProperties();
+                sb.AppendJoin('\t', properties.Select(x => x.Name));
+                sb.AppendLine();
+                foreach (var line in list)
+                {
+                    for (int i = 0; i < properties.Length; i++)
+                    {
+                        if (i > 0) sb.Append('\t');
+                        object? value = properties[i].GetValue(line);
+                        if (value == null) continue;
+                        if (value is System.Collections.IEnumerable && !(value is string)) continue;
+                        sb.Append(properties[i].GetValue(line));
+                    }
+                    sb.AppendLine();
+                }
+            }
+
+            return sb.ToString();
         }
     }
 }

@@ -15,15 +15,7 @@ namespace Venture.Events
         {
             get
             {
-                return $"{EventType}_{Timestamp:yyyy-MM-dd}_{TransactionIndex}_{Guid.NewGuid()}";
-            }
-        }
-
-        public string EventType
-        {
-            get
-            {
-                return GetType().Name;
+                return $"{GetType().Name}_{Timestamp:yyyyMMdd}_{TransactionIndex}_{Guid.NewGuid()}";
             }
         }
 

@@ -137,11 +137,6 @@ namespace Venture.Assets
         {
             if (!IsActive(date)) return 0;
 
-            //System.Windows.MessageBox.Show(Financial.FixedIncome.Interest(new DateTime(2016, 11, 22), MaturityDate, (double)GetCouponRate(date), CouponFreq, SecurityDefinition.DayCountConvention).ToString());
-            //System.Windows.MessageBox.Show(Financial.FixedIncome.Interest(new DateTime(2016, 11, 30), MaturityDate, (double)GetCouponRate(date), CouponFreq, SecurityDefinition.DayCountConvention).ToString());
-            //System.Windows.MessageBox.Show(Financial.FixedIncome.Interest(new DateTime(2016, 12, 30), MaturityDate, (double)GetCouponRate(date), CouponFreq, SecurityDefinition.DayCountConvention).ToString());
-            //System.Windows.MessageBox.Show(Financial.FixedIncome.Interest(new DateTime(2016, 12, 31), MaturityDate, (double)GetCouponRate(date), CouponFreq, SecurityDefinition.DayCountConvention).ToString());
-
             return (decimal)Financial.FixedIncome.Interest(date, MaturityDate, (double)GetCouponRate(date), CouponFreq, SecurityDefinition.DayCountConvention);
 
         }

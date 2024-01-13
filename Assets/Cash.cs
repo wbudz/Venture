@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Venture.Data;
 
 namespace Venture.Assets
 {
@@ -20,6 +21,7 @@ namespace Venture.Assets
                 case Data.TransactionType.Cash: Portfolio = tr.PortfolioDst; amount = tr.Amount; break;
                 default: throw new Exception("Tried creating cash with unknown transaction type.");
             }
+            UniqueId = $"Cash_{tr.TransactionType}_{tr.Index}";
             AssetType = AssetType.Cash;
             CashAccount = tr.AccountDst;
             CustodyAccount = "";
@@ -32,6 +34,7 @@ namespace Venture.Assets
 
         public Cash(Events.Flow fl) : base()
         {
+            UniqueId = $"Cash_{fl.FlowType}_{fl.ParentAsset.UniqueId}_{fl.Timestamp.ToString("yyyyMMdd")}";
             AssetType = AssetType.Cash;
             Portfolio = fl.ParentAsset.Portfolio;
             CashAccount = fl.ParentAsset.CashAccount;

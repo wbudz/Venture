@@ -73,7 +73,7 @@ namespace Venture.Data
 
         public static Manual? GetManualAdjustment(ManualAdjustmentType type, DateTime timestamp, string instrumentId)
         {
-            return Manual.FirstOrDefault(x => x.AdjustmentType == type && x.Timestamp == timestamp && x.InstrumentId1 == instrumentId);
+            return Manual.FirstOrDefault(x => x.AdjustmentType == type && x.Timestamp == timestamp && x.Instrument1 == instrumentId);
         }
 
         public static IEnumerable<Manual> GetManualEventSources()

@@ -17,7 +17,7 @@ namespace Venture.Assets
             GenerateFlows();
         }
 
-        public Equity(Equity template, Data.Instrument definition, Manual manual, decimal count, decimal price) : base(template, definition)
+        public Equity(Equity template, Data.Instrument definition, Manual manual, decimal count, decimal price) : base(template, definition, manual.UniqueId)
         {
             AddEvent(new Events.Recognition(this, manual, count, price));
             GenerateFlows();

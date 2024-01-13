@@ -11,17 +11,17 @@ namespace Venture.Data
 
     public class Manual: DataPoint
     {
-        public string UniqueId { get { return $"{AdjustmentType}: {Timestamp:yyyyMMddTHHmmss}_{InstrumentId1}"; } }
+        public string UniqueId { get { return $"{AdjustmentType}_{Timestamp:yyyyMMdd}_{Instrument1}"; } }
 
         public ManualAdjustmentType AdjustmentType { get; private set; }
 
         public DateTime Timestamp { get; private set; } = DateTime.MinValue;
 
-        public string InstrumentId1 { get; private set; } = "";
+        public string Instrument1 { get; private set; } = "";
 
-        public string InstrumentId2 { get; private set; } = "";
+        public string Instrument2 { get; private set; } = "";
 
-        public string InstrumentId3 { get; private set; } = "";
+        public string Instrument3 { get; private set; } = "";
 
         public decimal Amount1 { get; private set; } = 0;
 
@@ -35,9 +35,9 @@ namespace Venture.Data
             {
                 if (headers[i] == "adjustmenttype") AdjustmentType = ConvertToEnum<ManualAdjustmentType>(line[i]);
                 if (headers[i] == "timestamp") Timestamp = ConvertToDateTime(line[i]);
-                if (headers[i] == "instrumentid1") InstrumentId1 = line[i];
-                if (headers[i] == "instrumentid2") InstrumentId2 = line[i];
-                if (headers[i] == "instrumentid3") InstrumentId3 = line[i];
+                if (headers[i] == "instrument1") Instrument1 = line[i];
+                if (headers[i] == "instrument2") Instrument2 = line[i];
+                if (headers[i] == "instrument3") Instrument3 = line[i];
                 if (headers[i] == "amount1") Amount1 = ConvertToDecimal(line[i]);
                 if (headers[i] == "amount2") Amount2 = ConvertToDecimal(line[i]);
                 if (headers[i] == "amount3") Amount3 = ConvertToDecimal(line[i]);
@@ -47,7 +47,7 @@ namespace Venture.Data
 
         public override string ToString()
         {
-            return $"Data.Manual: {AdjustmentType}: {InstrumentId1} @{Timestamp}";
+            return $"Data.Manual: {AdjustmentType}: {Instrument1} @{Timestamp:yyyy-MM-dd}";
         }
     }
 }

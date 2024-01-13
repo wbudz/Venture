@@ -205,7 +205,7 @@ namespace Venture
             {
                 TimeArg time = new TimeArg(TimeArgDirection.End, mn.Timestamp);
                 List<Asset> newAssets = new List<Asset>();
-                foreach (var asset in output.OfType<Equity>().Where(x => x.SecurityDefinition.InstrumentId == mn.InstrumentId1))
+                foreach (var asset in output.OfType<Equity>().Where(x => x.SecurityDefinition.InstrumentId == mn.Instrument1))
                 {
                     if (!(asset.IsActive(mn.Timestamp))) continue;
                     decimal count = asset.GetCount(time);
@@ -222,7 +222,7 @@ namespace Venture
                     // Add converted equity
                     if (mn.Amount2 > 0)
                     {
-                        var definition = Data.Definitions.Instruments.First(x => x.InstrumentId == mn.InstrumentId2);
+                        var definition = Data.Definitions.Instruments.First(x => x.InstrumentId == mn.Instrument2);
                         decimal newCount = mn.Amount2 * count;
                         var newAsset = new Equity(asset, definition, mn, newCount, newPrice2);
                         newAssets.Add(newAsset);
@@ -230,7 +230,7 @@ namespace Venture
                     // Add spun off equity
                     if (mn.Amount3 > 0)
                     {
-                        var definition = Data.Definitions.Instruments.First(x => x.InstrumentId == mn.InstrumentId3);
+                        var definition = Data.Definitions.Instruments.First(x => x.InstrumentId == mn.Instrument3);
                         decimal newCount = mn.Amount3 * count;
                         var newAsset = new Equity(asset, definition, mn, newCount, newPrice3);
                         newAssets.Add(newAsset);

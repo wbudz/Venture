@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 
 namespace Venture.Assets
 {
@@ -16,6 +17,7 @@ namespace Venture.Assets
 
         public Security(Data.Transaction tr, Data.Instrument definition)
         {
+            UniqueId=$"{definition.InstrumentType}_{definition.InstrumentId}_{tr.Index}";
             Index = tr.Index;
             AssetType = definition.InstrumentType;
 
@@ -28,8 +30,9 @@ namespace Venture.Assets
             SecurityDefinition = definition;
         }
 
-        public Security(Security template, Data.Instrument definition)
+        public Security(Security template, Data.Instrument definition, string identifier)
         {
+            UniqueId = $"{definition.InstrumentType}_{definition.InstrumentId}_{template.Index}_{identifier}";
             AssetType = definition.InstrumentType;
 
             Portfolio = template.Portfolio;
@@ -92,9 +95,18 @@ namespace Venture.Assets
         {
             if (!IsActive(time)) return 0;
 
-            decimal price = Events.OfType<Events.Recognition>().FirstOrDefault()?.Price ?? 0;
-            if (!dirty) { price -= GetAccruedInterest(time.Date); }
-            return price;
+            var evt = Events.OfType<Events.Recognition>().FirstOrDefault();
+
+            if (evt != null)
+            {
+                decimal price = evt.Price;
+                if (!dirty) { price -= GetAccruedInterest(evt.Timestamp); }
+                return price;
+            }
+            else
+            {
+                return 0;
+            }
         }
 
         public override decimal GetNominalAmount()

@@ -25,6 +25,7 @@
         <ToolBar Template="{DynamicResource ToolBarTemplate}" Height="26" VerticalAlignment="Top" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" ItemsSource="{Binding Mode=OneWay}">
             <ToolBar.Items>
                 <Button x:Name="RefreshButton" Content="Refresh" Click="RefreshButton_Click" />
+                <Button x:Name="CopyButton" Content="Copy" Click="CopyButton_Click" />
                 <Separator />
                 <TextBlock Text="Date" VerticalAlignment="Center" Margin="5,0,5,0"/>
                 <ComboBox x:Name="YearComboBox" VerticalAlignment="Center" Width="80" DataContext="{Binding Mode=OneWay, Source={StaticResource Filters}}" ItemsSource="{Binding ReportingYears}" SelectedItem="{Binding CurrentYear}" SelectionChanged="ComboBox_SelectionChanged" />

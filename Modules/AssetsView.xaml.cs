@@ -53,6 +53,11 @@ namespace Venture.Modules
             ((MainWindow)Application.Current.MainWindow).StatusText.Text = $"Module refresh took: {(sw.ElapsedMilliseconds / 1000.0):0.000} seconds.";
         }
 
+        private void CopyButton_Click(object sender, RoutedEventArgs e)
+        {
+            Clipboard.SetText(Data.CSV.Export<AssetsViewEntry>(AssetEntries));
+        }
+
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
             Refresh();

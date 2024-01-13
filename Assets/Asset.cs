@@ -16,25 +16,11 @@ namespace Venture.Assets
 
         public int Index { get; protected set; } = -1;
 
-        private string guid = Guid.NewGuid().ToString();
         /// <summary>
         /// Unique identifier of the asset. Based on identifier of the transaction that results in asset creation.
         /// Includes: date, ticker, transaction index - depending on the asset type.
         /// </summary>
-        public string UniqueId
-        {
-            get
-            {
-                if (this is Security s)
-                {
-                    return $"{AssetType}_{GetPurchaseDate():yyyy-MM-dd}_{Index}_{Portfolio}_{Broker}_{s.SecurityDefinition.InstrumentId}_{GetNominalAmount()}_{guid}";
-                }
-                else
-                {
-                    return $"{AssetType}_{GetPurchaseDate():yyyy-MM-dd}_{Index}_{Portfolio}_{Broker}_{GetNominalAmount()}_{guid}";
-                }
-            }
-        }
+        public string UniqueId { get; protected set; } 
 
         public AssetType AssetType { get; protected set; } = AssetType.Undefined;
 
@@ -94,14 +80,14 @@ namespace Venture.Assets
 
         public DateTime BoundsEnd { get { return bounds.endDate; } }
 
-        public Asset(Data.Transaction tr)
+        public Asset(Data.Transaction tr):this()
         {
             Index = tr.Index;
         }
 
         public Asset()
         {
-
+            UniqueId = Guid.NewGuid().ToString();
         }
 
         /// <summary>
