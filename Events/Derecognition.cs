@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.SolverFoundation.Services;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,6 +18,7 @@ namespace Venture.Events
 
         public Derecognition(Assets.Asset parentAsset, Data.Transaction tr, decimal count, DateTime date) : base(parentAsset)
         {
+            UniqueId = $"Derecognition_{parentAsset.UniqueId}_{tr.Index}_{tr.Timestamp.ToString("yyyyMMdd")}";
             ParentAsset = parentAsset;
 
             TransactionIndex = tr.Index;
@@ -35,15 +37,16 @@ namespace Venture.Events
             FXRate = tr.FXRate;
         }
 
-        public Derecognition(Assets.Asset parentAsset, Manual manual, DateTime date, decimal count, decimal price) : base(parentAsset)
+        public Derecognition(Assets.Asset parentAsset, Manual manual, decimal count, decimal price) : base(parentAsset)
         {
+            UniqueId = $"Derecognition_{parentAsset.UniqueId}_MANUAL_{manual.UniqueId}_{manual.Timestamp.ToString("yyyyMMdd")}";
             switch (manual.AdjustmentType)
             {
                 case ManualAdjustmentType.CouponTaxAdjustment:
                 case ManualAdjustmentType.DividendTaxAdjustment:
                     throw new ArgumentException("Unexpected source for Derecognition event.");
                 case ManualAdjustmentType.EquitySpinOff:
-                    Timestamp = date;
+                    Timestamp = manual.Timestamp;
                     Price = price;
                     Count = count;
                     Amount = price * count;

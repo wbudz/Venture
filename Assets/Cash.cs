@@ -180,6 +180,11 @@ namespace Venture.Assets
             return 0;
         }
 
+        public override double GetYieldToMaturity(DateTime date)
+        {
+            return 0;
+        }
+
         #endregion
 
         public override decimal GetUnrealizedPurchaseFee(TimeArg time)

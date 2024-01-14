@@ -11,13 +11,7 @@ namespace Venture.Events
 
     public abstract class Event
     {
-        public string UniqueId
-        {
-            get
-            {
-                return $"{GetType().Name}_{Timestamp:yyyyMMdd}_{TransactionIndex}_{Guid.NewGuid()}";
-            }
-        }
+        public string UniqueId { get; protected set; } = Guid.NewGuid().ToString();
 
         public int TransactionIndex { get; protected set; } = -1;
 
@@ -34,6 +28,9 @@ namespace Venture.Events
             ParentAsset = parentAsset;
         }
 
-
+        public override string ToString()
+        {
+            return $"Event:{UniqueId}";
+        }
     }
 }

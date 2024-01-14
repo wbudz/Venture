@@ -13,7 +13,7 @@ namespace Venture.Assets
     {
         public ETF(Data.Transaction tr, Data.Instrument definition) : base(tr, definition)
         {
-            AddEvent(new Events.Recognition(this, tr, definition.RecognitionOnTradeDate ? tr.TradeDate : tr.SettlementDate));
+            AddEvent(new Events.Recognition(this, tr, tr.Timestamp));
             GenerateFlows();
         }
 
@@ -101,6 +101,11 @@ namespace Venture.Assets
         }
 
         public override double GetYieldToMaturity(DateTime date, double price)
+        {
+            return 0;
+        }
+
+        public override double GetYieldToMaturity(DateTime date)
         {
             return 0;
         }

@@ -16,6 +16,9 @@
     <Compile Update="Modules\AssetsReports.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Modules\CashflowView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Modules\AssetsView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>

@@ -42,22 +42,6 @@ namespace Venture.Data
 
         public EndOfMonthConvention EndOfMonthConvention { get; private set; } = EndOfMonthConvention.Undefined;
 
-        /// <summary>
-        /// If true, asset is recognized or derecognized on trade date, otherwise on settlement date.
-        /// </summary>
-        public bool RecognitionOnTradeDate
-        {
-            get
-            {
-                return InstrumentType == AssetType.Equity ||
-                    InstrumentType == AssetType.ETF ||
-                    InstrumentType == AssetType.MoneyMarketFund ||
-                    InstrumentType == AssetType.EquityMixedFund ||
-                    InstrumentType == AssetType.TreasuryBondsFund ||
-                    InstrumentType == AssetType.CorporateBondsFund;
-            }
-        }
-
         public override void FromCSV(string[] headers, string[] line, int index)
         {
             for (int i = 0; i < Math.Min(headers.Length, line.Length); i++)

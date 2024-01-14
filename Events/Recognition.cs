@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Venture.Data;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Venture.Events
 {
@@ -17,6 +18,7 @@ namespace Venture.Events
 
         public Recognition(Assets.Asset parentAsset, Data.Transaction tr, DateTime date) : base(parentAsset)
         {
+            UniqueId = $"recognition_{parentAsset.UniqueId}_{tr.Index}_{tr.Timestamp.ToString("yyyyMMdd")}";
             if (tr.TransactionType != Data.TransactionType.Buy) throw new ArgumentException("An attempt was made to create Recognition event with transaction type other than Buy.");
 
             TransactionIndex = tr.Index;
@@ -37,6 +39,7 @@ namespace Venture.Events
 
         public Recognition(Assets.Asset parentAsset, Manual manual, decimal count, decimal price) : base(parentAsset)
         {
+            UniqueId = $"Derecognition_{parentAsset.UniqueId}_MANUAL_{manual.UniqueId}_{manual.Timestamp.ToString("yyyyMMdd")}";
             switch (manual.AdjustmentType)
             {
                 case ManualAdjustmentType.CouponTaxAdjustment:

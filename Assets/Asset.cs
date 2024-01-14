@@ -20,7 +20,7 @@ namespace Venture.Assets
         /// Unique identifier of the asset. Based on identifier of the transaction that results in asset creation.
         /// Includes: date, ticker, transaction index - depending on the asset type.
         /// </summary>
-        public string UniqueId { get; protected set; } 
+        public string UniqueId { get; protected set; }
 
         public AssetType AssetType { get; protected set; } = AssetType.Undefined;
 
@@ -64,8 +64,8 @@ namespace Venture.Assets
         {
             get
             {
-                return AssetType==AssetType.FixedCorporateBonds ||
-                    AssetType==AssetType.FixedRetailTreasuryBonds ||
+                return AssetType == AssetType.FixedCorporateBonds ||
+                    AssetType == AssetType.FixedRetailTreasuryBonds ||
                     AssetType == AssetType.FixedTreasuryBonds ||
                     AssetType == AssetType.FloatingCorporateBonds ||
                     AssetType == AssetType.FloatingRetailTreasuryBonds ||
@@ -80,7 +80,7 @@ namespace Venture.Assets
 
         public DateTime BoundsEnd { get { return bounds.endDate; } }
 
-        public Asset(Data.Transaction tr):this()
+        public Asset(Data.Transaction tr) : this()
         {
             Index = tr.Index;
         }
@@ -96,34 +96,6 @@ namespace Venture.Assets
         protected abstract void GenerateFlows();
 
         protected abstract void RecalculateBounds();
-
-        public AssetsViewEntry GenerateAssetViewEntry(DateTime date)
-        {
-            TimeArg time = new TimeArg(TimeArgDirection.End, date);
-            var events = this.GetEvents(time);
-            return new AssetsViewEntry()
-            {
-                UniqueId = this.UniqueId,
-                AssetType = this.AssetType.ToString(),
-                Portfolio = this.Portfolio,
-                CashAccount = this.CashAccount,
-                CustodyAccount = this.CustodyAccount,
-                Currency = this.Currency,
-                ValuationClass = Common.ValuationClassToString(this.ValuationClass),
-                InstrumentId = this is Security ? ((Security)this).SecurityDefinition.InstrumentId : "",
-                RecognitionDate = this.GetPurchaseDate(),
-                Count = this.GetCount(time),
-                NominalAmount = this.GetNominalAmount(time),
-                AmortizedCostValue = this.GetAmortizedCostValue(time, true),
-                MarketValue = this.GetMarketValue(time, true),
-                AccruedInterest = this.GetInterestAmount(time),
-                BookValue = this.GetValue(time),
-                Purchases = new(events.OfType<Events.Recognition>()),
-                Sales = new(events.OfType<Events.Derecognition>()),
-                Flows = new(events.OfType<Events.Flow>()),
-                Payments = new(events.OfType<Events.Payment>())
-            };
-        }
 
         public void AddEvent(Events.Event e)
         {
@@ -294,6 +266,11 @@ namespace Venture.Assets
         /// <returns>Purchase price of the investment</returns>
         public abstract decimal GetPurchasePrice(TimeArg time, bool dirty);
 
+        public decimal GetPurchasePrice(bool dirty)
+        {
+            return GetPurchasePrice(new TimeArg(TimeArgDirection.End, GetPurchaseDate()), dirty);
+        }
+
         /// <summary>
         /// Gets market price of the investment, i.e. price taken from an active market or equivalent. If no market price is available at the given date:
         /// - if there is any earlier market valuation for the investment, it is taken;
@@ -406,6 +383,8 @@ namespace Venture.Assets
         /// <param name="price">Current clean price of the investment at the given date, acquired e.g. by specific function to get market value or amortized cost value. </param>
         /// <returns>Returns yield to maturity of the investment or 0 if there is no modified duration (instrument not applicable).</returns>
         public abstract double GetYieldToMaturity(DateTime date, double price);
+
+        public abstract double GetYieldToMaturity(DateTime date);
 
         #endregion
 

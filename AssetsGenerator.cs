@@ -41,7 +41,6 @@ namespace Venture
                     if (definition == null) throw new Exception("Purchase transaction definition pointed to unknown instrument id.");
 
                     Asset asset;
-                    DateTime date = definition.RecognitionOnTradeDate ? tr.TradeDate : tr.SettlementDate;
                     switch (definition.InstrumentType)
                     {
                         case AssetType.Undefined: throw new Exception("Tried creating asset with undefined instrument type.");
@@ -66,7 +65,7 @@ namespace Venture
                         default: throw new Exception("Tried creating asset with unknown instrument type.");
                     }
 
-                    AddAsset(output, asset, date);
+                    AddAsset(output, asset, tr.Timestamp);
                     // Add pending events
                     foreach (var evt in asset.Events.OfType<Events.Flow>())
                     {
@@ -83,7 +82,7 @@ namespace Venture
                     RegisterSale(output, definition, tr);
 
                     // Add cash gained from sale
-                    AddAsset(output, new Cash(tr), definition.RecognitionOnTradeDate ? tr.TradeDate : tr.SettlementDate);
+                    AddAsset(output, new Cash(tr), tr.Timestamp);
 
                 }
                 if (tr.TransactionType == Data.TransactionType.Cash)
@@ -91,7 +90,7 @@ namespace Venture
                     // Register cash addition
                     if (!String.IsNullOrEmpty(tr.AccountDst))
                     {
-                        AddAsset(output, new Cash(tr), tr.SettlementDate);
+                        AddAsset(output, new Cash(tr), tr.Timestamp);
                     }
                     // Register cash deduction
                     if (!String.IsNullOrEmpty(tr.AccountSrc))
@@ -110,6 +109,7 @@ namespace Venture
         private static void RegisterCashDeduction(List<Assets.Asset> list, Data.Transaction tr)
         {
             decimal remainingAmount = tr.Amount + tr.Fee;
+            if (remainingAmount == 0) throw new Exception("Cash deduction attempted with amount equal to 0.");
 
             string portfolio = "";
             switch (tr.TransactionType)
@@ -122,7 +122,7 @@ namespace Venture
             }
             if (String.IsNullOrEmpty(portfolio)) throw new Exception("Portfolio not specified for cash deduction.");
 
-            var cash = list.OfType<Cash>().Where(x => x.Currency == tr.Currency && x.CashAccount == tr.AccountSrc && x.Portfolio == portfolio);
+            var cash = list.OfType<Cash>().Where(x => x.IsActive(tr.Timestamp) && x.Currency == tr.Currency && x.CashAccount == tr.AccountSrc && x.Portfolio == portfolio);
             foreach (var c in cash)
             {
                 var currentAmount = c.GetNominalAmount(new TimeArg(TimeArgDirection.Start, tr.SettlementDate, tr.Index));
@@ -181,7 +181,7 @@ namespace Venture
             {
                 var currentCount = s.GetCount(new TimeArg(TimeArgDirection.Start, tr.SettlementDate, tr.Index));
                 if (currentCount == 0) continue;
-                var evt = new Events.Derecognition(s, tr, Math.Min(currentCount, remainingCount), definition.RecognitionOnTradeDate ? tr.TradeDate : tr.SettlementDate);
+                var evt = new Events.Derecognition(s, tr, Math.Min(currentCount, remainingCount), tr.Timestamp);
                 s.AddEvent(evt);
                 remainingCount -= evt.Count;
                 if (remainingCount <= 0) break;
@@ -216,7 +216,7 @@ namespace Venture
                     if (mn.Amount1 < 1)
                     {
                         decimal newCount = mn.Amount1 * count;
-                        var evt = new Events.Derecognition(asset, mn, mn.Timestamp, count - newCount, price);
+                        var evt = new Events.Derecognition(asset, mn, count - newCount, price);
                         asset.AddEvent(evt);
                     }
                     // Add converted equity

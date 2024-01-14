@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Venture.Assets
 {
@@ -23,6 +24,8 @@ namespace Venture.Assets
 
         public DateTime MaturityDate { get; protected set; }
 
+        private List<(DateTime date, double ytm)> YieldsToMaturity = new List<(DateTime date, double ytm)>();
+
         public Bond(Data.Transaction tr, Data.Instrument definition) : base(tr, definition)
         {
             UnitPrice = tr.NominalAmount;
@@ -30,8 +33,9 @@ namespace Venture.Assets
             CouponFreq = definition.CouponFreq;
             CouponType = definition.CouponType;
             MaturityDate = definition.Maturity;
-            AddEvent(new Events.Recognition(this, tr, definition.RecognitionOnTradeDate ? tr.TradeDate : tr.SettlementDate));
+            AddEvent(new Events.Recognition(this, tr, tr.Timestamp));
             GenerateFlows();
+            GenerateYields();
         }
 
         protected override void GenerateFlows()
@@ -88,6 +92,45 @@ namespace Venture.Assets
             }
         }
 
+        private void GenerateYields()
+        {
+            // TODO: warning, spaghetti code follows
+            YieldsToMaturity.Clear();
+            // Purchase YTM
+            DateTime date = GetPurchaseDate();
+            double price = (double)GetPurchasePrice(false);
+            double couponRate = (double)GetCouponRate(date);
+            double ytm = Financial.FixedIncome.Yield(date, MaturityDate, couponRate, price, 100, CouponFreq, SecurityDefinition.DayCountConvention);
+            YieldsToMaturity.Add((date, ytm));
+            DateTime prevDate = date;
+            double prevYtm = ytm;
+            double prevCouponRate = couponRate;
+            // For fixed-coupon securities, one ytm for the whole period
+            if (this.AssetType == AssetType.FixedCorporateBonds || this.AssetType == AssetType.FixedTreasuryBonds || this.AssetType == AssetType.FixedRetailTreasuryBonds)
+            {
+            }
+            // For floaters, coupon-based yields
+            else
+            {
+                bool firstCoupon = true;
+                foreach (var fl in Events.OfType<Flow>().Where(x => x.FlowType == FlowType.Coupon).OrderBy(x => x.Timestamp))
+                {
+                    if (!firstCoupon)
+                    {
+                        date = fl.Timestamp;
+                        couponRate = (double)GetCouponRate(date);
+                        price = Financial.FixedIncome.Price(prevDate, MaturityDate, prevCouponRate, prevYtm, 100, CouponFreq, SecurityDefinition.DayCountConvention);
+                        ytm = Financial.FixedIncome.Yield(prevDate, MaturityDate, couponRate, price, 100, CouponFreq, SecurityDefinition.DayCountConvention);
+                        YieldsToMaturity.Add((prevDate, ytm));
+                    }
+                    prevDate = fl.Timestamp;
+                    prevYtm = ytm;
+                    prevCouponRate = couponRate;
+                    firstCoupon = false;
+                }
+            }
+        }
+
         public override string ToString()
         {
             return $"Asset:Bond {UniqueId}";
@@ -120,8 +163,7 @@ namespace Venture.Assets
         {
             if (!IsActive(time)) return 0;
 
-            double price = (double)GetPurchasePrice(time, false);
-            double yield = GetYieldToMaturity(GetPurchaseDate(), price);
+            double yield = GetYieldToMaturity(time.Date);
 
             if (dirty)
             {
@@ -184,6 +226,12 @@ namespace Venture.Assets
         {
             if (!IsActive(date)) return 0;
             return Financial.FixedIncome.Yield(date, MaturityDate, (double)GetCouponRate(date), price, 100, CouponFreq, SecurityDefinition.DayCountConvention);
+        }
+
+        public override double GetYieldToMaturity(DateTime date)
+        {
+            if (!IsActive(date)) return 0;
+            return YieldsToMaturity.Last(x => date > x.date).ytm;
         }
 
         #endregion

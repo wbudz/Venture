@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.SolverFoundation.Services;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,6 +21,7 @@ namespace Venture.Events
 
         public Flow(Assets.Asset parentAsset, DateTime recordDate, DateTime timestamp, FlowType type, decimal rate, decimal fxRate) : base(parentAsset)
         {
+            UniqueId = $"Flow_{type}_{parentAsset.UniqueId}_{timestamp.ToString("yyyyMMdd")}";
             RecordDate = recordDate;
             Timestamp = timestamp;
             FlowType = type;
@@ -59,11 +61,6 @@ namespace Venture.Events
                     break;
                 default: throw new Exception("Cannot recalculate amount for undefined flow event.");
             }
-        }
-
-        public override string ToString()
-        {
-            return $"Event:Flow ({FlowType}) @{Timestamp:yyyy-MM-dd}: {Amount:0.00} {ParentAsset.Currency}";
         }
 
     }
