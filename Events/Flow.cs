@@ -42,6 +42,8 @@ namespace Venture.Events
                     manualAdjustment = Data.Definitions.GetManualAdjustment(Data.ManualAdjustmentType.DividendTaxAdjustment, Timestamp, ParentAsset.UniqueId ?? "");
                     if (manualAdjustment != null)
                     { Tax = manualAdjustment.Amount1; }
+                    else if (Globals.TaxFreePortfolios.Contains(ParentAsset.Portfolio))
+                    { Tax = 0; }
                     else
                     { Tax = TaxCalculations.CalculateFromDividend(Amount); }
                     Amount -= Tax;
@@ -51,6 +53,8 @@ namespace Venture.Events
                     manualAdjustment = Data.Definitions.GetManualAdjustment(Data.ManualAdjustmentType.CouponTaxAdjustment, Timestamp, ParentAsset.UniqueId ?? "");
                     if (manualAdjustment != null)
                     { Tax = manualAdjustment.Amount1; }
+                    else if (Globals.TaxFreePortfolios.Contains(ParentAsset.Portfolio))
+                    { Tax = 0; }
                     else
                     { Tax = TaxCalculations.CalculateFromCoupon(Amount); }
                     Amount -= Tax;

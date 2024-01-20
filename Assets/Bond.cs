@@ -24,7 +24,7 @@ namespace Venture.Assets
 
         public DateTime MaturityDate { get; protected set; }
 
-        private List<(DateTime date, double ytm)> YieldsToMaturity = new List<(DateTime date, double ytm)>();
+        private List<(DateTime startDate, double ytm)> YieldsToMaturity = new List<(DateTime startDate, double ytm)>();
 
         public Bond(Data.Transaction tr, Data.Instrument definition) : base(tr, definition)
         {
@@ -94,7 +94,6 @@ namespace Venture.Assets
 
         private void GenerateYields()
         {
-            // TODO: warning, spaghetti code follows
             YieldsToMaturity.Clear();
             // Purchase YTM
             DateTime date = GetPurchaseDate();
@@ -105,29 +104,26 @@ namespace Venture.Assets
             DateTime prevDate = date;
             double prevYtm = ytm;
             double prevCouponRate = couponRate;
+
             // For fixed-coupon securities, one ytm for the whole period
-            if (this.AssetType == AssetType.FixedCorporateBonds || this.AssetType == AssetType.FixedTreasuryBonds || this.AssetType == AssetType.FixedRetailTreasuryBonds)
-            {
-            }
+            if (this.AssetType == AssetType.FixedCorporateBonds || this.AssetType == AssetType.FixedTreasuryBonds || this.AssetType == AssetType.FixedRetailTreasuryBonds) return;
+            
             // For floaters, coupon-based yields
-            else
+            bool firstCoupon = true; // we skip first coupon, because we will save second coupon's calculation on first coupon's date, and so on
+            foreach (var fl in Events.OfType<Flow>().Where(x => x.FlowType == FlowType.Coupon && x.Timestamp > date).OrderBy(x => x.Timestamp)) 
             {
-                bool firstCoupon = true;
-                foreach (var fl in Events.OfType<Flow>().Where(x => x.FlowType == FlowType.Coupon).OrderBy(x => x.Timestamp))
+                if (!firstCoupon)
                 {
-                    if (!firstCoupon)
-                    {
-                        date = fl.Timestamp;
-                        couponRate = (double)GetCouponRate(date);
-                        price = Financial.FixedIncome.Price(prevDate, MaturityDate, prevCouponRate, prevYtm, 100, CouponFreq, SecurityDefinition.DayCountConvention);
-                        ytm = Financial.FixedIncome.Yield(prevDate, MaturityDate, couponRate, price, 100, CouponFreq, SecurityDefinition.DayCountConvention);
-                        YieldsToMaturity.Add((prevDate, ytm));
-                    }
-                    prevDate = fl.Timestamp;
-                    prevYtm = ytm;
-                    prevCouponRate = couponRate;
-                    firstCoupon = false;
+                    date = fl.Timestamp;
+                    couponRate = (double)GetCouponRate(date);
+                    price = Financial.FixedIncome.Price(prevDate, MaturityDate, prevCouponRate, prevYtm, 100, CouponFreq, SecurityDefinition.DayCountConvention);
+                    ytm = Financial.FixedIncome.Yield(prevDate, MaturityDate, couponRate, price, 100, CouponFreq, SecurityDefinition.DayCountConvention);
+                    YieldsToMaturity.Add((prevDate, ytm));
                 }
+                prevDate = fl.Timestamp;
+                prevYtm = ytm;
+                prevCouponRate = couponRate;
+                firstCoupon = false;
             }
         }
 
@@ -231,7 +227,7 @@ namespace Venture.Assets
         public override double GetYieldToMaturity(DateTime date)
         {
             if (!IsActive(date)) return 0;
-            return YieldsToMaturity.Last(x => date > x.date).ytm;
+            return YieldsToMaturity.Last(x => x.startDate < date).ytm;
         }
 
         #endregion

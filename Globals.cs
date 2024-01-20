@@ -8,6 +8,6 @@ namespace Venture
 {
     public static class Globals
     {
-        
+        public static HashSet<string> TaxFreePortfolios = new HashSet<string>(){ "EMRT" };
     }
 }

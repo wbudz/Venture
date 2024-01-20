@@ -15,7 +15,7 @@ namespace Venture
         public static List<Assets.Asset> GenerateAssets()
         {
             List<Assets.Asset> output = new List<Assets.Asset>();
-            Queue<Data.Transaction> transactions = new Queue<Data.Transaction>(Data.Definitions.Transactions);
+            Queue<Data.Transaction> transactions = new Queue<Data.Transaction>(Data.Definitions.Transactions.OrderBy(x=>x.Timestamp));
             HashSet<Events.Flow> flowEvents = new HashSet<Events.Flow>();
             HashSet<Manual> manual = new HashSet<Manual>(Data.Definitions.GetManualEventSources());
 
