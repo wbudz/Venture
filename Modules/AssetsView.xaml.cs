@@ -72,5 +72,19 @@ namespace Venture.Modules
         {
             Refresh();
         }
+
+        private void ListView_AutoSizeColumns(object sender, SelectionChangedEventArgs e)
+        {
+            if (sender == null) return;
+            foreach (var column in ((GridView)((ListView)sender).View).Columns)
+            {
+                if (double.IsNaN(column.Width))
+                {
+                    column.Width = column.ActualWidth;
+                }
+
+                column.Width = double.NaN;
+            }
+        }
     }
 }

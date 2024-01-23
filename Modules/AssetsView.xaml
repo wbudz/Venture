@@ -48,28 +48,28 @@
                       ItemsSource="{Binding Purchases}" 
                       DataContext="{Binding SelectedItem, ElementName=lvAssets}" 
                       View="{Binding Mode=OneWay, Source={StaticResource PurchasesGridView}}"
-                      VerticalAlignment="Stretch"/>
+                      VerticalAlignment="Stretch" SelectionChanged="ListView_AutoSizeColumns"/>
             </TabItem>
             <TabItem Header="Sales">
                 <ListView
                       ItemsSource="{Binding Sales}" 
                       DataContext="{Binding SelectedItem, ElementName=lvAssets}" 
                       View="{Binding Mode=OneWay, Source={StaticResource SalesGridView}}"
-                      VerticalAlignment="Stretch"/>
+                      VerticalAlignment="Stretch" SelectionChanged="ListView_AutoSizeColumns"/>
             </TabItem>
             <TabItem Header="Flows">
                 <ListView
                       ItemsSource="{Binding Flows}" 
                       DataContext="{Binding SelectedItem, ElementName=lvAssets}" 
                       View="{Binding Mode=OneWay, Source={StaticResource FlowsGridView}}"
-                      VerticalAlignment="Stretch"/>
+                      VerticalAlignment="Stretch" SelectionChanged="ListView_AutoSizeColumns"/>
             </TabItem>
             <TabItem Header="Payments">
                 <ListView
                       ItemsSource="{Binding Payments}" 
                       DataContext="{Binding SelectedItem, ElementName=lvAssets}" 
                       View="{Binding Mode=OneWay, Source={StaticResource PaymentsGridView}}"
-                      VerticalAlignment="Stretch"/>
+                      VerticalAlignment="Stretch" SelectionChanged="ListView_AutoSizeColumns"/>
             </TabItem>
         </TabControl>
         <TextBlock x:Name="TotalValueTextBlock" VerticalAlignment="Bottom" Margin="10,0,0,6" Grid.Row="1" HorizontalAlignment="Left" Visibility="Collapsed"/>

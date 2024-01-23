@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Documents;
+using Venture.Data;
 
 namespace Venture.Assets
 {
@@ -21,6 +22,8 @@ namespace Venture.Assets
         /// Includes: date, ticker, transaction index - depending on the asset type.
         /// </summary>
         public string UniqueId { get; protected set; }
+
+        public string InstrumentId { get { return (this is Security s) ? s.SecurityDefinition.InstrumentId : ""; } }
 
         public AssetType AssetType { get; protected set; } = AssetType.Undefined;
 
@@ -170,12 +173,12 @@ namespace Venture.Assets
         {
             if (start > end) throw new ArgumentException("Start time must be less than end time when checking if an asset is active.");
 
-            if (bounds.startDate > end) return false;
-            if (bounds.endDate < start) return false;
-            if (bounds.startDate <= start && bounds.startDate <= end) return true;
-            if (bounds.endDate >= start && bounds.endDate >= end) return true;
+            if (bounds.startDate > end) return false; // asset becomes active after end of period in question
+            if (bounds.endDate < start) return false; // asset becomes active before end of period in question
+            //if (bounds.startDate <= start && bounds.startDate <= end) return true;
+            //if (bounds.endDate >= start && bounds.endDate >= end) return true;
 
-            return false;
+            return true;
         }
 
         public bool IsActive(DateTime date)

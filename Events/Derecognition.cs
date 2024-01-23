@@ -16,13 +16,14 @@ namespace Venture.Events
 
         public decimal Fee { get; protected set; } = 0;
 
-        public Derecognition(Assets.Asset parentAsset, Data.Transaction tr, decimal count, DateTime date) : base(parentAsset)
+        public decimal GrossAmount { get { return Amount + Fee; } }
+
+        public Derecognition(Assets.Asset parentAsset, Data.Transaction tr, decimal count, DateTime date) : base(parentAsset, date)
         {
             UniqueId = $"Derecognition_{parentAsset.UniqueId}_{tr.Index}_{tr.Timestamp.ToString("yyyyMMdd")}";
             ParentAsset = parentAsset;
 
             TransactionIndex = tr.Index;
-            Timestamp = date;
             Price = tr.Price;
             Fee = tr.Fee;
             Count = count;
@@ -37,7 +38,7 @@ namespace Venture.Events
             FXRate = tr.FXRate;
         }
 
-        public Derecognition(Assets.Asset parentAsset, Manual manual, decimal count, decimal price) : base(parentAsset)
+        public Derecognition(Assets.Asset parentAsset, Manual manual, decimal count, decimal price) : base(parentAsset, manual.Timestamp)
         {
             UniqueId = $"Derecognition_{parentAsset.UniqueId}_MANUAL_{manual.UniqueId}_{manual.Timestamp.ToString("yyyyMMdd")}";
             switch (manual.AdjustmentType)
@@ -46,7 +47,6 @@ namespace Venture.Events
                 case ManualAdjustmentType.DividendTaxAdjustment:
                     throw new ArgumentException("Unexpected source for Derecognition event.");
                 case ManualAdjustmentType.EquitySpinOff:
-                    Timestamp = manual.Timestamp;
                     Price = price;
                     Count = count;
                     Amount = price * count;

@@ -11,7 +11,7 @@ namespace Venture.Events
 
     public abstract class Event
     {
-        public string UniqueId { get; protected set; } = Guid.NewGuid().ToString();
+        public string UniqueId { get; protected set; } = $"Event_{Guid.NewGuid()}";
 
         public int TransactionIndex { get; protected set; } = -1;
 
@@ -19,18 +19,19 @@ namespace Venture.Events
 
         public Assets.Asset ParentAsset { get; set; }
 
-        public decimal Amount { get; set; }
+        public decimal Amount { get; set; } = 0;
 
         public decimal FXRate { get; protected set; } = 1;
 
-        public Event(Assets.Asset parentAsset)
+        public Event(Assets.Asset parentAsset, DateTime timestamp)
         {
             ParentAsset = parentAsset;
+            Timestamp = timestamp;
         }
 
         public override string ToString()
         {
-            return $"Event:{UniqueId}";
+            return UniqueId;
         }
     }
 }

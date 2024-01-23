@@ -15,7 +15,7 @@ namespace Venture
         public static List<Assets.Asset> GenerateAssets()
         {
             List<Assets.Asset> output = new List<Assets.Asset>();
-            Queue<Data.Transaction> transactions = new Queue<Data.Transaction>(Data.Definitions.Transactions.OrderBy(x=>x.Timestamp));
+            Queue<Data.Transaction> transactions = new Queue<Data.Transaction>(Data.Definitions.Transactions.OrderBy(x => x.Timestamp));
             HashSet<Events.Flow> flowEvents = new HashSet<Events.Flow>();
             HashSet<Manual> manual = new HashSet<Manual>(Data.Definitions.GetManualEventSources());
 
@@ -23,16 +23,9 @@ namespace Venture
             {
                 Data.Transaction tr = transactions.Dequeue();
 
-                // Go through pending events that come before (influence) current transaction - e.g. dividends, coupons that may add new cash
-                foreach (var ev in flowEvents.Where(x => x.Timestamp <= tr.SettlementDate))
-                {
-                    var cash = new Cash(ev);
-                    if (cash.Events.Count() > 0) AddAsset(output, cash, ev.Timestamp);
-                    flowEvents.Remove(ev);
-                }
-
-                // Process manual entries that influence assets
-                ProcessEquitySpinOffs(manual, output, tr.SettlementDate);
+                // Go through pending events that come before (influence) current transaction - e.g. dividends, coupons that may add new cash    
+                // Also, Process manual entries that influence assets
+                ProcessEvents(output, flowEvents, manual, tr);
 
                 // Process the transaction
                 if (tr.TransactionType == Data.TransactionType.Buy)
@@ -100,8 +93,7 @@ namespace Venture
                 }
             }
 
-            // Process remaining manual entries that influence assets
-            ProcessEquitySpinOffs(manual, output, null);
+            ProcessEvents(output, flowEvents, manual, null);
 
             return output;
         }
@@ -199,9 +191,23 @@ namespace Venture
             list.Insert(index == -1 ? list.Count : index, asset);
         }
 
-        private static void ProcessEquitySpinOffs(HashSet<Manual> manual, List<Asset> output, DateTime? timestamp)
+        private static void ProcessEvents(List<Asset> output, HashSet<Events.Flow> flowEvents, HashSet<Manual> manual, Data.Transaction? tr)
         {
-            foreach (var mn in manual.Where(x => x.AdjustmentType == ManualAdjustmentType.EquitySpinOff).Where(x => timestamp == null || x.Timestamp < timestamp))
+            DateTime endDate = tr?.Timestamp ?? Common.FinalDate;
+
+            foreach (var ev in flowEvents.Where(x => x.Timestamp <= endDate))
+            {
+                var cash = new Cash(ev);
+                if (cash.Events.Count() > 0) AddAsset(output, cash, ev.Timestamp);
+                flowEvents.Remove(ev);
+            }
+
+            ProcessEquitySpinOffs(output, manual, endDate);
+        }
+
+        private static void ProcessEquitySpinOffs(List<Asset> output, HashSet<Manual> manual, DateTime timestamp)
+        {
+            foreach (var mn in manual.Where(x => x.AdjustmentType == ManualAdjustmentType.EquitySpinOff).Where(x => x.Timestamp < timestamp))
             {
                 TimeArg time = new TimeArg(TimeArgDirection.End, mn.Timestamp);
                 List<Asset> newAssets = new List<Asset>();
@@ -236,7 +242,7 @@ namespace Venture
                         newAssets.Add(newAsset);
                     }
                 }
-                newAssets.ForEach(x => output.Add(x));
+                newAssets.ForEach(x => AddAsset(output,x,mn.Timestamp));
                 manual.Remove(mn);
             }
         }

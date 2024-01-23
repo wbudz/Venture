@@ -34,7 +34,7 @@ namespace Venture.Modules
             DataContext = this;
         }
 
-        DataTemplate CreateTemplate(int column, bool numeric)
+        DataTemplate CreateTemplate(int column, bool numeric, bool mouseover = false)
         {
             var factory = new FrameworkElementFactory(typeof(TextBlock));
             var binding = new Binding("[" + column + "]");
@@ -44,28 +44,35 @@ namespace Venture.Modules
             if (numeric)
                 factory.SetValue(TextBlock.HorizontalAlignmentProperty, HorizontalAlignment.Right);
 
+            if (mouseover)
+            {
+                binding = new Binding("[0]");
+                factory.SetBinding(TextBlock.ToolTipProperty, binding);
+            }
+
             return new DataTemplate { VisualTree = factory };
         }
 
         object[] GenerateReportEntry(Assets.Asset asset, int optionIndex, List<DateTime> dates)
         {
-            object[] result = new object[DESCRIPTION_COLUMNS_COUNT + FVM.ReportingDates.Count];
-            result[0] = (asset is Assets.Security s) ? s.SecurityDefinition.InstrumentId : throw new NotImplementedException();
-            result[1] = asset.GetPurchaseDate().ToString("yyyy-MM-dd") ?? "";
-            result[2] = asset.AssetType;
-            result[3] = asset.Currency;
-            result[4] = asset.Portfolio;
-            result[5] = asset.Broker;
+            object[] result = new object[1 + DESCRIPTION_COLUMNS_COUNT + FVM.ReportingDates.Count];
+            result[0] = asset.UniqueId;
+            result[1] = asset.InstrumentId;
+            result[2] = asset.GetPurchaseDate().ToString("yyyy-MM-dd") ?? "";
+            result[3] = asset.AssetType;
+            result[4] = asset.Currency;
+            result[5] = asset.Portfolio;
+            result[6] = asset.Broker;
 
-            for (int i = 0; i < dates.Count; i++)
+            for (int i = 1; i < dates.Count; i++)
             {
                 switch (optionIndex)
                 {
-                    case 0: result[i + DESCRIPTION_COLUMNS_COUNT] = asset.GetCount(new TimeArg(TimeArgDirection.End, dates[i])); break;
-                    case 1: result[i + DESCRIPTION_COLUMNS_COUNT] = asset.GetMarketPrice(new TimeArg(TimeArgDirection.End, dates[i]), false); break;
-                    case 2: result[i + DESCRIPTION_COLUMNS_COUNT] = asset.GetPurchasePrice(new TimeArg(TimeArgDirection.End, dates[i]), false); break;
-                    case 3: result[i + DESCRIPTION_COLUMNS_COUNT] = asset.GetValue(new TimeArg(TimeArgDirection.End, dates[i])); break;
-                    case 4: result[i + DESCRIPTION_COLUMNS_COUNT] = asset.GetUnrealizedGainsLossesFromValuation(new TimeArg(TimeArgDirection.End, dates[i])); break;
+                    case 0: result[i + 1 + DESCRIPTION_COLUMNS_COUNT] = asset.GetCount(new TimeArg(TimeArgDirection.End, dates[i])); break;
+                    case 1: result[i + 1 + DESCRIPTION_COLUMNS_COUNT] = asset.GetMarketPrice(new TimeArg(TimeArgDirection.End, dates[i]), false); break;
+                    case 2: result[i + 1 + DESCRIPTION_COLUMNS_COUNT] = asset.GetPurchasePrice(new TimeArg(TimeArgDirection.End, dates[i]), false); break;
+                    case 3: result[i + 1 + DESCRIPTION_COLUMNS_COUNT] = asset.GetValue(new TimeArg(TimeArgDirection.End, dates[i])); break;
+                    case 4: result[i + 1 + DESCRIPTION_COLUMNS_COUNT] = asset.GetUnrealizedGainsLossesFromValuation(new TimeArg(TimeArgDirection.End, dates[i])); break;
                     default: break;
                 }
             }
@@ -97,15 +104,15 @@ namespace Venture.Modules
             }
 
             gvReport.Columns.Clear();
-            gvReport.Columns.Add(new GridViewColumn() { Header = "Instrument id", CellTemplate = CreateTemplate(0, false) });
-            gvReport.Columns.Add(new GridViewColumn() { Header = "Purchase date", CellTemplate = CreateTemplate(1, false) });
-            gvReport.Columns.Add(new GridViewColumn() { Header = "Asset type", CellTemplate = CreateTemplate(2, false) });
-            gvReport.Columns.Add(new GridViewColumn() { Header = "Currency", CellTemplate = CreateTemplate(3, false) });
-            gvReport.Columns.Add(new GridViewColumn() { Header = "Portfolio", CellTemplate = CreateTemplate(4, false) });
-            gvReport.Columns.Add(new GridViewColumn() { Header = "Broker", CellTemplate = CreateTemplate(5, false) });
+            gvReport.Columns.Add(new GridViewColumn() { Header = "Instrument id", CellTemplate = CreateTemplate(1, false, true) });
+            gvReport.Columns.Add(new GridViewColumn() { Header = "Purchase date", CellTemplate = CreateTemplate(2, false) });
+            gvReport.Columns.Add(new GridViewColumn() { Header = "Asset type", CellTemplate = CreateTemplate(3, false) });
+            gvReport.Columns.Add(new GridViewColumn() { Header = "Currency", CellTemplate = CreateTemplate(4, false) });
+            gvReport.Columns.Add(new GridViewColumn() { Header = "Portfolio", CellTemplate = CreateTemplate(5, false) });
+            gvReport.Columns.Add(new GridViewColumn() { Header = "Broker", CellTemplate = CreateTemplate(6, false) });
             for (int i = 0; i < dates.Count; i++)
             {
-                gvReport.Columns.Add(new GridViewColumn() { Header = dates[i].ToString("yyyy-MM-dd"), CellTemplate = CreateTemplate(i + DESCRIPTION_COLUMNS_COUNT, true) });
+                gvReport.Columns.Add(new GridViewColumn() { Header = dates[i].ToString("yyyy-MM-dd"), CellTemplate = CreateTemplate(i + 1 + DESCRIPTION_COLUMNS_COUNT, true) });
             }
 
             sw.Stop();

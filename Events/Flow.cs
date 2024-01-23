@@ -17,13 +17,14 @@ namespace Venture.Events
 
         public decimal Rate { get; protected set; }
 
-        public decimal Tax { get; protected set; }
+        public decimal Tax { get; protected set; } = 0;
 
-        public Flow(Assets.Asset parentAsset, DateTime recordDate, DateTime timestamp, FlowType type, decimal rate, decimal fxRate) : base(parentAsset)
+        public decimal GrossAmount { get { return Amount + Tax; } }
+
+        public Flow(Assets.Asset parentAsset, DateTime recordDate, DateTime timestamp, FlowType type, decimal rate, decimal fxRate) : base(parentAsset, timestamp)
         {
             UniqueId = $"Flow_{type}_{parentAsset.UniqueId}_{timestamp.ToString("yyyyMMdd")}";
             RecordDate = recordDate;
-            Timestamp = timestamp;
             FlowType = type;
             Rate = rate;
             FXRate = fxRate;
@@ -38,7 +39,17 @@ namespace Venture.Events
             {
                 case FlowType.Undefined: throw new Exception("Cannot recalculate amount for undefined flow event.");
                 case FlowType.Dividend:
-                    Amount = Math.Round(Rate * ParentAsset.GetCount(time), 2);
+                    // Dividend amount, with potential adjustments
+                    manualAdjustment = Data.Definitions.GetManualAdjustment(Data.ManualAdjustmentType.DividendAmountAdjustment, Timestamp, ParentAsset.UniqueId ?? "");
+                    if (manualAdjustment != null)
+                    {
+                        Amount = manualAdjustment.Amount1;
+                    }
+                    else
+                    {
+                        Amount = Math.Round(Rate * ParentAsset.GetCount(time), 2);
+                    }
+                    // Tax, with potential adjustments
                     manualAdjustment = Data.Definitions.GetManualAdjustment(Data.ManualAdjustmentType.DividendTaxAdjustment, Timestamp, ParentAsset.UniqueId ?? "");
                     if (manualAdjustment != null)
                     { Tax = manualAdjustment.Amount1; }
@@ -49,7 +60,17 @@ namespace Venture.Events
                     Amount -= Tax;
                     break;
                 case FlowType.Coupon:
-                    Amount = Math.Round(Rate * ParentAsset.GetNominalAmount(time), 2);
+                    // Coupon amount, with potential adjustments
+                    manualAdjustment = Data.Definitions.GetManualAdjustment(Data.ManualAdjustmentType.CouponAmountAdjustment, Timestamp, ParentAsset.UniqueId ?? "");
+                    if (manualAdjustment != null)
+                    {
+                        Amount = manualAdjustment.Amount1;
+                    }
+                    else
+                    {
+                        Amount = Math.Round(Rate * ParentAsset.GetNominalAmount(time), 2);
+                    }
+                    // Tax, with potential adjustments
                     manualAdjustment = Data.Definitions.GetManualAdjustment(Data.ManualAdjustmentType.CouponTaxAdjustment, Timestamp, ParentAsset.UniqueId ?? "");
                     if (manualAdjustment != null)
                     { Tax = manualAdjustment.Amount1; }
