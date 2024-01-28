@@ -72,7 +72,7 @@ namespace Venture.Assets
 
         public override decimal GetNominalAmount(TimeArg time)
         {
-            return Math.Round(GetPurchaseAmount(time, false), 2);
+            return Common.Round(GetPurchaseAmount(time, false));
         }
 
         public override decimal GetInterestAmount(TimeArg time)
@@ -82,17 +82,17 @@ namespace Venture.Assets
 
         public override decimal GetPurchaseAmount(TimeArg time, bool dirty)
         {
-            return Math.Round(GetPurchasePrice(time, dirty) * GetCount(time), 2);
+            return Common.Round(GetPurchasePrice(time, dirty) * GetCount(time));
         }
 
         public override decimal GetMarketValue(TimeArg time, bool dirty)
         {
-            return Math.Round(GetMarketPrice(time, dirty) * GetCount(time), 2);
+            return Common.Round(GetMarketPrice(time, dirty) * GetCount(time));
         }
 
         public override decimal GetAmortizedCostValue(TimeArg time, bool dirty)
         {
-            return Math.Round(GetAmortizedCostPrice(time, dirty) * GetCount(time), 2);
+            return Common.Round(GetAmortizedCostPrice(time, dirty) * GetCount(time));
         }
 
         #region Parameters
@@ -134,7 +134,7 @@ namespace Venture.Assets
             {
                 if (e is Events.Flow f && f.FlowType == Venture.Events.FlowType.Dividend)
                 {
-                    income += Math.Round(f.Amount, 2);
+                    income += Common.Round(f.Amount);
                 }
             }
 
@@ -168,15 +168,15 @@ namespace Venture.Assets
                 if (e is Events.Recognition p)
                 {
                     count = p.Count;
-                    previous = (p.Price, p.Price);
-                    current = (p.Price, p.Price);
+                    previous = (p.CleanPrice, p.CleanPrice);
+                    current = (p.CleanPrice, p.CleanPrice);
                 }
                 if (e is Events.Derecognition s)
                 {
                     previous = current;
-                    current = (s.Price, GetAmortizedCostPrice(new TimeArg(TimeArgDirection.Start, s.Timestamp, s.TransactionIndex), true));
+                    current = (s.CleanPrice, s.AmortizedCostCleanPrice);
 
-                    result += Math.Round((current.marketPrice - current.amortizedPrice - (previous.marketPrice - previous.amortizedPrice)) * count, 2);
+                    result += Common.Round((current.marketPrice - current.amortizedPrice - (previous.marketPrice - previous.amortizedPrice)) * count);
                     result -= GetRealizedGainsLossesFromValuation(e);
 
                     count -= s.Count;
@@ -186,7 +186,7 @@ namespace Venture.Assets
             // End of period
             previous = current;
             current = (GetMarketPrice(time, true), GetAmortizedCostPrice(time, true));
-            result += Math.Round((current.marketPrice - current.amortizedPrice - (previous.marketPrice - previous.amortizedPrice)) * count, 2);
+            result += Common.Round((current.marketPrice - current.amortizedPrice - (previous.marketPrice - previous.amortizedPrice)) * count);
 
             return result;
         }

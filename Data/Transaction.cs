@@ -68,8 +68,8 @@ namespace Venture.Data
                 switch (InstrumentType)
                 {
                     case AssetType.Undefined: throw new Exception("Cannot give amount for undefined instrument type.");
-                    case AssetType.Cash: return Math.Round(NominalAmount, 2);
-                    case AssetType.Equity: return Math.Round(Price * Count, 2);
+                    case AssetType.Cash: return Common.Round(NominalAmount);
+                    case AssetType.Equity: return Common.Round(Price * Count);
                     case AssetType.FixedTreasuryBonds:
                     case AssetType.FloatingTreasuryBonds:
                     case AssetType.FixedRetailTreasuryBonds:
@@ -77,31 +77,19 @@ namespace Venture.Data
                     case AssetType.IndexedRetailTreasuryBonds:
                     case AssetType.FixedCorporateBonds:
                     case AssetType.FloatingCorporateBonds:
-                        return Math.Round(Price / 100 * NominalAmount * Count, 2);
+                        return Common.Round(Price / 100 * NominalAmount * Count);
                     case AssetType.ETF: 
-                        return Math.Round(Price * Count, 2);
+                        return Common.Round(Price * Count);
                     case AssetType.MoneyMarketFund:
                     case AssetType.EquityMixedFund:
                     case AssetType.TreasuryBondsFund:
                     case AssetType.CorporateBondsFund: 
-                        return Math.Round(Price * Count, 2);
+                        return Common.Round(Price * Count);
                     case AssetType.Futures:
                         throw new NotImplementedException();
                     default: 
                         throw new Exception("Cannot give amount for unknown instrument type.");
                 }
-                //if (NominalAmount != 0 && Count != 0)
-                //{
-                //    return Math.Round(Price / 100 * NominalAmount * Count, 2);
-                //}
-                //else if (Count != 0)
-                //{
-                //    return Math.Round(Price * Count, 2);
-                //}
-                //else
-                //{
-                //    return Math.Round(NominalAmount, 2);
-                //}
             }
         }
 

@@ -48,7 +48,7 @@ namespace Venture.Modules
             CashAccount = p.ParentAsset.CashAccount;
             Currency = p.ParentAsset.Currency;
             Timestamp = p.Timestamp;
-            RecordDate = Financial.Calendar.WorkingDays(p.Timestamp, -2);
+            RecordDate = p.Timestamp;
             Direction = p.Direction;
             FlowType = FlowType.Undefined;
             Rate = 0;

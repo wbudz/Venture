@@ -12,7 +12,9 @@ namespace Venture.Events
     {
         public decimal Count { get; protected set; } = 0;
 
-        public decimal Price { get; protected set; } = 0;
+        public decimal DirtyPrice { get; protected set; } = 0;
+
+        public decimal CleanPrice { get; protected set; } = 0;
 
         public decimal Fee { get; protected set; } = 0;
 
@@ -24,16 +26,17 @@ namespace Venture.Events
             if (tr.TransactionType != Data.TransactionType.Buy) throw new ArgumentException("An attempt was made to create Recognition event with transaction type other than Buy.");
 
             TransactionIndex = tr.Index;
-            Price = tr.Price;
+            DirtyPrice = tr.Price;
+            CleanPrice = tr.Price - parentAsset.GetAccruedInterest(tr.Timestamp);
             Fee = tr.Fee;
             Count = tr.Count;
             if (parentAsset.IsBond)
             {
-                Amount = Math.Round(tr.Price / 100 * tr.Count * tr.NominalAmount, 2);
+                Amount = Common.Round(tr.Price / 100 * tr.Count * tr.NominalAmount);
             }
             else
             {
-                Amount = Math.Round(tr.Price * tr.Count, 2);
+                Amount = Common.Round(tr.Price * tr.Count);
             }
             FXRate = tr.FXRate;
         }
@@ -47,7 +50,8 @@ namespace Venture.Events
                 case ManualAdjustmentType.DividendTaxAdjustment:
                     throw new ArgumentException("Unexpected source for Recognition event.");
                 case ManualAdjustmentType.EquitySpinOff:
-                    Price = price;
+                    DirtyPrice = price;
+                    CleanPrice = price;
                     Count = count;
                     Amount = price * count;
                     //TODO: FXRate = tr.FXRate;

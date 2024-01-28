@@ -48,11 +48,7 @@ namespace Venture.Assets
             int monthStep = 12 / CouponFreq;
             DateTime date = end.Value;
 
-            if (date >= start)
-            {
-                AddEvent(new Events.Flow(this, Financial.Calendar.WorkingDays(date, -2), date, Venture.Events.FlowType.Redemption, 1, FX.GetRate(date, Currency)));
-            }
-
+            // Coupons
             if (CouponType == CouponType.Fixed)
             {
                 if (CouponRate > 0)
@@ -76,6 +72,12 @@ namespace Venture.Assets
                     AddEvent(new Events.Flow(this, Financial.Calendar.WorkingDays(date, -2), date, Venture.Events.FlowType.Coupon, coupon.CouponRate / CouponFreq, FX.GetRate(date, Currency)));
                     date = ShiftDate(date, monthStep);
                 }
+            }
+
+            // Redemption
+            if (date >= start)
+            {
+                AddEvent(new Events.Flow(this, Financial.Calendar.WorkingDays(date, -2), date, Venture.Events.FlowType.Redemption, 1, FX.GetRate(date, Currency)));
             }
         }
 
@@ -181,27 +183,27 @@ namespace Venture.Assets
 
         public override decimal GetNominalAmount(TimeArg time)
         {
-            return Math.Round(GetCount(time) * UnitPrice, 2);
+            return Common.Round(GetCount(time) * UnitPrice);
         }
 
         public override decimal GetInterestAmount(TimeArg time)
         {
-            return Math.Round(GetAccruedInterest(time.Date) / 100 * GetNominalAmount(time), 2);
+            return Common.Round(GetAccruedInterest(time.Date) / 100 * GetNominalAmount(time));
         }
 
         public override decimal GetPurchaseAmount(TimeArg time, bool dirty)
         {
-            return Math.Round(GetPurchasePrice(time, dirty) / 100 * GetNominalAmount(time), 2);
+            return Common.Round(GetPurchasePrice(time, dirty) / 100 * GetNominalAmount(time));
         }
 
         public override decimal GetMarketValue(TimeArg time, bool dirty)
         {
-            return Math.Round(GetMarketPrice(time, dirty) / 100 * GetNominalAmount(time), 2);
+            return Common.Round(GetMarketPrice(time, dirty) / 100 * GetNominalAmount(time));
         }
 
         public override decimal GetAmortizedCostValue(TimeArg time, bool dirty)
         {
-            return Math.Round(GetAmortizedCostPrice(time, dirty) / 100 * GetNominalAmount(time), 2);
+            return Common.Round(GetAmortizedCostPrice(time, dirty) / 100 * GetNominalAmount(time));
         }
 
         #region Parameters
@@ -252,21 +254,21 @@ namespace Venture.Assets
                 if (e is Events.Derecognition s)
                 {
                     currentPrice = GetAmortizedCostPrice(new TimeArg(TimeArgDirection.End, s.Timestamp, s.TransactionIndex), true);
-                    result += Math.Round((currentPrice - previousPrice) * count / 100 * UnitPrice, 2);
+                    result += Common.Round((currentPrice - previousPrice) * count / 100 * UnitPrice);
                     previousPrice = currentPrice;
                     count -= s.Count;
                 }
                 if (e is Events.Flow f && f.FlowType == FlowType.Redemption)
                 {
                     currentPrice = 100;
-                    result += Math.Round((currentPrice - previousPrice) * count / 100 * UnitPrice, 2);
+                    result += Common.Round((currentPrice - previousPrice) * count / 100 * UnitPrice);
                     return result;
                 }
             }
 
             // End of period
             currentPrice = GetAmortizedCostPrice(new TimeArg(TimeArgDirection.End, end.Date), true);
-            result += Math.Round((currentPrice - previousPrice) * count / 100 * UnitPrice, 2);
+            result += Common.Round((currentPrice - previousPrice) * count / 100 * UnitPrice);
             return result;
         }
 
@@ -319,22 +321,22 @@ namespace Venture.Assets
                 if (e is Events.Recognition p)
                 {
                     count = p.Count;
-                    previous = (p.Price, p.Price);
-                    current = (p.Price, p.Price);
+                    previous = (p.CleanPrice, p.CleanPrice);
+                    current = (p.CleanPrice, p.CleanPrice);
                 }
                 if (e is Events.Derecognition s)
                 {
                     previous = current;
-                    current = (s.Price, GetAmortizedCostPrice(new TimeArg(TimeArgDirection.Start, s.Timestamp, s.TransactionIndex), true));
+                    current = (s.CleanPrice, s.AmortizedCostCleanPrice);
 
-                    result += Math.Round((current.marketPrice - current.amortizedPrice - (previous.marketPrice - previous.amortizedPrice)) / 100 * UnitPrice * count, 2);
+                    result += Common.Round((current.marketPrice - current.amortizedPrice - (previous.marketPrice - previous.amortizedPrice)) / 100 * UnitPrice * count);
                     result -= GetRealizedGainsLossesFromValuation(e);
 
                     count -= s.Count;
                 }
                 if (e is Events.Flow f && f.FlowType == FlowType.Redemption)
                 {
-                    result -= Math.Round((previous.marketPrice - previous.amortizedPrice) / 100 * UnitPrice * count, 2);
+                    result -= Common.Round((previous.marketPrice - previous.amortizedPrice) / 100 * UnitPrice * count);
                     return result;
                 }
             }
@@ -342,7 +344,7 @@ namespace Venture.Assets
             // End of period
             previous = current;
             current = (GetMarketPrice(time, true), GetAmortizedCostPrice(time, true));
-            result += Math.Round((current.marketPrice - current.amortizedPrice - (previous.marketPrice - previous.amortizedPrice)) / 100 * UnitPrice * count, 2);
+            result += Common.Round((current.marketPrice - current.amortizedPrice - (previous.marketPrice - previous.amortizedPrice)) / 100 * UnitPrice * count);
 
             return result;
         }

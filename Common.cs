@@ -10,28 +10,30 @@ namespace Venture
 {
     public enum ValuationClass { Undefined, Trading, AvailableForSale, HeldToMaturity }
 
-    public enum AssetType { 
-        Undefined, 
-        Cash, 
-        Equity, 
-        FixedTreasuryBonds, 
+    public enum AssetType
+    {
+        Undefined,
+        Cash,
+        Equity,
+        FixedTreasuryBonds,
         FloatingTreasuryBonds,
         FixedRetailTreasuryBonds,
         FloatingRetailTreasuryBonds,
         IndexedRetailTreasuryBonds,
         FixedCorporateBonds,
         FloatingCorporateBonds,
-        ETF, 
+        ETF,
         MoneyMarketFund,
         EquityMixedFund,
         TreasuryBondsFund,
         CorporateBondsFund,
-        Futures }
+        Futures
+    }
 
     public static class Common
     {
         public static List<Assets.Asset> Assets = new List<Assets.Asset>();
-             
+
         public static DateTime CurrentDate { get { return new DateTime(FVM.CurrentYear, FVM.CurrentMonth, DateTime.DaysInMonth(FVM.CurrentYear, FVM.CurrentMonth)); } }
 
         public static DateTime FinalDate { get; set; } = Financial.Calendar.GetEndDate(DateTime.Now, Financial.Calendar.TimeStep.Yearly);
@@ -79,6 +81,11 @@ namespace Venture
                 case ValuationClass.HeldToMaturity: return "HTM";
                 default: return "";
             }
+        }
+
+        public static decimal Round(decimal value, int digits = 2)
+        {
+            return Math.Round(value, digits, MidpointRounding.AwayFromZero);
         }
     }
 }

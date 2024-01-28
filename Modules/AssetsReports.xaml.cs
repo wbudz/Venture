@@ -55,7 +55,7 @@ namespace Venture.Modules
 
         object[] GenerateReportEntry(Assets.Asset asset, int optionIndex, List<DateTime> dates)
         {
-            object[] result = new object[1 + DESCRIPTION_COLUMNS_COUNT + FVM.ReportingDates.Count];
+            object[] result = new object[1 + DESCRIPTION_COLUMNS_COUNT + dates.Count];
             result[0] = asset.UniqueId;
             result[1] = asset.InstrumentId;
             result[2] = asset.GetPurchaseDate().ToString("yyyy-MM-dd") ?? "";
@@ -64,7 +64,7 @@ namespace Venture.Modules
             result[5] = asset.Portfolio;
             result[6] = asset.Broker;
 
-            for (int i = 1; i < dates.Count; i++)
+            for (int i = 0; i < dates.Count; i++)
             {
                 switch (optionIndex)
                 {
@@ -88,7 +88,7 @@ namespace Venture.Modules
 
             int startYear = Int32.Parse(StartYearComboBox.SelectedValue?.ToString() ?? DateTime.Now.Year.ToString());
             int endYear = Int32.Parse(EndYearComboBox.SelectedValue?.ToString() ?? DateTime.Now.Year.ToString());
-            List<DateTime> dates = FVM.ReportingDates.Where(x => x.Year >= startYear && x.Year <= endYear).ToList();
+            List<DateTime> dates = FVM.ReportingDates.Where(x => (x.Year == startYear - 1 && x.Month == 12) || (x.Year >= startYear && x.Year <= endYear)).ToList();
 
             // Regenerate report entries
             ReportEntries.Clear();
@@ -96,7 +96,7 @@ namespace Venture.Modules
             {
                 if (asset is Assets.Cash) continue;
                 if (!asset.IsActive(new DateTime(startYear, 1, 1), new DateTime(endYear, 12, 31))) continue;
-                if (asset.BoundsStart.Year == asset.BoundsEnd.Year && asset.BoundsStart.Month == asset.BoundsEnd.Month) continue;
+                if (asset.BoundsStart.Year == asset.BoundsEnd.Year && asset.BoundsStart.Month == asset.BoundsEnd.Month) continue; // omit assets that were owned only during one month
                 if (PortfolioComboBox.SelectedItem.ToString() != "*" && PortfolioComboBox.SelectedItem.ToString() != asset.Portfolio) continue;
                 if (BrokerComboBox.SelectedItem.ToString() != "*" && BrokerComboBox.SelectedItem.ToString() != asset.Broker) continue;
 

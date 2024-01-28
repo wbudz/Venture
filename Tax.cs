@@ -10,18 +10,26 @@ namespace Venture
     {
         public static decimal CalculateFromDividend(decimal amount)
         {
-            decimal taxBase = Math.Round(amount, 2);
-            decimal taxRate = 0.19m;
-            decimal tax = taxBase * taxRate;
-            return Math.Round(tax);
+            if (amount <= 0) return 0;
+            decimal taxBase = Common.Round(amount);
+            decimal tax = taxBase * Globals.TaxRate;
+            return Common.Round(tax, 0); // rounded to integer
         }
 
         public static decimal CalculateFromCoupon(decimal amount)
         {
-            decimal taxBase = Math.Round(amount, 2);
-            decimal taxRate = 0.19m;
-            decimal tax = taxBase * taxRate;
-            return Math.Round(tax, 2);
+            if (amount <= 0) return 0;
+            decimal taxBase = Common.Round(amount);
+            decimal tax = taxBase * Globals.TaxRate;
+            return Common.Round(tax);
+        }
+
+        public static decimal CalculateFromIncome(decimal amount)
+        {
+            if (amount <= 0) return 0;
+            decimal taxBase = Common.Round(amount);
+            decimal tax = taxBase * Globals.TaxRate;
+            return Common.Round(tax);
         }
     }
 }

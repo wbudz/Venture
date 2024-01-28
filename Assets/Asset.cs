@@ -77,6 +77,17 @@ namespace Venture.Assets
             }
         }
 
+        public bool IsFund
+        {
+            get
+            {
+                return AssetType == AssetType.CorporateBondsFund ||
+                    AssetType == AssetType.EquityMixedFund ||
+                    AssetType == AssetType.MoneyMarketFund ||
+                    AssetType == AssetType.TreasuryBondsFund;
+            }
+        }
+
         protected (DateTime startDate, int startIndex, DateTime endDate, int endIndex) bounds;
 
         public DateTime BoundsStart { get { return bounds.startDate; } }
@@ -102,14 +113,24 @@ namespace Venture.Assets
 
         public void AddEvent(Events.Event e)
         {
-            var index = events.FindIndex(x => x.Timestamp > e.Timestamp);
+            var index = events.FindIndex(x => x.Timestamp > e.Timestamp || (e.TransactionIndex > -1 && x.TransactionIndex > e.TransactionIndex));
             events.Insert(index == -1 ? events.Count : index, e);
 
-            if (e is Events.Derecognition)
+            // Adjust later events.
+            if (index > -1 && e is Events.Derecognition dr)
             {
-                for (int i = index + 1; i < events.Count; i++)
+                // total derecognition
+                if (dr.IsTotal)
                 {
-                    if (events[i] is Events.Flow f) f.RecalculateAmount();
+                    events.RemoveRange(index + 1, events.Count - (index + 1));
+                }
+                else
+                {
+                    // partial derecognition
+                    for (int i = index + 1; i < events.Count; i++)
+                    {
+                        if (events[i] is Events.Flow f) f.RecalculateAmount();
+                    }
                 }
             }
 
@@ -156,9 +177,9 @@ namespace Venture.Assets
                 }
                 else
                 {
-                    if (time.TransactionIndex < bounds.startIndex) beforeEnd = true;
-                    if (time.TransactionIndex > bounds.startIndex) beforeEnd = false;
-                    if (time.TransactionIndex == bounds.startIndex)
+                    if (time.TransactionIndex < bounds.endIndex) beforeEnd = true;
+                    if (time.TransactionIndex > bounds.endIndex) beforeEnd = false;
+                    if (time.TransactionIndex == bounds.endIndex)
                     {
                         if (time.Direction == TimeArgDirection.Start) beforeEnd = true;
                         if (time.Direction == TimeArgDirection.End) beforeEnd = false;

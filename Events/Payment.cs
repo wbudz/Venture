@@ -8,7 +8,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 namespace Venture.Events
 {
 
-    public class Payment: Event
+    public class Payment : Event
     {
         public PaymentDirection Direction { get; protected set; } = PaymentDirection.Unspecified;
 
@@ -19,6 +19,14 @@ namespace Venture.Events
             TransactionIndex = tr.Index;
             Amount = amount;
             FXRate = tr.FXRate;
+        }
+
+        public Payment(Assets.Asset parentAsset, Events.Derecognition dr, PaymentDirection direction) : base(parentAsset, dr.Timestamp)
+        {
+            UniqueId = $"Payment_{direction}_Sale_{dr.ParentAsset.UniqueId}_{dr.Timestamp.ToString("yyyyMMdd")}";
+            Direction = direction;
+            Amount = dr.Amount - dr.Tax;
+            FXRate = dr.FXRate;
         }
 
         public Payment(Assets.Asset parentAsset, Events.Flow fl, PaymentDirection direction) : base(parentAsset, fl.Timestamp)

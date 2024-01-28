@@ -17,7 +17,7 @@ namespace Venture.Assets
 
         public Security(Data.Transaction tr, Data.Instrument definition)
         {
-            UniqueId=$"{definition.InstrumentType}_{definition.InstrumentId}_{tr.Index}";
+            UniqueId = $"{definition.InstrumentType}_{definition.InstrumentId}_{tr.Index}";
             Index = tr.Index;
             AssetType = definition.InstrumentType;
 
@@ -99,9 +99,7 @@ namespace Venture.Assets
 
             if (evt != null)
             {
-                decimal price = evt.Price;
-                if (!dirty) { price -= GetAccruedInterest(evt.Timestamp); }
-                return price;
+                return dirty ? evt.DirtyPrice : evt.CleanPrice;
             }
             else
             {
@@ -136,7 +134,7 @@ namespace Venture.Assets
                 }
                 if (e is Events.Derecognition sale)
                 {
-                    decimal current = Math.Round(sale.Count / count * fee, 2);
+                    decimal current = Common.Round(sale.Count / count * fee);
                     count -= sale.Count;
                     fee -= current;
                 }

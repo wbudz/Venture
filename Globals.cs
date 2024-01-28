@@ -9,5 +9,9 @@ namespace Venture
     public static class Globals
     {
         public static HashSet<string> TaxFreePortfolios = new HashSet<string>(){ "EMRT" };
+
+        public static decimal TaxRate = 0.19m;
+
+        public static DateTime TaxableFundSaleEndDate = new DateTime(2023, 12, 31);
     }
 }

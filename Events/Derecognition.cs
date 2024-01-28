@@ -8,15 +8,29 @@ using Venture.Data;
 
 namespace Venture.Events
 {
-    public class Derecognition: Event
+    public class Derecognition : Event
     {
         public decimal Count { get; protected set; } = 0;
 
-        public decimal Price { get; protected set; } = 0;
+        public decimal DirtyPrice { get; protected set; } = 0;
+
+        public decimal CleanPrice { get; protected set; } = 0;
 
         public decimal Fee { get; protected set; } = 0;
 
         public decimal GrossAmount { get { return Amount + Fee; } }
+
+        public decimal PurchaseDirtyPrice { get; protected set; } = 0;
+
+        public decimal PurchaseCleanPrice { get; protected set; } = 0;
+
+        public decimal AmortizedCostDirtyPrice { get; protected set; } = 0;
+
+        public decimal AmortizedCostCleanPrice { get; protected set; } = 0;
+
+        public decimal Tax { get; set; } = 0;
+
+        public bool IsTotal { get; protected set; } = false;
 
         public Derecognition(Assets.Asset parentAsset, Data.Transaction tr, decimal count, DateTime date) : base(parentAsset, date)
         {
@@ -24,18 +38,51 @@ namespace Venture.Events
             ParentAsset = parentAsset;
 
             TransactionIndex = tr.Index;
-            Price = tr.Price;
+            DirtyPrice = tr.Price;
+            CleanPrice = tr.Price - parentAsset.GetAccruedInterest(tr.Timestamp);
             Fee = tr.Fee;
             Count = count;
-            if (tr.NominalAmount != 0)
+            if (parentAsset.IsBond)
             {
-                Amount = tr.Price * tr.Count / tr.NominalAmount;
+                Amount = Common.Round(tr.Price * tr.Count / tr.NominalAmount);
             }
             else
             {
-                Amount = tr.Price * tr.Count;
+                Amount = Common.Round(tr.Price * tr.Count);
             }
             FXRate = tr.FXRate;
+
+            var time = new TimeArg(TimeArgDirection.Start, tr.Timestamp, tr.Index);
+            PurchaseDirtyPrice = parentAsset.GetPurchasePrice(true);
+            PurchaseCleanPrice = parentAsset.GetPurchasePrice(false);
+            AmortizedCostDirtyPrice = parentAsset.GetAmortizedCostPrice(time, true);
+            AmortizedCostCleanPrice = parentAsset.GetAmortizedCostPrice(time, false);
+
+            // Calculate income
+
+            //decimal originalCount = parentAsset.GetCount(time);
+            //decimal purchaseAmount = parentAsset.GetPurchaseAmount(time, true);
+            //IncomeVsPurchasePrice = Common.Round((Amount - purchaseAmount) * Count / originalCount);
+            //decimal amortizedCostAmount = parentAsset.GetAmortizedCostValue(time, true);
+            //IncomeVsAmortizedCost = Common.Round((Amount - amortizedCostAmount) * Count / originalCount);
+
+            // Calculate tax, if applicable
+
+            //if (parentAsset.IsFund && Timestamp <= Globals.TaxableFundSaleEndDate)
+            //{
+            //    Tax = TaxCalculations.CalculateFromIncome(IncomeVsPurchasePrice);
+            //}
+            //else
+            //{
+            //    Tax = 0;
+            //}
+
+            // Decide if derecognition is partial or does it apply to the whole asset
+
+            if (count >= parentAsset.GetCount(new TimeArg(TimeArgDirection.Start, tr.Timestamp, tr.Index)))
+            {
+                IsTotal = true;
+            }
         }
 
         public Derecognition(Assets.Asset parentAsset, Manual manual, decimal count, decimal price) : base(parentAsset, manual.Timestamp)
@@ -47,7 +94,8 @@ namespace Venture.Events
                 case ManualAdjustmentType.DividendTaxAdjustment:
                     throw new ArgumentException("Unexpected source for Derecognition event.");
                 case ManualAdjustmentType.EquitySpinOff:
-                    Price = price;
+                    DirtyPrice = price;
+                    CleanPrice = price;
                     Count = count;
                     Amount = price * count;
                     //TODO: FXRate = tr.FXRate;

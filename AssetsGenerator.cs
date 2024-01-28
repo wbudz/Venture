@@ -7,6 +7,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
 using System.Windows.Documents;
+using System.Security.Policy;
+using static Financial.Calendar;
+using Venture.Events;
 
 namespace Venture
 {
@@ -16,8 +19,11 @@ namespace Venture
         {
             List<Assets.Asset> output = new List<Assets.Asset>();
             Queue<Data.Transaction> transactions = new Queue<Data.Transaction>(Data.Definitions.Transactions.OrderBy(x => x.Timestamp));
-            HashSet<Events.Flow> flowEvents = new HashSet<Events.Flow>();
             HashSet<Manual> manual = new HashSet<Manual>(Data.Definitions.GetManualEventSources());
+
+            if (transactions.Count() == 0) return output;
+
+            DateTime lastDate = new DateTime(transactions.Peek().Timestamp.Year - 1, 12, 31);
 
             while (transactions.Count > 0)
             {
@@ -25,7 +31,7 @@ namespace Venture
 
                 // Go through pending events that come before (influence) current transaction - e.g. dividends, coupons that may add new cash    
                 // Also, Process manual entries that influence assets
-                ProcessEvents(output, flowEvents, manual, tr);
+                ProcessEvents(output, manual, tr, lastDate);
 
                 // Process the transaction
                 if (tr.TransactionType == Data.TransactionType.Buy)
@@ -36,9 +42,13 @@ namespace Venture
                     Asset asset;
                     switch (definition.InstrumentType)
                     {
-                        case AssetType.Undefined: throw new Exception("Tried creating asset with undefined instrument type.");
-                        case AssetType.Cash: throw new Exception("Tried creating asset with purchase transaction and cash instrument type.");
-                        case AssetType.Equity: asset = new Assets.Equity(tr, definition); break;
+                        case AssetType.Undefined:
+                            throw new Exception("Tried creating asset with undefined instrument type.");
+                        case AssetType.Cash:
+                            throw new Exception("Tried creating asset with purchase transaction and cash instrument type.");
+                        case AssetType.Equity:
+                        case AssetType.ETF:
+                            asset = new Assets.Equity(tr, definition); break;
                         case AssetType.FixedTreasuryBonds:
                         case AssetType.FloatingTreasuryBonds:
                         case AssetType.FixedRetailTreasuryBonds:
@@ -47,8 +57,6 @@ namespace Venture
                         case AssetType.FixedCorporateBonds:
                         case AssetType.FloatingCorporateBonds:
                             asset = new Assets.Bond(tr, definition); break;
-                        case AssetType.ETF:
-                            asset = new Assets.ETF(tr, definition); break;
                         case AssetType.MoneyMarketFund:
                         case AssetType.EquityMixedFund:
                         case AssetType.TreasuryBondsFund:
@@ -59,11 +67,7 @@ namespace Venture
                     }
 
                     AddAsset(output, asset, tr.Timestamp);
-                    // Add pending events
-                    foreach (var evt in asset.Events.OfType<Events.Flow>())
-                    {
-                        flowEvents.Add(evt);
-                    }
+
                     // Subtract cash used for purchase
                     RegisterCashDeduction(output, tr);
                 }
@@ -72,10 +76,17 @@ namespace Venture
                     var definition = Data.Definitions.Instruments.FirstOrDefault(x => x.InstrumentId == tr.InstrumentId);
                     if (definition == null) throw new Exception("Sale transaction definition pointed to unknown instrument id.");
 
-                    RegisterSale(output, definition, tr);
-
-                    // Add cash gained from sale
-                    AddAsset(output, new Cash(tr), tr.Timestamp);
+                    var sales = RegisterSale(output, definition, tr);
+                    if (sales.All(x=>x.ParentAsset.IsFund) && tr.Timestamp <= Globals.TaxableFundSaleEndDate)
+                    {
+                        //Tax = TaxCalculations.CalculateFromIncome(IncomeVsPurchasePrice);
+                        CalculateSalesTax(tr, sales);
+                    }
+                    foreach (var evt in sales)
+                    {
+                        // Add cash gained from sale
+                        AddAsset(output, new Cash(evt), tr.Timestamp);
+                    }
 
                 }
                 if (tr.TransactionType == Data.TransactionType.Cash)
@@ -91,9 +102,11 @@ namespace Venture
                         RegisterCashDeduction(output, tr);
                     }
                 }
+
+                lastDate = tr.Timestamp;
             }
 
-            ProcessEvents(output, flowEvents, manual, null);
+            ProcessEvents(output, manual, null, lastDate);
 
             return output;
         }
@@ -132,16 +145,21 @@ namespace Venture
             }
         }
 
-        private static void RegisterSale(List<Assets.Asset> list, Data.Instrument definition, Data.Transaction tr)
+        private static List<Events.Derecognition> RegisterSale(List<Assets.Asset> list, Data.Instrument definition, Data.Transaction tr)
         {
+            List<Events.Derecognition> output = new List<Derecognition>();
             decimal remainingCount = tr.Count;
 
             Type assetType;
             switch (definition.InstrumentType)
             {
-                case AssetType.Undefined: throw new Exception("Tried selling an asset with undefined instrument type.");
-                case AssetType.Cash: throw new Exception("Tried selling an asset with cash type; cash transaction should be used instead.");
-                case AssetType.Equity: assetType = typeof(Assets.Equity); break;
+                case AssetType.Undefined:
+                    throw new Exception("Tried selling an asset with undefined instrument type.");
+                case AssetType.Cash:
+                    throw new Exception("Tried selling an asset with cash type; cash transaction should be used instead.");
+                case AssetType.Equity:
+                case AssetType.ETF:
+                    assetType = typeof(Assets.Equity); break;
                 case AssetType.FixedTreasuryBonds:
                 case AssetType.FloatingTreasuryBonds:
                 case AssetType.FixedRetailTreasuryBonds:
@@ -150,8 +168,6 @@ namespace Venture
                 case AssetType.FixedCorporateBonds:
                 case AssetType.FloatingCorporateBonds:
                     assetType = typeof(Assets.Bond); break;
-                case AssetType.ETF:
-                    assetType = typeof(Assets.ETF); break;
                 case AssetType.MoneyMarketFund:
                 case AssetType.EquityMixedFund:
                 case AssetType.TreasuryBondsFund:
@@ -175,6 +191,7 @@ namespace Venture
                 if (currentCount == 0) continue;
                 var evt = new Events.Derecognition(s, tr, Math.Min(currentCount, remainingCount), tr.Timestamp);
                 s.AddEvent(evt);
+                output.Add(evt);
                 remainingCount -= evt.Count;
                 if (remainingCount <= 0) break;
             }
@@ -183,6 +200,8 @@ namespace Venture
             {
                 throw new Exception($"No possible source for sale: {tr}.");
             }
+
+            return output;
         }
 
         private static void AddAsset(List<Assets.Asset> list, Assets.Asset asset, DateTime timestamp)
@@ -191,16 +210,23 @@ namespace Venture
             list.Insert(index == -1 ? list.Count : index, asset);
         }
 
-        private static void ProcessEvents(List<Asset> output, HashSet<Events.Flow> flowEvents, HashSet<Manual> manual, Data.Transaction? tr)
+        private static void ProcessEvents(List<Asset> output, HashSet<Manual> manual, Data.Transaction? tr, DateTime startDate)
         {
             DateTime endDate = tr?.Timestamp ?? Common.FinalDate;
 
-            foreach (var ev in flowEvents.Where(x => x.Timestamp <= endDate))
+            List<Asset> newAssets = new List<Asset>();
+
+            foreach (var asset in output)
             {
-                var cash = new Cash(ev);
-                if (cash.Events.Count() > 0) AddAsset(output, cash, ev.Timestamp);
-                flowEvents.Remove(ev);
+                foreach (var ev in asset.Events.OfType<Events.Flow>().Where(x => x.Timestamp > startDate && x.Timestamp <= endDate))
+                {
+                    var cash = new Cash(ev);
+                    if (cash.Events.Count() == 0) throw new Exception("Cash with now events was created.");
+                    newAssets.Add(cash);
+                }
             }
+
+            newAssets.ForEach(x => AddAsset(output, x, x.Events.First().Timestamp));
 
             ProcessEquitySpinOffs(output, manual, endDate);
         }
@@ -242,9 +268,35 @@ namespace Venture
                         newAssets.Add(newAsset);
                     }
                 }
-                newAssets.ForEach(x => AddAsset(output,x,mn.Timestamp));
+                newAssets.ForEach(x => AddAsset(output, x, mn.Timestamp));
                 manual.Remove(mn);
             }
+        }
+
+        private static void CalculateSalesTax(Data.Transaction tr, IEnumerable<Derecognition> sales)
+        {
+            var time = new TimeArg(TimeArgDirection.Start, tr.Timestamp, tr.Index);
+            decimal originalCount = sales.Sum(x=>x.ParentAsset.GetCount(time));
+            decimal purchaseAmount = sales.Sum(x => x.ParentAsset.GetPurchaseAmount(time, true));
+            decimal taxableIncome = Common.Round(tr.Amount - purchaseAmount * tr.Count / originalCount);
+            if (taxableIncome <= 0) return;
+            decimal tax = TaxCalculations.CalculateFromIncome(taxableIncome);
+
+            foreach (var evt in sales)
+            {
+                decimal originalCountPerEvent = evt.ParentAsset.GetCount(time);
+                decimal originalPricePerEvent = evt.ParentAsset.GetPurchasePrice(time, true);
+                decimal taxableIncomePerEvent = Common.Round((evt.DirtyPrice - originalPricePerEvent) * originalCountPerEvent);
+                if (taxableIncomePerEvent <= 0) continue;
+                decimal taxPerEvent = TaxCalculations.CalculateFromIncome(taxableIncomePerEvent);
+
+                evt.Tax = Math.Min(tax, taxPerEvent);
+                tax -= evt.Tax;
+
+                if (tax <= 0) return;
+            }
+
+            if (tax > 0) throw new Exception($"CalculateSalesTax metod did not assign all of the tax to derecognition events. Leftover: {tax}.");
         }
     }
 }

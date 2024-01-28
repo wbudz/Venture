@@ -47,7 +47,7 @@ namespace Venture.Events
                     }
                     else
                     {
-                        Amount = Math.Round(Rate * ParentAsset.GetCount(time), 2);
+                        Amount = Common.Round(Rate * ParentAsset.GetCount(time));
                     }
                     // Tax, with potential adjustments
                     manualAdjustment = Data.Definitions.GetManualAdjustment(Data.ManualAdjustmentType.DividendTaxAdjustment, Timestamp, ParentAsset.UniqueId ?? "");
@@ -68,7 +68,7 @@ namespace Venture.Events
                     }
                     else
                     {
-                        Amount = Math.Round(Rate * ParentAsset.GetNominalAmount(time), 2);
+                        Amount = Common.Round(Rate * ParentAsset.GetNominalAmount(time));
                     }
                     // Tax, with potential adjustments
                     manualAdjustment = Data.Definitions.GetManualAdjustment(Data.ManualAdjustmentType.CouponTaxAdjustment, Timestamp, ParentAsset.UniqueId ?? "");
@@ -81,7 +81,7 @@ namespace Venture.Events
                     Amount -= Tax;
                     break;
                 case FlowType.Redemption:
-                    Amount = Math.Round(ParentAsset.GetNominalAmount(time), 2);
+                    Amount = Common.Round(ParentAsset.GetNominalAmount(time));
                     Tax = 0;
                     break;
                 default: throw new Exception("Cannot recalculate amount for undefined flow event.");
