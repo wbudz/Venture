@@ -10,7 +10,7 @@ namespace Venture.Assets
 {
     public class Cash : Asset
     {
-        public Cash(Data.Transaction tr) : base(tr)
+        public Cash(Data.Transaction tr) : base(tr.Index)
         {
             if (tr.TransactionType != TransactionType.Cash)
             {
@@ -33,7 +33,7 @@ namespace Venture.Assets
             GenerateFlows();
         }
 
-        public Cash(Events.Derecognition dr) : base()
+        public Cash(Events.Derecognition dr) : base(dr.TransactionIndex)
         {
             UniqueId = $"Cash_Sale_{dr.ParentAsset.UniqueId}_{dr.Timestamp.ToString("yyyyMMdd")}";
             AssetType = AssetType.Cash;

@@ -94,9 +94,9 @@ namespace Venture.Assets
 
         public DateTime BoundsEnd { get { return bounds.endDate; } }
 
-        public Asset(Data.Transaction tr) : this()
+        public Asset(int transactionIndex) : this()
         {
-            Index = tr.Index;
+            Index = transactionIndex;
         }
 
         public Asset()
@@ -122,12 +122,23 @@ namespace Venture.Assets
                 // total derecognition
                 if (dr.IsTotal)
                 {
-                    events.RemoveRange(index + 1, events.Count - (index + 1));
+                    //events.RemoveRange(index + 1, events.Count - (index + 1));
+                    for (int i = events.Count - 1; i > index; i--)
+                    {
+                        if (events[i] is Events.Flow f && f.RecordDate < dr.Timestamp)
+                        {
+                            f.RecalculateAmount(); // continue?
+                        }
+                        else
+                        {
+                            events.RemoveAt(i);
+                        }
+                    }
                 }
+                // partial derecognition
                 else
                 {
-                    // partial derecognition
-                    for (int i = index + 1; i < events.Count; i++)
+                    for (int i = events.Count - 1; i > index; i--)
                     {
                         if (events[i] is Events.Flow f) f.RecalculateAmount();
                     }

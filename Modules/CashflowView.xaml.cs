@@ -40,13 +40,16 @@ namespace Venture.Modules
             CashflowViewEntries.Clear();
             List<CashflowViewEntry> source = new List<CashflowViewEntry>();
 
+            foreach (var asset in Common.Assets.OfType<Assets.Cash>())
+            {
+                source.AddRange(asset.Events.OfType<Events.Payment>().Where(x => x.TransactionIndex != -1 && x.Timestamp <= Common.CurrentDate).Select(x => new CashflowViewEntry(x)));
+            }
             foreach (var asset in Common.Assets)
             {
-                source.AddRange(asset.Events.OfType<Events.Payment>().Where(x => x.TransactionIndex!= -1 && x.Timestamp <= Common.CurrentDate).Select(x => new CashflowViewEntry(x)));
                 source.AddRange(asset.Events.OfType<Events.Flow>().Where(x => x.Timestamp <= Common.CurrentDate).Select(x => new CashflowViewEntry(x)));
             }
 
-            foreach (var item in source.OrderBy(x=>x.Timestamp).ThenBy(x => x.TransactionIndex))
+            foreach (var item in source.OrderBy(x => x.Timestamp).ThenBy(x => x.TransactionIndex))
             {
                 if (PortfolioComboBox.SelectedItem.ToString() != "*" && PortfolioComboBox.SelectedItem.ToString() != item.Portfolio) continue;
                 if (BrokerComboBox.SelectedItem.ToString() != "*" && BrokerComboBox.SelectedItem.ToString() != item.Broker) continue;

@@ -12,6 +12,8 @@ namespace Venture.Events
     {
         public PaymentDirection Direction { get; protected set; } = PaymentDirection.Unspecified;
 
+        public string Description { get; protected set; } = "";
+
         public Payment(Assets.Asset parentAsset, Data.Transaction tr, decimal amount, PaymentDirection direction) : base(parentAsset, tr.Timestamp)
         {
             UniqueId = $"Payment_{direction}_{tr.TransactionType}_{tr.Index}_{tr.Timestamp.ToString("yyyyMMdd")}";
@@ -25,7 +27,8 @@ namespace Venture.Events
         {
             UniqueId = $"Payment_{direction}_Sale_{dr.ParentAsset.UniqueId}_{dr.Timestamp.ToString("yyyyMMdd")}";
             Direction = direction;
-            Amount = dr.Amount - dr.Tax;
+            TransactionIndex = dr.TransactionIndex;
+            Amount = dr.Amount - dr.Tax - dr.Fee;
             FXRate = dr.FXRate;
         }
 

@@ -62,11 +62,11 @@ namespace Venture.Assets
             }
             else
             {
-                var coupons = Definitions.Coupons.Where(x => x.InstrumentId == this.SecurityDefinition.InstrumentId);
+                var coupons = Definitions.Coupons.Where(x => x.InstrumentId == this.SecurityDefinition.InstrumentId).OrderBy(x=>x.Timestamp);
 
                 while (date >= start)
                 {
-                    var coupon = coupons.SingleOrDefault(x => x.Timestamp == date);
+                    var coupon = coupons.LastOrDefault(x => x.Timestamp <= date); // if no coupon is defined, use the last available
                     if (coupon == null) throw new Exception($"No coupon rate defined for {SecurityDefinition.InstrumentId} at {date:yyyy-MM-dd}.");
 
                     AddEvent(new Events.Flow(this, Financial.Calendar.WorkingDays(date, -2), date, Venture.Events.FlowType.Coupon, coupon.CouponRate / CouponFreq, FX.GetRate(date, Currency)));
@@ -75,9 +75,9 @@ namespace Venture.Assets
             }
 
             // Redemption
-            if (date >= start)
+            if (MaturityDate >= start)
             {
-                AddEvent(new Events.Flow(this, Financial.Calendar.WorkingDays(date, -2), date, Venture.Events.FlowType.Redemption, 1, FX.GetRate(date, Currency)));
+                AddEvent(new Events.Flow(this, Financial.Calendar.WorkingDays(MaturityDate, -2), MaturityDate, Venture.Events.FlowType.Redemption, 1, FX.GetRate(MaturityDate, Currency)));
             }
         }
 
