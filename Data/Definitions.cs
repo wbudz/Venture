@@ -71,6 +71,12 @@ namespace Venture.Data
             }
         }
 
+        public static Manual? GetManualAdjustment(ManualAdjustmentType type, DateTime timestamp, Transaction tr)
+        {
+            string id = $"{tr.InstrumentType}_{tr.InstrumentId}_{tr.Index}";
+            return GetManualAdjustment(type, timestamp, id);
+        }
+
         public static Manual? GetManualAdjustment(ManualAdjustmentType type, DateTime timestamp, string instrumentId)
         {
             return Manual.FirstOrDefault(x => x.AdjustmentType == type && x.Timestamp == timestamp && x.Instrument1 == instrumentId);

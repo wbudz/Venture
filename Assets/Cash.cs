@@ -33,19 +33,20 @@ namespace Venture.Assets
             GenerateFlows();
         }
 
-        public Cash(Events.Derecognition dr) : base(dr.TransactionIndex)
+        public Cash(Data.Transaction tr, IEnumerable<Events.Derecognition> dr) : base(tr.Index)
         {
-            UniqueId = $"Cash_Sale_{dr.ParentAsset.UniqueId}_{dr.Timestamp.ToString("yyyyMMdd")}";
+            if (dr.Count() < 1) throw new Exception("Tried to create cash with 0 derecognition events.");
+            UniqueId = $"Cash_Sale_{dr.First().ParentAsset.UniqueId}_{dr.First().Timestamp.ToString("yyyyMMdd")}";
             AssetType = AssetType.Cash;
-            Portfolio = dr.ParentAsset.Portfolio;
-            CashAccount = dr.ParentAsset.CashAccount;
+            Portfolio = dr.First().ParentAsset.Portfolio;
+            CashAccount = dr.First().ParentAsset.CashAccount;
             CustodyAccount = "";
-            Currency = dr.ParentAsset.Currency;
+            Currency = dr.First().ParentAsset.Currency;
             ValuationClass = ValuationClass.AvailableForSale;
 
-            if (dr.Amount == 0) throw new Exception($"Tried to create cash (from sale) with amount equal to 0.");
+            if (dr.Sum(x => x.Amount) == 0) throw new Exception($"Tried to create cash (from sale) with amount equal to 0.");
 
-            AddEvent(new Events.Payment(this, dr, Venture.Events.PaymentDirection.Inflow));
+            AddEvent(new Events.Payment(this, tr, dr, Venture.Events.PaymentDirection.Inflow));
             GenerateFlows();
         }
 

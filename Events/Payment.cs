@@ -23,13 +23,13 @@ namespace Venture.Events
             FXRate = tr.FXRate;
         }
 
-        public Payment(Assets.Asset parentAsset, Events.Derecognition dr, PaymentDirection direction) : base(parentAsset, dr.Timestamp)
+        public Payment(Assets.Asset parentAsset, Data.Transaction tr, IEnumerable<Events.Derecognition> dr, PaymentDirection direction) : base(parentAsset, tr.Timestamp)
         {
-            UniqueId = $"Payment_{direction}_Sale_{dr.ParentAsset.UniqueId}_{dr.Timestamp.ToString("yyyyMMdd")}";
+            UniqueId = $"Payment_{direction}_Sale_{dr.First().ParentAsset.UniqueId}_{tr.Timestamp.ToString("yyyyMMdd")}";
             Direction = direction;
-            TransactionIndex = dr.TransactionIndex;
-            Amount = dr.Amount - dr.Tax - dr.Fee;
-            FXRate = dr.FXRate;
+            TransactionIndex = tr.Index;
+            Amount = dr.Sum(x => x.Amount) - dr.Sum(x => x.Tax) - dr.Sum(x => x.Fee);
+            FXRate = tr.FXRate;
         }
 
         public Payment(Assets.Asset parentAsset, Events.Flow fl, PaymentDirection direction) : base(parentAsset, fl.Timestamp)

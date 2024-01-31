@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Venture.Data
 {
-    public enum ManualAdjustmentType { CouponAmountAdjustment, DividendAmountAdjustment, CouponTaxAdjustment, DividendTaxAdjustment, EquitySpinOff }
+    public enum ManualAdjustmentType { CouponAmountAdjustment, DividendAmountAdjustment, CouponTaxAdjustment, DividendTaxAdjustment, IncomeTaxAdjustment, EquitySpinOff }
 
     public class Manual: DataPoint
     {

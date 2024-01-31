@@ -29,7 +29,7 @@ namespace Venture
             if (amount <= 0) return 0;
             decimal taxBase = Common.Round(amount);
             decimal tax = taxBase * Globals.TaxRate;
-            return Common.Round(tax);
+            return Common.Round(tax, 0);
         }
     }
 }

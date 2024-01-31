@@ -77,16 +77,13 @@ namespace Venture
                     if (definition == null) throw new Exception("Sale transaction definition pointed to unknown instrument id.");
 
                     var sales = RegisterSale(output, definition, tr);
-                    if (sales.All(x=>x.ParentAsset.IsFund) && tr.Timestamp <= Globals.TaxableFundSaleEndDate)
+                    if (sales.All(x => x.ParentAsset.IsFund) && tr.Timestamp <= Globals.TaxableFundSaleEndDate)
                     {
-                        //Tax = TaxCalculations.CalculateFromIncome(IncomeVsPurchasePrice);
                         CalculateSalesTax(tr, sales);
                     }
-                    foreach (var evt in sales)
-                    {
-                        // Add cash gained from sale
-                        AddAsset(output, new Cash(evt), tr.Timestamp);
-                    }
+
+                    // Add cash gained from sale(s)
+                    AddAsset(output, new Cash(tr, sales), tr.Timestamp);
 
                 }
                 if (tr.TransactionType == Data.TransactionType.Cash)
@@ -196,6 +193,8 @@ namespace Venture
                 if (remainingCount <= 0) break;
             }
 
+            ReconcileDerecognitionAmounts(tr, output);
+
             if (remainingCount > 0)
             {
                 throw new Exception($"No possible source for sale: {tr}.");
@@ -275,12 +274,26 @@ namespace Venture
 
         private static void CalculateSalesTax(Data.Transaction tr, IEnumerable<Derecognition> sales)
         {
+            decimal tax;
             var time = new TimeArg(TimeArgDirection.Start, tr.Timestamp, tr.Index);
-            decimal originalCount = sales.Sum(x=>x.ParentAsset.GetCount(time));
-            decimal purchaseAmount = sales.Sum(x => x.ParentAsset.GetPurchaseAmount(time, true));
-            decimal taxableIncome = Common.Round(tr.Amount - purchaseAmount * tr.Count / originalCount);
-            if (taxableIncome <= 0) return;
-            decimal tax = TaxCalculations.CalculateFromIncome(taxableIncome);
+
+            var manualAdjustment = Data.Definitions.GetManualAdjustment(Data.ManualAdjustmentType.IncomeTaxAdjustment, tr.Timestamp, tr);
+            if (manualAdjustment != null)
+            { 
+                tax = manualAdjustment.Amount1; 
+            }
+            else if (Globals.TaxFreePortfolios.Contains(tr.PortfolioSrc))
+            { 
+                tax = 0;  
+            }
+            else
+            {
+                decimal originalCount = sales.Sum(x => x.ParentAsset.GetCount(time));
+                decimal purchaseAmount = sales.Sum(x => x.ParentAsset.GetPurchaseAmount(time, true));
+                decimal taxableIncome = Common.Round(tr.Amount - purchaseAmount * tr.Count / originalCount);
+                if (taxableIncome <= 0) return;
+                tax = TaxCalculations.CalculateFromIncome(taxableIncome);
+            }
 
             foreach (var evt in sales)
             {
@@ -297,6 +310,21 @@ namespace Venture
             }
 
             if (tax > 0) throw new Exception($"CalculateSalesTax metod did not assign all of the tax to derecognition events. Leftover: {tax}.");
+        }
+
+        private static void ReconcileDerecognitionAmounts(Data.Transaction tr, List<Derecognition> output)
+        {
+            if (output.Count < 2) return;
+
+            // The method is to fix situations where sum of rounded derecognition amounts does not equal rounded sale transaction amount (due to rounding errors).
+            decimal transactionAmount = tr.Amount;
+            decimal derecognitionAmount = output.Sum(x => x.Amount);
+
+            if (transactionAmount != derecognitionAmount)
+            {
+                output.First().Amount += transactionAmount - derecognitionAmount;
+                throw new Exception("ReconcileDerecognitionAmounts activated."); //TODO: remove
+            }
         }
     }
 }

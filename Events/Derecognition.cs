@@ -44,11 +44,11 @@ namespace Venture.Events
             Count = count;
             if (parentAsset.IsBond)
             {
-                Amount = Common.Round(tr.Price * tr.Count / tr.NominalAmount);
+                Amount = Common.Round(tr.Price * count / tr.NominalAmount);
             }
             else
             {
-                Amount = Common.Round(tr.Price * tr.Count);
+                Amount = Common.Round(tr.Price * count);
             }
             FXRate = tr.FXRate;
 
