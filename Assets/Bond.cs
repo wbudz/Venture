@@ -40,13 +40,22 @@ namespace Venture.Assets
 
         protected override void GenerateFlows()
         {
-            DateTime? start = events.OfType<Events.Recognition>().FirstOrDefault()?.Timestamp;
-            DateTime? end = MaturityDate;
+            DateTime start = GetPurchaseDate();
+            DateTime end = MaturityDate;
+            decimal redemption = 1;
 
-            if (start == null) return;
+            // Check for premature redemption
+            var manual = Data.Definitions.GetManualAdjustment(ManualAdjustmentType.PrematureRedemption, SecurityDefinition.UniqueId);
+            if (manual != null)
+            {
+                end = manual.Timestamp;
+                redemption = manual.Amount1 / 100;
+            }
+
+            if (start > end) throw new Exception("Bond purchased after maturity date.");
 
             int monthStep = 12 / CouponFreq;
-            DateTime date = end.Value;
+            DateTime date = MaturityDate;
 
             // Coupons
             if (CouponType == CouponType.Fixed)
@@ -55,30 +64,33 @@ namespace Venture.Assets
                 {
                     while (date >= start)
                     {
-                        AddEvent(new Events.Flow(this, Financial.Calendar.WorkingDays(date, -2), date, Venture.Events.FlowType.Coupon, CouponRate / CouponFreq, FX.GetRate(date, Currency)));
+                        if (date <= end)
+                        {
+                            AddEvent(new Events.Flow(this, Financial.Calendar.WorkingDays(date, -2), date, Venture.Events.FlowType.Coupon, CouponRate / CouponFreq, FX.GetRate(date, Currency)));
+                        }
                         date = ShiftDate(date, monthStep);
                     }
                 }
             }
             else
             {
-                var coupons = Definitions.Coupons.Where(x => x.InstrumentId == this.SecurityDefinition.InstrumentId).OrderBy(x=>x.Timestamp);
+                var coupons = Definitions.Coupons.Where(x => x.InstrumentId == this.SecurityDefinition.InstrumentId).OrderBy(x => x.Timestamp);
 
                 while (date >= start)
                 {
                     var coupon = coupons.LastOrDefault(x => x.Timestamp <= date); // if no coupon is defined, use the last available
                     if (coupon == null) throw new Exception($"No coupon rate defined for {SecurityDefinition.InstrumentId} at {date:yyyy-MM-dd}.");
 
-                    AddEvent(new Events.Flow(this, Financial.Calendar.WorkingDays(date, -2), date, Venture.Events.FlowType.Coupon, coupon.CouponRate / CouponFreq, FX.GetRate(date, Currency)));
+                    if (date <= end)
+                    {
+                        AddEvent(new Events.Flow(this, Financial.Calendar.WorkingDays(date, -2), date, Venture.Events.FlowType.Coupon, coupon.CouponRate / CouponFreq, FX.GetRate(date, Currency)));
+                    }
                     date = ShiftDate(date, monthStep);
                 }
             }
 
             // Redemption
-            if (MaturityDate >= start)
-            {
-                AddEvent(new Events.Flow(this, Financial.Calendar.WorkingDays(MaturityDate, -2), MaturityDate, Venture.Events.FlowType.Redemption, 1, FX.GetRate(MaturityDate, Currency)));
-            }
+            AddEvent(new Events.Flow(this, Financial.Calendar.WorkingDays(end, -2), end, Venture.Events.FlowType.Redemption, redemption, FX.GetRate(end, Currency)));
         }
 
         private DateTime ShiftDate(DateTime date, int monthStep)
@@ -109,10 +121,10 @@ namespace Venture.Assets
 
             // For fixed-coupon securities, one ytm for the whole period
             if (this.AssetType == AssetType.FixedCorporateBonds || this.AssetType == AssetType.FixedTreasuryBonds || this.AssetType == AssetType.FixedRetailTreasuryBonds) return;
-            
+
             // For floaters, coupon-based yields
             bool firstCoupon = true; // we skip first coupon, because we will save second coupon's calculation on first coupon's date, and so on
-            foreach (var fl in Events.OfType<Flow>().Where(x => x.FlowType == FlowType.Coupon && x.Timestamp > date).OrderBy(x => x.Timestamp)) 
+            foreach (var fl in Events.OfType<Flow>().Where(x => x.FlowType == FlowType.Coupon && x.Timestamp > date).OrderBy(x => x.Timestamp))
             {
                 if (!firstCoupon)
                 {

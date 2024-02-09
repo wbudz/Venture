@@ -81,8 +81,16 @@ namespace Venture.Events
                     Amount -= Tax;
                     break;
                 case FlowType.Redemption:
-                    Amount = Common.Round(ParentAsset.GetNominalAmount(time));
-                    Tax = 0;
+                    Amount = Common.Round(Rate * ParentAsset.GetNominalAmount(time));
+                    // Tax, with potential adjustments
+                    manualAdjustment = Data.Definitions.GetManualAdjustment(Data.ManualAdjustmentType.RedemptionTaxAdjustment, Timestamp, ParentAsset.UniqueId ?? "");
+                    if (manualAdjustment != null)
+                    { Tax = manualAdjustment.Amount1; }
+                    else if (Globals.TaxFreePortfolios.Contains(ParentAsset.Portfolio))
+                    { Tax = 0; }
+                    else
+                    { Tax = TaxCalculations.CalculateFromRedemption(Amount - ParentAsset.GetNominalAmount(time)); }
+                    Amount -= Tax;
                     break;
                 default: throw new Exception("Cannot recalculate amount for undefined flow event.");
             }

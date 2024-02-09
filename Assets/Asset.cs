@@ -255,7 +255,10 @@ namespace Venture.Assets
         /// <returns>Purchase transaction date</returns>
         public DateTime GetPurchaseDate()
         {
-            return events.First().Timestamp;
+            var evt = events.First();
+            if (!(evt is Venture.Events.Recognition) && !(evt is Venture.Events.Payment p && p.Direction==Venture.Events.PaymentDirection.Inflow && this is Cash)) 
+                throw new Exception($"Unexpected first event of an asset: {evt}");
+            return evt.Timestamp;
         }
 
         /// <summary>

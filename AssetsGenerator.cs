@@ -37,7 +37,7 @@ namespace Venture
                 if (tr.TransactionType == Data.TransactionType.Buy)
                 {
                     var definition = Data.Definitions.Instruments.FirstOrDefault(x => x.InstrumentId == tr.InstrumentId);
-                    if (definition == null) throw new Exception("Purchase transaction definition pointed to unknown instrument id.");
+                    if (definition == null) throw new Exception($"Purchase transaction definition pointed to unknown instrument id: {tr.InstrumentId}.");
 
                     Asset asset;
                     switch (definition.InstrumentType)
@@ -236,7 +236,7 @@ namespace Venture
             {
                 TimeArg time = new TimeArg(TimeArgDirection.End, mn.Timestamp);
                 List<Asset> newAssets = new List<Asset>();
-                foreach (var asset in output.OfType<Equity>().Where(x => x.SecurityDefinition.InstrumentId == mn.Instrument1))
+                foreach (var asset in output.OfType<Equity>().Where(x => x.SecurityDefinition.UniqueId == mn.Instrument1))
                 {
                     if (!(asset.IsActive(mn.Timestamp))) continue;
                     decimal count = asset.GetCount(time);
@@ -253,7 +253,7 @@ namespace Venture
                     // Add converted equity
                     if (mn.Amount2 > 0)
                     {
-                        var definition = Data.Definitions.Instruments.First(x => x.InstrumentId == mn.Instrument2);
+                        var definition = Data.Definitions.Instruments.First(x => x.UniqueId == mn.Instrument2);
                         decimal newCount = mn.Amount2 * count;
                         var newAsset = new Equity(asset, definition, mn, newCount, newPrice2);
                         newAssets.Add(newAsset);
@@ -261,7 +261,7 @@ namespace Venture
                     // Add spun off equity
                     if (mn.Amount3 > 0)
                     {
-                        var definition = Data.Definitions.Instruments.First(x => x.InstrumentId == mn.Instrument3);
+                        var definition = Data.Definitions.Instruments.First(x => x.UniqueId == mn.Instrument3);
                         decimal newCount = mn.Amount3 * count;
                         var newAsset = new Equity(asset, definition, mn, newCount, newPrice3);
                         newAssets.Add(newAsset);

@@ -78,16 +78,16 @@ namespace Venture.Data
                     case AssetType.FixedCorporateBonds:
                     case AssetType.FloatingCorporateBonds:
                         return Common.Round(Price / 100 * NominalAmount * Count);
-                    case AssetType.ETF: 
+                    case AssetType.ETF:
                         return Common.Round(Price * Count);
                     case AssetType.MoneyMarketFund:
                     case AssetType.EquityMixedFund:
                     case AssetType.TreasuryBondsFund:
-                    case AssetType.CorporateBondsFund: 
+                    case AssetType.CorporateBondsFund:
                         return Common.Round(Price * Count);
                     case AssetType.Futures:
                         throw new NotImplementedException();
-                    default: 
+                    default:
                         throw new Exception("Cannot give amount for unknown instrument type.");
                 }
             }
@@ -98,6 +98,7 @@ namespace Venture.Data
             Index = index + 1;
             for (int i = 0; i < Math.Min(headers.Length, line.Length); i++)
             {
+                if (headers[i] == "index") Index = ConvertToInt(line[i]);
                 if (headers[i] == "transactiontype") TransactionType = ConvertToEnum<TransactionType>(line[i]);
                 if (headers[i] == "instrumenttype") InstrumentType = ConvertToEnum<AssetType>(line[i]);
                 if (headers[i] == "instrumentid") InstrumentId = line[i];
@@ -114,9 +115,9 @@ namespace Venture.Data
                 if (headers[i] == "portfoliodst") PortfolioDst = line[i];
                 if (headers[i] == "valuationclass")
                 {
-                    if (line[i].ToLower() == "afs" || line[i].ToLower() == "availableforsale") ValuationClass = ValuationClass.AvailableForSale;
-                    if (line[i].ToLower() == "trd" || line[i].ToLower() == "trading") ValuationClass = ValuationClass.Trading;
-                    if (line[i].ToLower() == "htm" || line[i].ToLower() == "held to maturity") ValuationClass = ValuationClass.HeldToMaturity;
+                    if (line[i].ToLower() == "afs" || line[i].Replace(" ", "").ToLower() == "availableforsale") ValuationClass = ValuationClass.AvailableForSale;
+                    if (line[i].ToLower() == "trd" || line[i].Replace(" ", "").ToLower() == "trading") ValuationClass = ValuationClass.Trading;
+                    if (line[i].ToLower() == "htm" || line[i].Replace(" ", "").ToLower() == "heldtomaturity") ValuationClass = ValuationClass.HeldToMaturity;
                 };
                 if (headers[i] == "fxrate")
                 {
@@ -130,7 +131,7 @@ namespace Venture.Data
 
         public override string ToString()
         {
-            return $"Data.Transaction: {Index}. {TransactionType}: {InstrumentId}, {(String.IsNullOrEmpty(PortfolioDst)?PortfolioSrc:PortfolioDst)}, {(String.IsNullOrEmpty(AccountDst) ? AccountSrc : AccountDst)} @{TradeDate}";
+            return $"Data.Transaction: {Index}. {TransactionType}: {InstrumentId}, {(String.IsNullOrEmpty(PortfolioDst) ? PortfolioSrc : PortfolioDst)}, {(String.IsNullOrEmpty(AccountDst) ? AccountSrc : AccountDst)} @{TradeDate}";
         }
     }
 }

@@ -82,6 +82,11 @@ namespace Venture.Data
             return Manual.FirstOrDefault(x => x.AdjustmentType == type && x.Timestamp == timestamp && x.Instrument1 == instrumentId);
         }
 
+        public static Manual? GetManualAdjustment(ManualAdjustmentType type, string instrumentId)
+        {
+            return Manual.FirstOrDefault(x => x.AdjustmentType == type && x.Instrument1 == instrumentId);
+        }
+
         public static IEnumerable<Manual> GetManualEventSources()
         {
             return Manual.Where(x => x.AdjustmentType == ManualAdjustmentType.EquitySpinOff);

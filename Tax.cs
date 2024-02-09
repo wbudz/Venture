@@ -24,6 +24,14 @@ namespace Venture
             return Common.Round(tax);
         }
 
+        public static decimal CalculateFromRedemption(decimal amount)
+        {
+            if (amount <= 0) return 0;
+            decimal taxBase = Common.Round(amount);
+            decimal tax = taxBase * Globals.TaxRate;
+            return Common.Round(tax);
+        }
+
         public static decimal CalculateFromIncome(decimal amount)
         {
             if (amount <= 0) return 0;
