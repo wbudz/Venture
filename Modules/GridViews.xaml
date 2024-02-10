@@ -806,6 +806,20 @@
                     </DataTemplate>
                 </GridViewColumn.CellTemplate>
             </GridViewColumn>
+            <GridViewColumn Header="Gross amount" Width="Auto">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding GrossAmount, StringFormat = {}{0:N2}}" HorizontalAlignment="Right"/>
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="Tax" Width="Auto">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Tax, StringFormat = {}{0:N2}}" HorizontalAlignment="Right"/>
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
             <GridViewColumn Header="Amount" Width="Auto">
                 <GridViewColumn.CellTemplate>
                     <DataTemplate>

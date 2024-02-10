@@ -42,12 +42,16 @@ namespace Venture.Data
                 Instruments.Add(item);
             }
 
+            var transactions = new List<Transaction>();
             csv = new CSV(Properties.Settings.Default.TransactionsSource);
             csv.Read();
             foreach (var item in csv.Interpret<Transaction>().ToArray())
             {
-                Transactions.Add(item);
+                transactions.Add(item);
             }
+            transactions = transactions.OrderBy(x => x.Timestamp).ThenBy(x => x.Index).ToList();
+            CheckTransactionsOrder(transactions);
+            transactions.ForEach(x => Transactions.Add(x));
 
             csv = new CSV(Properties.Settings.Default.DividendsSource);
             csv.Read();
@@ -56,12 +60,15 @@ namespace Venture.Data
                 Dividends.Add(item);
             }
 
+            var coupons = new List<Coupon>();
             csv = new CSV(Properties.Settings.Default.CouponsSource);
             csv.Read();
             foreach (var item in csv.Interpret<Coupon>().ToArray())
             {
-                Coupons.Add(item);
+                coupons.Add(item);
             }
+            coupons = coupons.OrderBy(x => x.InstrumentId).ThenBy(x => x.Timestamp).ToList();
+            coupons.ForEach(x => Coupons.Add(x));
 
             csv = new CSV(Properties.Settings.Default.ManualSource);
             csv.Read();
@@ -69,6 +76,7 @@ namespace Venture.Data
             {
                 Manual.Add(item);
             }
+            CheckManualReferences(Manual, Transactions);
         }
 
         public static Manual? GetManualAdjustment(ManualAdjustmentType type, DateTime timestamp, Transaction tr)
@@ -90,6 +98,48 @@ namespace Venture.Data
         public static IEnumerable<Manual> GetManualEventSources()
         {
             return Manual.Where(x => x.AdjustmentType == ManualAdjustmentType.EquitySpinOff);
+        }
+
+        private static void CheckTransactionsOrder(List<Data.Transaction> transactions)
+        {
+            for (int i = 1; i < transactions.Count; i++)
+            {
+                if (transactions[i].Index <= transactions[i - 1].Index) throw new Exception($"Error ordering transactions: {transactions[i - 1]}, {transactions[i]}.");
+                if (transactions[i].Timestamp < transactions[i - 1].Timestamp) throw new Exception($"Error ordering transactions: {transactions[i - 1]}, {transactions[i]}.");
+            }
+        }
+
+        private static void CheckManualReferences(IEnumerable<Manual> manual, IEnumerable<Transaction> transactions)
+        {
+            foreach (var m in manual)
+            {
+                if (m.AdjustmentType == ManualAdjustmentType.CouponAmountAdjustment ||
+                    m.AdjustmentType == ManualAdjustmentType.CouponTaxAdjustment ||
+                    m.AdjustmentType == ManualAdjustmentType.IncomeTaxAdjustment ||
+                    m.AdjustmentType == ManualAdjustmentType.DividendAmountAdjustment ||
+                    m.AdjustmentType == ManualAdjustmentType.RedemptionTaxAdjustment ||
+                    m.AdjustmentType == ManualAdjustmentType.DividendTaxAdjustment)
+                {
+                    string instrumentType;
+                    string instrumentId;
+                    int transactionIndex;
+                    try
+                    {
+                        instrumentType = m.Instrument1.Split('_')[0];
+                        instrumentId = m.Instrument1.Split('_')[1];
+                        transactionIndex = Int32.Parse(m.Instrument1.Split('_')[2]);
+                    }
+                    catch
+                    {
+                        throw new Exception($"Error in manual event definition: {m}.");
+                    }
+                    var transaction = transactions.SingleOrDefault(x => x.InstrumentType.ToString() == instrumentType && x.InstrumentId == instrumentId && x.Index == transactionIndex);
+                    if (transaction == null)
+                    {
+                        throw new Exception($"Transaction not found for manual event definition: {m}.");
+                    }
+                }
+            }
         }
     }
 }

@@ -36,6 +36,8 @@ namespace Venture.Modules
 
         public int TransactionIndex { get; set; } = -1;
 
+        public decimal GrossAmount { get; set; }
+
         public decimal Amount { get; set; }
 
         public decimal FXRate { get; set; } = 1;
@@ -55,6 +57,7 @@ namespace Venture.Modules
             Tax = 0;
             TransactionIndex = p.TransactionIndex;
             Amount = p.Amount * (p.Direction == PaymentDirection.Outflow ? -1 : 1);
+            GrossAmount = Amount;
             FXRate = p.FXRate;
         }
 
@@ -73,6 +76,7 @@ namespace Venture.Modules
             Tax = f.Tax;
             TransactionIndex = f.TransactionIndex;
             Amount = f.Amount;
+            GrossAmount = f.GrossAmount;
             FXRate = f.FXRate;
         }
     }

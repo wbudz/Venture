@@ -98,7 +98,7 @@ namespace Venture.Data
             Index = index + 1;
             for (int i = 0; i < Math.Min(headers.Length, line.Length); i++)
             {
-                if (headers[i] == "index") Index = ConvertToInt(line[i]);
+                if (headers[i] == "index" && !String.IsNullOrEmpty(line[i])) Index = ConvertToInt(line[i]);
                 if (headers[i] == "transactiontype") TransactionType = ConvertToEnum<TransactionType>(line[i]);
                 if (headers[i] == "instrumenttype") InstrumentType = ConvertToEnum<AssetType>(line[i]);
                 if (headers[i] == "instrumentid") InstrumentId = line[i];

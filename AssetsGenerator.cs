@@ -18,7 +18,7 @@ namespace Venture
         public static List<Assets.Asset> GenerateAssets()
         {
             List<Assets.Asset> output = new List<Assets.Asset>();
-            Queue<Data.Transaction> transactions = new Queue<Data.Transaction>(Data.Definitions.Transactions.OrderBy(x => x.Timestamp));
+            Queue<Data.Transaction> transactions = new Queue<Data.Transaction>(Data.Definitions.Transactions);
             HashSet<Manual> manual = new HashSet<Manual>(Data.Definitions.GetManualEventSources());
 
             if (transactions.Count() == 0) return output;
@@ -28,6 +28,7 @@ namespace Venture
             while (transactions.Count > 0)
             {
                 Data.Transaction tr = transactions.Dequeue();
+                if (tr.Amount == 0) throw new Exception($"Transaction with amount equal to 0 encountered: {tr}.");
 
                 // Go through pending events that come before (influence) current transaction - e.g. dividends, coupons that may add new cash    
                 // Also, Process manual entries that influence assets
@@ -279,12 +280,12 @@ namespace Venture
 
             var manualAdjustment = Data.Definitions.GetManualAdjustment(Data.ManualAdjustmentType.IncomeTaxAdjustment, tr.Timestamp, tr);
             if (manualAdjustment != null)
-            { 
-                tax = manualAdjustment.Amount1; 
+            {
+                tax = manualAdjustment.Amount1;
             }
             else if (Globals.TaxFreePortfolios.Contains(tr.PortfolioSrc))
-            { 
-                tax = 0;  
+            {
+                tax = 0;
             }
             else
             {

@@ -74,7 +74,7 @@ namespace Venture.Assets
             }
             else
             {
-                var coupons = Definitions.Coupons.Where(x => x.InstrumentId == this.SecurityDefinition.InstrumentId).OrderBy(x => x.Timestamp);
+                var coupons = Definitions.Coupons.Where(x => x.InstrumentId == this.InstrumentId);
 
                 while (date >= start)
                 {
@@ -151,7 +151,32 @@ namespace Venture.Assets
             if (!IsActive(date)) return 0;
             if (date > MaturityDate) return 0;
 
-            return Events.OfType<Events.Flow>().First(x => x.Timestamp >= date).Rate * CouponFreq;
+            try
+            {
+                // Derive from the next flow
+                var nextFlow = Events.OfType<Events.Flow>().FirstOrDefault(x => x.Timestamp >= date);
+                if (nextFlow != null)
+                {
+                    return nextFlow.Rate * CouponFreq;
+                }
+
+                // If no next flow is defined (e.g. in case of impending sale), try defined coupons.
+                if (SecurityDefinition.CouponType == CouponType.Fixed)
+                {
+                    return SecurityDefinition.CouponRate;
+                }
+                else if (SecurityDefinition.CouponType == CouponType.Floating)
+                {
+                    var coupons = Definitions.Coupons.Where(x => x.InstrumentId == this.InstrumentId);
+                    var coupon = coupons.FirstOrDefault(x => x.Timestamp >= date) ?? coupons.Last(x => x.Timestamp < date);
+                    return coupon.CouponRate;
+                }
+                else throw new Exception("Unexpected coupon type.");
+            }
+            catch
+            {
+                throw new Exception($"No coupon rate for: {this} at date: {date:yyyy-MM-dd}.");
+            }
         }
 
         public override decimal GetMarketPrice(TimeArg time, bool dirty)
@@ -174,14 +199,15 @@ namespace Venture.Assets
             if (!IsActive(time)) return 0;
 
             double yield = GetYieldToMaturity(time.Date);
+            double rate = (double)GetCouponRate(time.Date);
 
             if (dirty)
             {
-                return (decimal)Financial.FixedIncome.DirtyPrice(time.Date, MaturityDate, (double)GetCouponRate(time.Date), yield, 100, CouponFreq, SecurityDefinition.DayCountConvention);
+                return (decimal)Financial.FixedIncome.DirtyPrice(time.Date, MaturityDate, rate, yield, 100, CouponFreq, SecurityDefinition.DayCountConvention);
             }
             else
             {
-                return (decimal)Financial.FixedIncome.Price(time.Date, MaturityDate, (double)GetCouponRate(time.Date), yield, 100, CouponFreq, SecurityDefinition.DayCountConvention);
+                return (decimal)Financial.FixedIncome.Price(time.Date, MaturityDate, rate, yield, 100, CouponFreq, SecurityDefinition.DayCountConvention);
             }
         }
 

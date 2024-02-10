@@ -89,7 +89,11 @@ namespace Venture.Events
                     else if (Globals.TaxFreePortfolios.Contains(ParentAsset.Portfolio))
                     { Tax = 0; }
                     else
-                    { Tax = TaxCalculations.CalculateFromRedemption(Amount - ParentAsset.GetNominalAmount(time)); }
+                    {
+                        decimal purchaseAmount = ParentAsset.GetPurchaseAmount(time, true);
+                        decimal nominalAmount = ParentAsset.GetNominalAmount(time);
+                        Tax = TaxCalculations.CalculateFromRedemption(Amount - Math.Min(purchaseAmount, nominalAmount));
+                    }
                     Amount -= Tax;
                     break;
                 default: throw new Exception("Cannot recalculate amount for undefined flow event.");
