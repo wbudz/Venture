@@ -48,6 +48,10 @@ namespace Venture.Modules
             {
                 source.AddRange(asset.Events.OfType<Events.Flow>().Where(x => x.Timestamp <= Common.CurrentDate).Select(x => new CashflowViewEntry(x)));
             }
+            foreach (var asset in Common.Assets)
+            {
+                source.AddRange(asset.Events.OfType<Events.Recognition>().Where(x => x.ParentAsset.AssetType == AssetType.Futures && x.Timestamp <= Common.CurrentDate && x.Amount != 0).Select(x => new CashflowViewEntry(x)));
+            }
 
             foreach (var item in source.OrderBy(x => x.Timestamp).ThenBy(x => x.TransactionIndex))
             {

@@ -79,6 +79,12 @@ namespace Venture.Assets
             bounds.endIndex = -1;
         }
 
+        public override decimal GetCount()
+        {
+            if (Events.FirstOrDefault() is Events.Recognition p) return p.Count;
+            else throw new Exception("First event is not recognition.");
+        }
+
         public override decimal GetCount(TimeArg time)
         {
             decimal count = 0;

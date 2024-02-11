@@ -79,5 +79,24 @@ namespace Venture.Modules
             GrossAmount = f.GrossAmount;
             FXRate = f.FXRate;
         }
+
+        public CashflowViewEntry(Events.Recognition r)
+        {
+            UniqueId = r.UniqueId;
+            ParentAssetUniqueId = r.ParentAsset.UniqueId;
+            Portfolio = r.ParentAsset.Portfolio;
+            CashAccount = r.ParentAsset.CashAccount;
+            Currency = r.ParentAsset.Currency;
+            Timestamp = r.Timestamp;
+            RecordDate = r.Timestamp;
+            Direction = r.Amount > 0 ? PaymentDirection.Inflow : PaymentDirection.Outflow;
+            FlowType = FlowType.FuturesSettlement;
+            Rate = 0;
+            Tax = 0;
+            TransactionIndex = r.TransactionIndex;
+            Amount = r.Amount;
+            GrossAmount = r.GrossAmount;
+            FXRate = r.FXRate;
+        }
     }
 }

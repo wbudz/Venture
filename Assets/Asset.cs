@@ -23,7 +23,15 @@ namespace Venture.Assets
         /// </summary>
         public string UniqueId { get; protected set; }
 
-        public string InstrumentId { get { return (this is Security s) ? s.SecurityDefinition.InstrumentId : ""; } }
+        public string InstrumentId
+        {
+            get
+            {
+                if (this is Security s) return s.SecurityDefinition.InstrumentId;
+                if (this is Futures f) return f.SecurityDefinition.InstrumentId;
+                return "";
+            }
+        }
 
         public AssetType AssetType { get; protected set; } = AssetType.Undefined;
 
@@ -111,7 +119,7 @@ namespace Venture.Assets
 
         protected abstract void RecalculateBounds();
 
-        public void AddEvent(Events.Event e)
+        public virtual void AddEvent(Events.Event e)
         {
             var index = events.FindIndex(x => x.Timestamp > e.Timestamp || (e.TransactionIndex > -1 && x.TransactionIndex > e.TransactionIndex));
             events.Insert(index == -1 ? events.Count : index, e);
@@ -122,7 +130,6 @@ namespace Venture.Assets
                 // total derecognition
                 if (dr.IsTotal)
                 {
-                    //events.RemoveRange(index + 1, events.Count - (index + 1));
                     for (int i = events.Count - 1; i > index; i--)
                     {
                         if (events[i] is Events.Flow f && f.RecordDate < dr.Timestamp)
@@ -144,7 +151,6 @@ namespace Venture.Assets
                     }
                 }
             }
-
             RecalculateBounds();
         }
 
@@ -207,8 +213,6 @@ namespace Venture.Assets
 
             if (bounds.startDate > end) return false; // asset becomes active after end of period in question
             if (bounds.endDate < start) return false; // asset becomes active before end of period in question
-            //if (bounds.startDate <= start && bounds.startDate <= end) return true;
-            //if (bounds.endDate >= start && bounds.endDate >= end) return true;
 
             return true;
         }
@@ -256,7 +260,7 @@ namespace Venture.Assets
         public DateTime GetPurchaseDate()
         {
             var evt = events.First();
-            if (!(evt is Venture.Events.Recognition) && !(evt is Venture.Events.Payment p && p.Direction==Venture.Events.PaymentDirection.Inflow && this is Cash)) 
+            if (!(evt is Venture.Events.Recognition) && !(evt is Venture.Events.Payment p && p.Direction == Venture.Events.PaymentDirection.Inflow && this is Cash))
                 throw new Exception($"Unexpected first event of an asset: {evt}");
             return evt.Timestamp;
         }
@@ -279,6 +283,8 @@ namespace Venture.Assets
         {
             return events.OfType<Events.Flow>().FirstOrDefault(x => x.Timestamp > date && x.FlowType == Venture.Events.FlowType.Coupon || x.FlowType == Venture.Events.FlowType.Redemption)?.Timestamp;
         }
+
+        public abstract decimal GetCount();
 
         /// <summary>
         /// Gets count (amount of units) of the investment at the specified time.

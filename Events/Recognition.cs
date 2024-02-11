@@ -23,22 +23,40 @@ namespace Venture.Events
         public Recognition(Assets.Asset parentAsset, Data.Transaction tr, DateTime date) : base(parentAsset, date)
         {
             UniqueId = $"Recognition_{parentAsset.UniqueId}_{tr.Index}_{tr.Timestamp.ToString("yyyyMMdd")}";
-            if (tr.TransactionType != Data.TransactionType.Buy) throw new ArgumentException("An attempt was made to create Recognition event with transaction type other than Buy.");
-
             TransactionIndex = tr.Index;
-            DirtyPrice = tr.Price;
-            CleanPrice = tr.Price - parentAsset.GetAccruedInterest(tr.Timestamp);
-            Fee = tr.Fee;
-            Count = tr.Count;
-            if (parentAsset.IsBond)
+
+            if (ParentAsset.AssetType == AssetType.Futures)
             {
-                Amount = Common.Round(tr.Price / 100 * tr.Count * tr.NominalAmount);
+                DirtyPrice = tr.Price;
+                CleanPrice = tr.Price;
+                Fee = tr.Fee;
+                if (tr.TransactionType == TransactionType.Buy)
+                    Count = tr.Count;
+                else if (tr.TransactionType == TransactionType.Sell)
+                    Count = -tr.Count;
+                else throw new Exception("Tried to create futures recognition with transaction type other than buy or sell.");
+
+                Amount = 0;
+                FXRate = tr.FXRate;
             }
             else
             {
-                Amount = Common.Round(tr.Price * tr.Count);
+                if (tr.TransactionType != Data.TransactionType.Buy) throw new ArgumentException("An attempt was made to create Recognition event with transaction type other than Buy.");
+
+                DirtyPrice = tr.Price;
+                CleanPrice = tr.Price - parentAsset.GetAccruedInterest(tr.Timestamp);
+                Fee = tr.Fee;
+                Count = tr.Count;
+                if (parentAsset.IsBond)
+                {
+                    Amount = Common.Round(tr.Price / 100 * tr.Count * tr.NominalAmount);
+                }
+                else
+                {
+                    Amount = Common.Round(tr.Price * tr.Count);
+                }
+                FXRate = tr.FXRate;
             }
-            FXRate = tr.FXRate;
         }
 
         public Recognition(Assets.Asset parentAsset, Manual manual, decimal count, decimal price) : base(parentAsset, manual.Timestamp)

@@ -86,7 +86,7 @@ namespace Venture.Data
                     case AssetType.CorporateBondsFund:
                         return Common.Round(Price * Count);
                     case AssetType.Futures:
-                        throw new NotImplementedException();
+                        return 0;
                     default:
                         throw new Exception("Cannot give amount for unknown instrument type.");
                 }

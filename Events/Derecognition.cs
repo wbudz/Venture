@@ -16,7 +16,7 @@ namespace Venture.Events
 
         public decimal CleanPrice { get; protected set; } = 0;
 
-        public decimal Fee { get; protected set; } = 0;
+        public decimal Fee { get; set; } = 0;
 
         public decimal GrossAmount { get { return Amount + Fee; } }
 
@@ -32,7 +32,7 @@ namespace Venture.Events
 
         public bool IsTotal { get; protected set; } = false;
 
-        public Derecognition(Assets.Asset parentAsset, Data.Transaction tr, decimal count, DateTime date) : base(parentAsset, date)
+        public Derecognition(Assets.Asset parentAsset, Data.Transaction tr, decimal count, decimal fee, DateTime date) : base(parentAsset, date)
         {
             UniqueId = $"Derecognition_{parentAsset.UniqueId}_{tr.Index}_{tr.Timestamp.ToString("yyyyMMdd")}";
             ParentAsset = parentAsset;
@@ -40,7 +40,7 @@ namespace Venture.Events
             TransactionIndex = tr.Index;
             DirtyPrice = tr.Price;
             CleanPrice = tr.Price - parentAsset.GetAccruedInterest(tr.Timestamp);
-            Fee = tr.Fee;
+            Fee = fee;
             Count = count;
             if (parentAsset.IsBond)
             {

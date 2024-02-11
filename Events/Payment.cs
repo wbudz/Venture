@@ -32,12 +32,20 @@ namespace Venture.Events
             FXRate = tr.FXRate;
         }
 
-        public Payment(Assets.Asset parentAsset, Events.Flow fl, PaymentDirection direction) : base(parentAsset, fl.Timestamp)
+        public Payment(Assets.Asset parentAsset, Events.Flow fl, decimal amount, PaymentDirection direction) : base(parentAsset, fl.Timestamp)
         {
             UniqueId = $"Payment_{direction}_{fl.FlowType}_{fl.ParentAsset.UniqueId}_{fl.Timestamp.ToString("yyyyMMdd")}";
             Direction = direction;
-            Amount = fl.Amount;
+            Amount = amount;
             FXRate = fl.FXRate;
+        }
+
+        public Payment(Assets.Asset parentAsset, Events.Recognition r, decimal amount, PaymentDirection direction) : base(parentAsset, r.Timestamp)
+        {
+            UniqueId = $"Payment_Futures_{r.ParentAsset.UniqueId}_{r.Timestamp.ToString("yyyyMMdd")}";
+            Direction = direction;
+            Amount = amount;
+            FXRate = r.FXRate;
         }
     }
 }

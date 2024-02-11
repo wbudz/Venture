@@ -50,6 +50,24 @@ namespace Venture.Assets
             GenerateFlows();
         }
 
+        public Cash(Events.Recognition r) : base(r.TransactionIndex)
+        {
+            if (r.ParentAsset.AssetType != AssetType.Futures) throw new Exception("Tried to create cash with recognition event not originating from futures contract.");
+            UniqueId = $"Cash_Futures_{r.ParentAsset.UniqueId}_{r.Timestamp.ToString("yyyyMMdd")}";
+            AssetType = AssetType.Cash;
+            Portfolio = r.ParentAsset.Portfolio;
+            CashAccount = r.ParentAsset.CashAccount;
+            CustodyAccount = "";
+            Currency = r.ParentAsset.Currency;
+            ValuationClass = ValuationClass.AvailableForSale;
+
+            if (r.Amount == 0) throw new Exception($"Tried to create cash (from sale) with amount equal to 0.");
+
+            Events.PaymentDirection direction = Venture.Events.PaymentDirection.Inflow;
+            AddEvent(new Events.Payment(this, r, Math.Abs(r.Amount), direction));
+            GenerateFlows();
+        }
+
         public Cash(Events.Flow fl) : base()
         {
             UniqueId = $"Cash_{fl.FlowType}_{fl.ParentAsset.UniqueId}_{fl.Timestamp.ToString("yyyyMMdd")}";
@@ -65,7 +83,7 @@ namespace Venture.Assets
 
             if (fl.Amount == 0) throw new Exception($"Tried to create cash (from {fl.FlowType}) with amount equal to 0.");
 
-            AddEvent(new Events.Payment(this, fl, Venture.Events.PaymentDirection.Inflow));
+            AddEvent(new Events.Payment(this, fl, fl.Amount, Venture.Events.PaymentDirection.Inflow));
             GenerateFlows();
         }
 
@@ -103,6 +121,11 @@ namespace Venture.Assets
         public override string ToString()
         {
             return $"Asset:Cash {UniqueId}";
+        }
+
+        public override decimal GetCount()
+        {
+            return 0;
         }
 
         public override decimal GetCount(TimeArg time)

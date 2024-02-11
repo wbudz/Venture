@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Venture.Events
 {
-    public enum FlowType { Undefined, Dividend, Coupon, Redemption }
+    public enum FlowType { Undefined, Dividend, Coupon, Redemption, FuturesSettlement }
 
     public class Flow : Event
     {
@@ -95,6 +95,10 @@ namespace Venture.Events
                         Tax = TaxCalculations.CalculateFromRedemption(Amount - Math.Min(purchaseAmount, nominalAmount));
                     }
                     Amount -= Tax;
+                    break;
+                case FlowType.FuturesSettlement:
+                    Amount = Rate;
+                    Rate = 0;
                     break;
                 default: throw new Exception("Cannot recalculate amount for undefined flow event.");
             }
