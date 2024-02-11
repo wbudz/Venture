@@ -76,7 +76,7 @@ namespace Venture.Data
             {
                 Manual.Add(item);
             }
-            CheckManualReferences(Manual, Transactions);
+            CheckManualReferences(Manual, Transactions, Instruments);
         }
 
         public static Manual? GetManualAdjustment(ManualAdjustmentType type, DateTime timestamp, Transaction tr)
@@ -109,7 +109,7 @@ namespace Venture.Data
             }
         }
 
-        private static void CheckManualReferences(IEnumerable<Manual> manual, IEnumerable<Transaction> transactions)
+        private static void CheckManualReferences(IEnumerable<Manual> manual, IEnumerable<Transaction> transactions, IEnumerable<Instrument> instruments)
         {
             foreach (var m in manual)
             {
@@ -137,6 +137,27 @@ namespace Venture.Data
                     if (transaction == null)
                     {
                         throw new Exception($"Transaction not found for manual event definition: {m}.");
+                    }
+                }
+                if (m.AdjustmentType == ManualAdjustmentType.EquitySpinOff ||
+                    m.AdjustmentType == ManualAdjustmentType.PrematureRedemption)
+                {
+                    string instrumentType;
+                    string instrumentId;
+                    try
+                    {
+                        instrumentType = m.Instrument1.Split('_')[0];
+                        instrumentId = m.Instrument1.Split('_')[1];
+                        if (m.Instrument1.Split('_').Length > 2) throw new Exception("Manual event definition too long.");
+                    }
+                    catch
+                    {
+                        throw new Exception($"Error in manual event definition: {m}.");
+                    }
+                    var instrument = instruments.SingleOrDefault(x => x.InstrumentType.ToString() == instrumentType && x.InstrumentId == instrumentId);
+                    if (instrument == null)
+                    {
+                        throw new Exception($"Instrument not found for manual event definition: {m}.");
                     }
                 }
             }

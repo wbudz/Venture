@@ -154,7 +154,7 @@ namespace Venture.Assets
             try
             {
                 // Derive from the next flow
-                var nextFlow = Events.OfType<Events.Flow>().FirstOrDefault(x => x.Timestamp >= date);
+                var nextFlow = Events.OfType<Events.Flow>().Where(x=>x.FlowType == FlowType.Coupon).FirstOrDefault(x => x.Timestamp >= date);
                 if (nextFlow != null)
                 {
                     return nextFlow.Rate * CouponFreq;

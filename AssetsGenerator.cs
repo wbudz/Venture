@@ -323,8 +323,10 @@ namespace Venture
 
             if (transactionAmount != derecognitionAmount)
             {
-                output.First().Amount += transactionAmount - derecognitionAmount;
-                throw new Exception("ReconcileDerecognitionAmounts activated."); //TODO: remove
+                decimal diff = Common.Round(transactionAmount - derecognitionAmount);
+                var evt = output.OrderByDescending(x => x.Amount).First();
+                evt.Amount += diff;
+                //throw new Exception("ReconcileDerecognitionAmounts activated."); //TODO: remove
             }
         }
     }
