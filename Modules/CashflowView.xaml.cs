@@ -40,17 +40,27 @@ namespace Venture.Modules
             CashflowViewEntries.Clear();
             List<CashflowViewEntry> source = new List<CashflowViewEntry>();
 
+            DateTime startDate = new DateTime(
+                Int32.Parse(StartYearComboBox.SelectedItem.ToString() ?? Common.CurrentDate.Year.ToString()),
+                Int32.Parse(StartMonthComboBox.SelectedItem.ToString() ?? Common.CurrentDate.Month.ToString()),
+                1);
+            DateTime endDate = new DateTime(
+                Int32.Parse(EndYearComboBox.SelectedItem.ToString() ?? Common.CurrentDate.Year.ToString()),
+                Int32.Parse(EndMonthComboBox.SelectedItem.ToString() ?? Common.CurrentDate.Month.ToString()),
+                1);
+            endDate = new DateTime(endDate.Year, endDate.Month, DateTime.DaysInMonth(endDate.Year, endDate.Month));
+
             foreach (var asset in Common.Assets.OfType<Assets.Cash>())
             {
-                source.AddRange(asset.Events.OfType<Events.Payment>().Where(x => x.TransactionIndex != -1 && x.Timestamp <= Common.CurrentDate).Select(x => new CashflowViewEntry(x)));
+                source.AddRange(asset.Events.OfType<Events.Payment>().Where(x => x.TransactionIndex != -1 && x.Timestamp >= startDate && x.Timestamp <= endDate).Select(x => new CashflowViewEntry(x)));
             }
             foreach (var asset in Common.Assets)
             {
-                source.AddRange(asset.Events.OfType<Events.Flow>().Where(x => x.Timestamp <= Common.CurrentDate).Select(x => new CashflowViewEntry(x)));
+                source.AddRange(asset.Events.OfType<Events.Flow>().Where(x => x.Timestamp >= startDate && x.Timestamp <= endDate).Select(x => new CashflowViewEntry(x)));
             }
             foreach (var asset in Common.Assets)
             {
-                source.AddRange(asset.Events.OfType<Events.Recognition>().Where(x => x.ParentAsset.AssetType == AssetType.Futures && x.Timestamp <= Common.CurrentDate && x.Amount != 0).Select(x => new CashflowViewEntry(x)));
+                source.AddRange(asset.Events.OfType<Events.Recognition>().Where(x => x.ParentAsset.AssetType == AssetType.Futures && x.Timestamp >= startDate && x.Timestamp <= endDate && x.Amount != 0).Select(x => new CashflowViewEntry(x)));
             }
 
             foreach (var item in source.OrderBy(x => x.Timestamp).ThenBy(x => x.TransactionIndex))
@@ -60,8 +70,8 @@ namespace Venture.Modules
                 CashflowViewEntries.Add(item);
             }
 
-            //TotalValueTextBlock.Text = $"Total value: {AssetEntries.Sum(x => x.BookValue):N2} PLN, therein cash: {AssetEntries.Where(x => x.AssetType == "Cash").Sum(x => x.BookValue):N2} PLN";
-            //TotalValueTextBlock.Visibility = Visibility.Visible;
+            TotalValueTextBlock.Text = $"Total value: {CashflowViewEntries.Sum(x => x.Amount):N2} PLN";
+            TotalValueTextBlock.Visibility = Visibility.Visible;
 
             sw.Stop();
             ((MainWindow)Application.Current.MainWindow).StatusText.Text = $"Module refresh took: {(sw.ElapsedMilliseconds / 1000.0):0.000} seconds.";
@@ -84,6 +94,27 @@ namespace Venture.Modules
 
         private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            if (StartYearComboBox == null || EndYearComboBox == null || StartMonthComboBox == null || EndMonthComboBox == null) return;
+
+            int startYear = Int32.Parse(StartYearComboBox.SelectedValue?.ToString() ?? DateTime.Now.Year.ToString());
+            int endYear = Int32.Parse(EndYearComboBox.SelectedValue?.ToString() ?? DateTime.Now.Year.ToString());
+            int startMonth = Int32.Parse(StartMonthComboBox.SelectedValue?.ToString() ?? DateTime.Now.Month.ToString());
+            int endMonth = Int32.Parse(EndMonthComboBox.SelectedValue?.ToString() ?? DateTime.Now.Month.ToString());
+
+            if (startYear > endYear || (startYear == endYear && startMonth > endMonth))
+            {
+                if (e.Source == StartYearComboBox || e.Source == StartMonthComboBox)
+                {
+                    EndYearComboBox.SelectedValue = StartYearComboBox.SelectedValue;
+                    EndMonthComboBox.SelectedValue = StartMonthComboBox.SelectedValue;
+                }
+                if (e.Source == EndYearComboBox || e.Source == EndMonthComboBox)
+                {
+                    StartYearComboBox.SelectedValue = EndYearComboBox.SelectedValue;
+                    StartMonthComboBox.SelectedValue = EndMonthComboBox.SelectedValue;
+                }
+                e.Handled = true;
+            }
             Refresh();
         }
     }

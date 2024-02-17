@@ -159,6 +159,9 @@ namespace Venture.Assets
         /// </summary>
         public bool IsActive(TimeArg time)
         {
+            // Presume active if bounds have not been calculated yet.
+            if (bounds.startDate == DateTime.MinValue && bounds.endDate == DateTime.MinValue) return true;
+
             if (time.Date < bounds.startDate) return false;
             if (time.Date > bounds.endDate) return false;
             if (time.Date > bounds.startDate && time.Date < bounds.endDate) return true;
@@ -209,6 +212,9 @@ namespace Venture.Assets
 
         public bool IsActive(DateTime start, DateTime end)
         {
+            // Presume active if bounds have not been calculated yet.
+            if (bounds.startDate == DateTime.MinValue && bounds.endDate == DateTime.MinValue) return true;
+
             if (start > end) throw new ArgumentException("Start time must be less than end time when checking if an asset is active.");
 
             if (bounds.startDate > end) return false; // asset becomes active after end of period in question

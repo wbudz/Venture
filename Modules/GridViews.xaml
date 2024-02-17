@@ -566,10 +566,17 @@
                     </DataTemplate>
                 </GridViewColumn.CellTemplate>
             </GridViewColumn>
-            <GridViewColumn Header="Price" Width="Auto">
+            <GridViewColumn Header="Price (dirty)" Width="Auto">
                 <GridViewColumn.CellTemplate>
                     <DataTemplate>
-                        <TextBlock Text="{Binding Price, StringFormat = {}{0:F4}}" HorizontalAlignment="Right" />
+                        <TextBlock Text="{Binding DirtyPrice, StringFormat = {}{0:F4}}" HorizontalAlignment="Right" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="Price (clean)" Width="Auto">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding CleanPrice, StringFormat = {}{0:F4}}" HorizontalAlignment="Right" />
                     </DataTemplate>
                 </GridViewColumn.CellTemplate>
             </GridViewColumn>
@@ -619,10 +626,17 @@
                     </DataTemplate>
                 </GridViewColumn.CellTemplate>
             </GridViewColumn>
-            <GridViewColumn Header="Price" Width="Auto">
+            <GridViewColumn Header="Price (dirty)" Width="Auto">
                 <GridViewColumn.CellTemplate>
                     <DataTemplate>
-                        <TextBlock Text="{Binding Price, StringFormat = {}{0:F4}}" HorizontalAlignment="Right" />
+                        <TextBlock Text="{Binding DirtyPrice, StringFormat = {}{0:F4}}" HorizontalAlignment="Right" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="Price (clean)" Width="Auto">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding CleanPrice, StringFormat = {}{0:F4}}" HorizontalAlignment="Right" />
                     </DataTemplate>
                 </GridViewColumn.CellTemplate>
             </GridViewColumn>
@@ -785,10 +799,10 @@
                     </DataTemplate>
                 </GridViewColumn.CellTemplate>
             </GridViewColumn>
-            <GridViewColumn Header="Flow type" Width="Auto">
+            <GridViewColumn Header="Cashflow type" Width="Auto">
                 <GridViewColumn.CellTemplate>
                     <DataTemplate>
-                        <TextBlock Text="{Binding FlowType}" />
+                        <TextBlock Text="{Binding CashflowType}" />
                     </DataTemplate>
                 </GridViewColumn.CellTemplate>
             </GridViewColumn>

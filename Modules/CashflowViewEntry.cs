@@ -28,7 +28,7 @@ namespace Venture.Modules
 
         public PaymentDirection Direction { get; set; } = PaymentDirection.Unspecified;
 
-        public FlowType FlowType { get; set; } = FlowType.Undefined;
+        public string CashflowType { get; set; } = "Unknown";
 
         public decimal Rate { get; set; }
 
@@ -52,13 +52,19 @@ namespace Venture.Modules
             Timestamp = p.Timestamp;
             RecordDate = p.Timestamp;
             Direction = p.Direction;
-            FlowType = FlowType.Undefined;
             Rate = 0;
             Tax = 0;
             TransactionIndex = p.TransactionIndex;
             Amount = p.Amount * (p.Direction == PaymentDirection.Outflow ? -1 : 1);
             GrossAmount = Amount;
             FXRate = p.FXRate;
+
+            if (TransactionIndex < 0) throw new Exception("Transaction index missing.");
+            Data.Transaction tr = Data.Definitions.Transactions.Single(x => x.Index == TransactionIndex);
+            if (tr.TransactionType == Data.TransactionType.Buy) CashflowType = "Purchase";
+            if (tr.TransactionType == Data.TransactionType.Sell) CashflowType = "Sale";
+            if (tr.TransactionType == Data.TransactionType.Cash) CashflowType = "Cash transfer";
+
         }
 
         public CashflowViewEntry(Events.Flow f)
@@ -71,13 +77,14 @@ namespace Venture.Modules
             Timestamp = f.Timestamp;
             RecordDate = f.RecordDate;
             Direction = PaymentDirection.Inflow;
-            FlowType = f.FlowType;
             Rate = f.Rate;
             Tax = f.Tax;
             TransactionIndex = f.TransactionIndex;
             Amount = f.Amount;
             GrossAmount = f.GrossAmount;
             FXRate = f.FXRate;
+
+            CashflowType = f.FlowType.ToString();
         }
 
         public CashflowViewEntry(Events.Recognition r)
@@ -90,13 +97,14 @@ namespace Venture.Modules
             Timestamp = r.Timestamp;
             RecordDate = r.Timestamp;
             Direction = r.Amount > 0 ? PaymentDirection.Inflow : PaymentDirection.Outflow;
-            FlowType = FlowType.FuturesSettlement;
             Rate = 0;
             Tax = 0;
             TransactionIndex = r.TransactionIndex;
             Amount = r.Amount;
             GrossAmount = r.GrossAmount;
             FXRate = r.FXRate;
+
+            CashflowType = "Futures settlement";
         }
     }
 }
