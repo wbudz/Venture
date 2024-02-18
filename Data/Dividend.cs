@@ -24,6 +24,10 @@ namespace Venture.Data
 
         public decimal PaymentPerShare { get; private set; } = 0;
 
+        public string Currency { get; private set; } = "PLN";
+
+        public decimal FXRate { get; private set; } = 1;
+
         public override void FromCSV(string[] headers, string[] line, int index)
         {
             for (int i = 0; i < Math.Min(headers.Length, line.Length); i++)
@@ -33,6 +37,8 @@ namespace Venture.Data
                 if (headers[i] == "exdate") ExDate = ConvertToDateTime(line[i]);
                 if (headers[i] == "paymentdate") PaymentDate = ConvertToDateTime(line[i]);
                 if (headers[i] == "paymentpershare") PaymentPerShare = ConvertToDecimal(line[i]);
+                if (headers[i] == "currency") Currency = line[i];
+                if (headers[i] == "fxrate") FXRate = ConvertToDecimal(line[i]);
                 if (headers[i] == "active") Active = ConvertToBool(line[i]);
             }
         }

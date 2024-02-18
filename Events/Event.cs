@@ -21,12 +21,15 @@ namespace Venture.Events
 
         public decimal Amount { get; set; } = 0;
 
+        public string Currency { get; protected set; } = "PLN";
+
         public decimal FXRate { get; protected set; } = 1;
 
         public Event(Assets.Asset parentAsset, DateTime timestamp)
         {
             ParentAsset = parentAsset;
             Timestamp = timestamp;
+            Currency = parentAsset.Currency;
         }
 
         public override string ToString()

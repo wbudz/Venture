@@ -66,7 +66,7 @@ namespace Venture.Assets
                     {
                         if (date <= end)
                         {
-                            AddEvent(new Events.Flow(this, Financial.Calendar.WorkingDays(date, -2), date, Venture.Events.FlowType.Coupon, CouponRate / CouponFreq, FX.GetRate(date, Currency)));
+                            AddEvent(new Events.Flow(this, Financial.Calendar.WorkingDays(date, -2), date, Venture.Events.FlowType.Coupon, CouponRate / CouponFreq, Currency, FX.GetRate(date, Currency)));
                         }
                         date = ShiftDate(date, monthStep);
                     }
@@ -83,14 +83,14 @@ namespace Venture.Assets
 
                     if (date <= end)
                     {
-                        AddEvent(new Events.Flow(this, Financial.Calendar.WorkingDays(date, -2), date, Venture.Events.FlowType.Coupon, coupon.CouponRate / CouponFreq, FX.GetRate(date, Currency)));
+                        AddEvent(new Events.Flow(this, Financial.Calendar.WorkingDays(date, -2), date, Venture.Events.FlowType.Coupon, coupon.CouponRate / CouponFreq, Currency, FX.GetRate(date, Currency)));
                     }
                     date = ShiftDate(date, monthStep);
                 }
             }
 
             // Redemption
-            AddEvent(new Events.Flow(this, Financial.Calendar.WorkingDays(end, -2), end, Venture.Events.FlowType.Redemption, redemption, FX.GetRate(end, Currency)));
+            AddEvent(new Events.Flow(this, Financial.Calendar.WorkingDays(end, -2), end, Venture.Events.FlowType.Redemption, redemption, Currency, FX.GetRate(end, Currency)));
         }
 
         private DateTime ShiftDate(DateTime date, int monthStep)
@@ -154,7 +154,7 @@ namespace Venture.Assets
             try
             {
                 // Derive from the next flow
-                var nextFlow = Events.OfType<Events.Flow>().Where(x=>x.FlowType == FlowType.Coupon).FirstOrDefault(x => x.Timestamp >= date);
+                var nextFlow = Events.OfType<Events.Flow>().Where(x => x.FlowType == FlowType.Coupon).FirstOrDefault(x => x.Timestamp >= date);
                 if (nextFlow != null)
                 {
                     return nextFlow.Rate * CouponFreq;

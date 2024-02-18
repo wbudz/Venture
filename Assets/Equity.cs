@@ -25,12 +25,10 @@ namespace Venture.Assets
 
         protected override void GenerateFlows()
         {
-            foreach (var d in Data.Definitions.Dividends)
+            foreach (var d in Data.Definitions.Dividends.Where(x => x.InstrumentId == InstrumentId && x.RecordDate >= events.First().Timestamp))
             {
-                if (this.SecurityDefinition.InstrumentId == d.InstrumentId && d.RecordDate >= events.First().Timestamp)
-                {
-                    AddEvent(new Events.Flow(this, d.RecordDate, d.PaymentDate, Venture.Events.FlowType.Dividend, d.PaymentPerShare, 1));
-                }
+                var flow = new Events.Flow(this, d.RecordDate, d.PaymentDate, Venture.Events.FlowType.Dividend, d.PaymentPerShare, d.Currency, d.FXRate);
+                AddEvent(flow);
             }
         }
 

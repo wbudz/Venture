@@ -21,12 +21,13 @@ namespace Venture.Events
 
         public decimal GrossAmount { get { return Amount + Tax; } }
 
-        public Flow(Assets.Asset parentAsset, DateTime recordDate, DateTime timestamp, FlowType type, decimal rate, decimal fxRate) : base(parentAsset, timestamp)
+        public Flow(Assets.Asset parentAsset, DateTime recordDate, DateTime timestamp, FlowType type, decimal rate, string currency, decimal fxRate) : base(parentAsset, timestamp)
         {
             UniqueId = $"Flow_{type}_{parentAsset.UniqueId}_{timestamp.ToString("yyyyMMdd")}";
             RecordDate = recordDate;
             FlowType = type;
             Rate = rate;
+            Currency = currency;
             FXRate = fxRate;
             RecalculateAmount();
         }
@@ -47,7 +48,16 @@ namespace Venture.Events
                     }
                     else
                     {
-                        Amount = Common.Round(Rate * ParentAsset.GetCount(time));
+                        decimal fxRate;
+                        if (ParentAsset.CashAccount.Split(':')[2] != Currency)
+                        {
+                            fxRate = FXRate;
+                        }
+                        else
+                        {
+                            fxRate = 1;
+                        }
+                        Amount = Common.Round(Rate * ParentAsset.GetCount(time) * fxRate);
                     }
                     // Tax, with potential adjustments
                     manualAdjustment = Data.Definitions.GetManualAdjustment(Data.ManualAdjustmentType.DividendTaxAdjustment, Timestamp, ParentAsset.UniqueId ?? "");
@@ -68,7 +78,16 @@ namespace Venture.Events
                     }
                     else
                     {
-                        Amount = Common.Round(Rate * ParentAsset.GetNominalAmount(time));
+                        decimal fxRate;
+                        if (ParentAsset.CashAccount.Split(':')[2] != Currency)
+                        {
+                            fxRate = FXRate;
+                        }
+                        else
+                        {
+                            fxRate = 1;
+                        }
+                        Amount = Common.Round(Rate * ParentAsset.GetNominalAmount(time) * fxRate);
                     }
                     // Tax, with potential adjustments
                     manualAdjustment = Data.Definitions.GetManualAdjustment(Data.ManualAdjustmentType.CouponTaxAdjustment, Timestamp, ParentAsset.UniqueId ?? "");

@@ -106,7 +106,7 @@ namespace Venture.Assets
                 currentPrice = price.Value;
 
                 decimal amount = Common.Round((currentPrice - previousPrice) * count * Multiplier);
-                AddEvent(new Events.Flow(this, currentEnd, currentEnd, Venture.Events.FlowType.FuturesSettlement, amount, FX.GetRate(currentEnd, Currency)));
+                AddEvent(new Events.Flow(this, currentEnd, currentEnd, Venture.Events.FlowType.FuturesSettlement, amount, Currency, FX.GetRate(currentEnd, Currency)));
                 previousPrice = currentPrice;
 
                 previousEnd = currentEnd;
