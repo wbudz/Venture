@@ -48,6 +48,7 @@ namespace Venture.Modules
             ParentAssetUniqueId = p.ParentAsset.UniqueId;
             Portfolio = p.ParentAsset.Portfolio;
             CashAccount = p.ParentAsset.CashAccount;
+            Broker = CashAccount.Split(':')[1];
             Currency = p.ParentAsset.Currency;
             Timestamp = p.Timestamp;
             RecordDate = p.Timestamp;
@@ -73,6 +74,7 @@ namespace Venture.Modules
             ParentAssetUniqueId = f.ParentAsset.UniqueId;
             Portfolio = f.ParentAsset.Portfolio;
             CashAccount = f.ParentAsset.CashAccount;
+            Broker = CashAccount.Split(':')[1];
             Currency = f.ParentAsset.Currency;
             Timestamp = f.Timestamp;
             RecordDate = f.RecordDate;
@@ -93,6 +95,7 @@ namespace Venture.Modules
             ParentAssetUniqueId = r.ParentAsset.UniqueId;
             Portfolio = r.ParentAsset.Portfolio;
             CashAccount = r.ParentAsset.CashAccount;
+            Broker = CashAccount.Split(':')[1];
             Currency = r.ParentAsset.Currency;
             Timestamp = r.Timestamp;
             RecordDate = r.Timestamp;

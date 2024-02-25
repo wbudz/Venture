@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Venture.Data;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Venture.Events
@@ -46,6 +47,16 @@ namespace Venture.Events
             Direction = direction;
             Amount = amount;
             FXRate = r.FXRate;
+        }
+
+        public Payment(Assets.Asset parentAsset, Manual mn, PaymentDirection direction) : base(parentAsset, mn.Timestamp)
+        {
+            if (mn.AdjustmentType != ManualAdjustmentType.AccountBalanceInterest) throw new Exception($"Unexpected manual adjustment type used for creating cash: {mn.AdjustmentType}.");
+
+            UniqueId = $"Payment_AccountBalanceInterest_{mn.Instrument1}_{mn.Timestamp.ToString("yyyyMMdd")}";
+            Direction = direction;
+            Amount = mn.Amount1;
+            FXRate = mn.Amount2 == 0 ? 1 : mn.Amount2;
         }
     }
 }

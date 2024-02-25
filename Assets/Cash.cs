@@ -87,6 +87,22 @@ namespace Venture.Assets
             GenerateFlows();
         }
 
+        public Cash(Manual mn) : base()
+        {
+            if (mn.AdjustmentType != ManualAdjustmentType.AccountBalanceInterest) throw new Exception($"Unexpected manual adjustment type used for creating cash: {mn.AdjustmentType}.");
+
+            UniqueId = $"Cash_AccountBalanceInterest_{mn.Instrument1}_{mn.Timestamp.ToString("yyyyMMdd")}";
+            AssetType = AssetType.Cash;
+            Portfolio = mn.Instrument2;
+            CashAccount = mn.Instrument1;
+            CustodyAccount = "";
+            Currency = mn.Instrument1.Split(':')[2];
+            ValuationClass = ValuationClass.AvailableForSale;
+
+            AddEvent(new Events.Payment(this, mn, Venture.Events.PaymentDirection.Inflow));
+            GenerateFlows();
+        }
+
         protected override void GenerateFlows()
         {
             // No events to be generated.

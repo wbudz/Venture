@@ -97,7 +97,7 @@ namespace Venture.Data
 
         public static IEnumerable<Manual> GetManualEventSources()
         {
-            return Manual.Where(x => x.AdjustmentType == ManualAdjustmentType.EquitySpinOff);
+            return Manual.Where(x => x.AdjustmentType == ManualAdjustmentType.EquitySpinOff || x.AdjustmentType == ManualAdjustmentType.AccountBalanceInterest);
         }
 
         private static void CheckTransactionsOrder(List<Data.Transaction> transactions)
@@ -159,6 +159,10 @@ namespace Venture.Data
                     {
                         throw new Exception($"Instrument not found for manual event definition: {m}.");
                     }
+                }
+                if (m.AdjustmentType == ManualAdjustmentType.AccountBalanceInterest)
+                {
+
                 }
             }
         }

@@ -333,12 +333,12 @@ namespace Venture
                     {
                         RegisterCashDeduction(output, ev);
                     }
-
                 }
             }
 
             newAssets.ForEach(x => AddAsset(output, x, x.Events.First().Timestamp));
 
+            ProcessAccountBalanceInterest(output, manual, endDate);
             ProcessEquitySpinOffs(output, manual, endDate);
         }
 
@@ -380,6 +380,15 @@ namespace Venture
                     }
                 }
                 newAssets.ForEach(x => AddAsset(output, x, mn.Timestamp));
+                manual.Remove(mn);
+            }
+        }
+
+        private static void ProcessAccountBalanceInterest(List<Asset> output, HashSet<Manual> manual, DateTime timestamp)
+        {
+            foreach (var mn in manual.Where(x => x.AdjustmentType == ManualAdjustmentType.AccountBalanceInterest).Where(x => x.Timestamp < timestamp))
+            {
+                AddAsset(output, new Cash(mn), timestamp);                
                 manual.Remove(mn);
             }
         }
