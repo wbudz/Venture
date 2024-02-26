@@ -128,7 +128,7 @@ namespace Venture
             {
                 case TransactionType.Undefined: throw new Exception("Tried deducting cash with undefined transaction type.");
                 case TransactionType.Buy: portfolio = tr.PortfolioDst; break;
-                case TransactionType.Sell: 
+                case TransactionType.Sell:
                     if (!onlyFee) throw new Exception("Tried deducting cash with sale transaction type.");
                     portfolio = tr.PortfolioDst;
                     break;
@@ -339,16 +339,18 @@ namespace Venture
             newAssets.ForEach(x => AddAsset(output, x, x.Events.First().Timestamp));
 
             ProcessAccountBalanceInterest(output, manual, endDate);
+            ProcessEquityRedemptions(output, manual, endDate);
             ProcessEquitySpinOffs(output, manual, endDate);
+
         }
 
-        private static void ProcessEquitySpinOffs(List<Asset> output, HashSet<Manual> manual, DateTime timestamp)
+        private static void ProcessEquitySpinOffs(List<Asset> output, HashSet<Manual> manual, DateTime endDate)
         {
-            foreach (var mn in manual.Where(x => x.AdjustmentType == ManualAdjustmentType.EquitySpinOff).Where(x => x.Timestamp < timestamp))
+            foreach (var mn in manual.Where(x => x.AdjustmentType == ManualAdjustmentType.EquitySpinOff).Where(x => x.Timestamp < endDate))
             {
                 TimeArg time = new TimeArg(TimeArgDirection.End, mn.Timestamp);
                 List<Asset> newAssets = new List<Asset>();
-                foreach (var asset in output.OfType<Equity>().Where(x => x.SecurityDefinition.UniqueId == mn.Instrument1))
+                foreach (var asset in output.OfType<Equity>().Where(x => x.SecurityDefinition.UniqueId == mn.Text1))
                 {
                     if (!(asset.IsActive(mn.Timestamp))) continue;
                     decimal count = asset.GetCount(time);
@@ -365,7 +367,7 @@ namespace Venture
                     // Add converted equity
                     if (mn.Amount2 > 0)
                     {
-                        var definition = Data.Definitions.Instruments.First(x => x.UniqueId == mn.Instrument2);
+                        var definition = Data.Definitions.Instruments.First(x => x.UniqueId == mn.Text2);
                         decimal newCount = mn.Amount2 * count;
                         var newAsset = new Equity(asset, definition, mn, newCount, newPrice2);
                         newAssets.Add(newAsset);
@@ -373,7 +375,7 @@ namespace Venture
                     // Add spun off equity
                     if (mn.Amount3 > 0)
                     {
-                        var definition = Data.Definitions.Instruments.First(x => x.UniqueId == mn.Instrument3);
+                        var definition = Data.Definitions.Instruments.First(x => x.UniqueId == mn.Text3);
                         decimal newCount = mn.Amount3 * count;
                         var newAsset = new Equity(asset, definition, mn, newCount, newPrice3);
                         newAssets.Add(newAsset);
@@ -384,11 +386,37 @@ namespace Venture
             }
         }
 
-        private static void ProcessAccountBalanceInterest(List<Asset> output, HashSet<Manual> manual, DateTime timestamp)
+        private static void ProcessEquityRedemptions(List<Asset> output, HashSet<Manual> manual, DateTime endDate)
         {
-            foreach (var mn in manual.Where(x => x.AdjustmentType == ManualAdjustmentType.AccountBalanceInterest).Where(x => x.Timestamp < timestamp))
+            foreach (var mn in manual.Where(x => x.AdjustmentType == ManualAdjustmentType.EquityRedemption).Where(x => x.Timestamp < endDate))
             {
-                AddAsset(output, new Cash(mn), timestamp);                
+                TimeArg time = new TimeArg(TimeArgDirection.End, mn.Timestamp);
+                List<Asset> newAssets = new List<Asset>();
+                foreach (var asset in output.OfType<Security>().Where(x => (x.AssetType == AssetType.Equity || x.AssetType == AssetType.ETF ||
+                    x.AssetType == AssetType.CorporateBondsFund || x.AssetType == AssetType.EquityMixedFund || x.AssetType == AssetType.MoneyMarketFund || x.AssetType == AssetType.TreasuryBondsFund) &&
+                    x.SecurityDefinition.UniqueId == mn.Text1))
+                {
+                    if (!(asset.IsActive(mn.Timestamp))) continue;
+
+                    // Process derecognition
+                    var count = asset.GetCount(new TimeArg(TimeArgDirection.Start, mn.Timestamp));
+                    if (count == 0) continue;
+                    var evt = new Events.Derecognition(asset, mn, count, mn.Amount1);
+                    asset.AddEvent(evt);
+
+                    // Process cash payment
+                    newAssets.Add(new Cash(mn, asset, evt.Amount));
+                }
+                newAssets.ForEach(x => AddAsset(output, x, mn.Timestamp));
+                manual.Remove(mn);
+            }
+        }
+
+        private static void ProcessAccountBalanceInterest(List<Asset> output, HashSet<Manual> manual, DateTime endDate)
+        {
+            foreach (var mn in manual.Where(x => x.AdjustmentType == ManualAdjustmentType.AccountBalanceInterest).Where(x => x.Timestamp < endDate))
+            {
+                AddAsset(output, new Cash(mn), mn.Timestamp);
                 manual.Remove(mn);
             }
         }

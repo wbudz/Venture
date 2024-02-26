@@ -97,7 +97,14 @@ namespace Venture.Events
                     DirtyPrice = price;
                     CleanPrice = price;
                     Count = count;
-                    Amount = price * count;
+                    Amount = Common.Round(price * count);
+                    //TODO: FXRate = tr.FXRate;
+                    break;
+                case ManualAdjustmentType.EquityRedemption:
+                    DirtyPrice = price;
+                    CleanPrice = price;
+                    Count = count;
+                    Amount = Common.Round(price * count);
                     //TODO: FXRate = tr.FXRate;
                     break;
                 default:

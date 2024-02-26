@@ -51,12 +51,24 @@ namespace Venture.Events
 
         public Payment(Assets.Asset parentAsset, Manual mn, PaymentDirection direction) : base(parentAsset, mn.Timestamp)
         {
-            if (mn.AdjustmentType != ManualAdjustmentType.AccountBalanceInterest) throw new Exception($"Unexpected manual adjustment type used for creating cash: {mn.AdjustmentType}.");
+            if (mn.AdjustmentType != ManualAdjustmentType.AccountBalanceInterest) 
+                throw new Exception($"Unexpected manual adjustment type used for creating cash: {mn.AdjustmentType}.");
 
-            UniqueId = $"Payment_AccountBalanceInterest_{mn.Instrument1}_{mn.Timestamp.ToString("yyyyMMdd")}";
+            UniqueId = $"Payment_{mn.AdjustmentType}_{mn.Text1}_{mn.Timestamp.ToString("yyyyMMdd")}";
             Direction = direction;
             Amount = mn.Amount1;
             FXRate = mn.Amount2 == 0 ? 1 : mn.Amount2;
+        }
+
+        public Payment(Assets.Asset parentAsset, Manual mn, decimal amount, PaymentDirection direction) : base(parentAsset, mn.Timestamp)
+        {
+            if (mn.AdjustmentType != ManualAdjustmentType.EquityRedemption)
+                throw new Exception($"Unexpected manual adjustment type used for creating cash: {mn.AdjustmentType}.");
+
+            UniqueId = $"Payment_{mn.AdjustmentType}_{mn.Text1}_{mn.Timestamp.ToString("yyyyMMdd")}";
+            Direction = direction;
+            Amount = amount;
+            FXRate = 1; //TODO: Implement looking for FX rate.
         }
     }
 }

@@ -87,17 +87,19 @@ namespace Venture.Data
 
         public static Manual? GetManualAdjustment(ManualAdjustmentType type, DateTime timestamp, string instrumentId)
         {
-            return Manual.FirstOrDefault(x => x.AdjustmentType == type && x.Timestamp == timestamp && x.Instrument1 == instrumentId);
+            return Manual.FirstOrDefault(x => x.AdjustmentType == type && x.Timestamp == timestamp && x.Text1 == instrumentId);
         }
 
         public static Manual? GetManualAdjustment(ManualAdjustmentType type, string instrumentId)
         {
-            return Manual.FirstOrDefault(x => x.AdjustmentType == type && x.Instrument1 == instrumentId);
+            return Manual.FirstOrDefault(x => x.AdjustmentType == type && x.Text1 == instrumentId);
         }
 
         public static IEnumerable<Manual> GetManualEventSources()
         {
-            return Manual.Where(x => x.AdjustmentType == ManualAdjustmentType.EquitySpinOff || x.AdjustmentType == ManualAdjustmentType.AccountBalanceInterest);
+            return Manual.Where(x => x.AdjustmentType == ManualAdjustmentType.EquitySpinOff || 
+            x.AdjustmentType == ManualAdjustmentType.EquityRedemption || 
+            x.AdjustmentType == ManualAdjustmentType.AccountBalanceInterest);
         }
 
         private static void CheckTransactionsOrder(List<Data.Transaction> transactions)
@@ -125,9 +127,9 @@ namespace Venture.Data
                     int transactionIndex;
                     try
                     {
-                        instrumentType = m.Instrument1.Split('_')[0];
-                        instrumentId = m.Instrument1.Split('_')[1];
-                        transactionIndex = Int32.Parse(m.Instrument1.Split('_')[2]);
+                        instrumentType = m.Text1.Split('_')[0];
+                        instrumentId = m.Text1.Split('_')[1];
+                        transactionIndex = Int32.Parse(m.Text1.Split('_')[2]);
                     }
                     catch
                     {
@@ -146,9 +148,9 @@ namespace Venture.Data
                     string instrumentId;
                     try
                     {
-                        instrumentType = m.Instrument1.Split('_')[0];
-                        instrumentId = m.Instrument1.Split('_')[1];
-                        if (m.Instrument1.Split('_').Length > 2) throw new Exception("Manual event definition too long.");
+                        instrumentType = m.Text1.Split('_')[0];
+                        instrumentId = m.Text1.Split('_')[1];
+                        if (m.Text1.Split('_').Length > 2) throw new Exception("Manual event definition too long.");
                     }
                     catch
                     {
