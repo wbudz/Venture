@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
+using Venture.Assets;
+using static Financial.Calendar;
 
 namespace Venture.Data
 {
@@ -12,9 +14,19 @@ namespace Venture.Data
 
     public class Dividend : DataPoint
     {
-        public string UniqueId { get { return $"{PaymentDate:yyyyMMddTHHmmss}_{InstrumentId}"; } }
+        public string UniqueId { get { return $"{InstrumentUniqueId}_{PaymentDate:yyyyMMdd}"; } }
 
-        public string InstrumentId { get; private set; } = "";
+        public AssetType AssetType { get; private set; } = AssetType.Undefined;
+
+        public string AssetId { get; private set; } = "";
+
+        public string InstrumentUniqueId
+        {
+            get
+            {
+                return AssetType + "_" + AssetId;
+            }
+        }
 
         public DateTime RecordDate { get; private set; } = DateTime.MinValue;
 
@@ -32,7 +44,8 @@ namespace Venture.Data
         {
             for (int i = 0; i < Math.Min(headers.Length, line.Length); i++)
             {
-                if (headers[i] == "instrumentid") InstrumentId = line[i];
+                if (headers[i] == "assettype") AssetType = ConvertToEnum<AssetType>(line[i]);
+                if (headers[i] == "assetid") AssetId = line[i];
                 if (headers[i] == "recorddate") RecordDate = ConvertToDateTime(line[i]);
                 if (headers[i] == "exdate") ExDate = ConvertToDateTime(line[i]);
                 if (headers[i] == "paymentdate") PaymentDate = ConvertToDateTime(line[i]);
@@ -45,7 +58,7 @@ namespace Venture.Data
 
         public override string ToString()
         {
-            return $"Data.Dividend: {InstrumentId} @{ExDate:yyyy-MM-dd}/{PaymentDate:yyyy-MM-dd}: {PaymentPerShare:N2}";
+            return $"Data.Dividend: {AssetId} @{ExDate:yyyy-MM-dd}/{PaymentDate:yyyy-MM-dd}: {PaymentPerShare:N2}";
         }
     }
 }

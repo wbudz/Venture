@@ -64,7 +64,8 @@ namespace Venture.Modules
             Data.Transaction tr = Data.Definitions.Transactions.Single(x => x.Index == TransactionIndex);
             if (tr.TransactionType == Data.TransactionType.Buy) CashflowType = "Purchase";
             if (tr.TransactionType == Data.TransactionType.Sell) CashflowType = "Sale";
-            if (tr.TransactionType == Data.TransactionType.Cash) CashflowType = "Cash transfer";
+            if (tr.TransactionType == Data.TransactionType.Cash) CashflowType = "Cash payment";
+            if (tr.TransactionType == Data.TransactionType.Transfer) CashflowType = "Asset transfer";
 
         }
 

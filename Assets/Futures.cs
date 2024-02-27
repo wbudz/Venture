@@ -23,9 +23,8 @@ namespace Venture.Assets
 
         public Futures(Data.Transaction tr, Data.Instrument definition)
         {
-            UniqueId = $"{definition.InstrumentType}_{definition.InstrumentId}_{tr.Index}";
-            Index = tr.Index;
-            AssetType = definition.InstrumentType;
+            UniqueId = $"{definition.AssetType}_{definition.AssetId}_{tr.Index}";
+            AssetType = definition.AssetType;
 
             Portfolio = tr.PortfolioDst;
             CashAccount = tr.AccountSrc;
@@ -82,7 +81,7 @@ namespace Venture.Assets
         protected override void GenerateFlows()
         {
             // Happens at creation of futures, so there is only one Recognition event and MaturityDate.
-            var prices = Definitions.Prices.Where(x => x.InstrumentId == AssociatedTicker);
+            var prices = Definitions.Prices.Where(x => x.AssetId == AssociatedTicker);
             decimal previousPrice = GetPurchasePrice(false);
             decimal currentPrice = GetPurchasePrice(false);
 
@@ -102,7 +101,7 @@ namespace Venture.Assets
                 }
                 // Account for monthly valuations / maturity settlement.
                 var price = prices.LastOrDefault(x => x.Timestamp <= currentEnd); // if no coupon is defined, use the last available
-                if (price == null) throw new Exception($"No price defined for {SecurityDefinition.InstrumentId} at {currentEnd:yyyy-MM-dd}.");
+                if (price == null) throw new Exception($"No price defined for {AssociatedTicker} at {currentEnd:yyyy-MM-dd}.");
                 currentPrice = price.Value;
 
                 decimal amount = Common.Round((currentPrice - previousPrice) * count * Multiplier);
@@ -116,7 +115,7 @@ namespace Venture.Assets
 
         public void RecalculateFlows()
         {
-            var prices = Definitions.Prices.Where(x => x.InstrumentId == AssociatedTicker);
+            var prices = Definitions.Prices.Where(x => x.AssetId == AssociatedTicker);
             decimal previousPrice = GetPurchasePrice(false);
             decimal currentPrice = GetPurchasePrice(false);
             decimal count = GetCount();
@@ -134,7 +133,7 @@ namespace Venture.Assets
                 if (evt is Events.Flow f)
                 {
                     var price = prices.LastOrDefault(x => x.Timestamp <= f.Timestamp); // if no coupon is defined, use the last available
-                    if (price == null) throw new Exception($"No price defined for {SecurityDefinition.InstrumentId} at {f.Timestamp:yyyy-MM-dd}.");
+                    if (price == null) throw new Exception($"No price defined for {AssociatedTicker} at {f.Timestamp:yyyy-MM-dd}.");
                     currentPrice = price.Value;
                 }
 

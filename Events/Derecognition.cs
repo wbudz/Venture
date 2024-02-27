@@ -58,27 +58,7 @@ namespace Venture.Events
             AmortizedCostDirtyPrice = parentAsset.GetAmortizedCostPrice(time, true);
             AmortizedCostCleanPrice = parentAsset.GetAmortizedCostPrice(time, false);
 
-            // Calculate income
-
-            //decimal originalCount = parentAsset.GetCount(time);
-            //decimal purchaseAmount = parentAsset.GetPurchaseAmount(time, true);
-            //IncomeVsPurchasePrice = Common.Round((Amount - purchaseAmount) * Count / originalCount);
-            //decimal amortizedCostAmount = parentAsset.GetAmortizedCostValue(time, true);
-            //IncomeVsAmortizedCost = Common.Round((Amount - amortizedCostAmount) * Count / originalCount);
-
-            // Calculate tax, if applicable
-
-            //if (parentAsset.IsFund && Timestamp <= Globals.TaxableFundSaleEndDate)
-            //{
-            //    Tax = TaxCalculations.CalculateFromIncome(IncomeVsPurchasePrice);
-            //}
-            //else
-            //{
-            //    Tax = 0;
-            //}
-
             // Decide if derecognition is partial or does it apply to the whole asset
-
             if (count >= parentAsset.GetCount(new TimeArg(TimeArgDirection.Start, tr.Timestamp, tr.Index)))
             {
                 IsTotal = true;

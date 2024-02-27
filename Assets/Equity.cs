@@ -25,7 +25,7 @@ namespace Venture.Assets
 
         protected override void GenerateFlows()
         {
-            foreach (var d in Data.Definitions.Dividends.Where(x => x.InstrumentId == InstrumentId && x.RecordDate >= events.First().Timestamp))
+            foreach (var d in Data.Definitions.Dividends.Where(x => x.InstrumentUniqueId == InstrumentUniqueId && x.RecordDate >= events.First().Timestamp))
             {
                 var flow = new Events.Flow(this, d.RecordDate, d.PaymentDate, Venture.Events.FlowType.Dividend, d.PaymentPerShare, d.Currency, d.FXRate);
                 AddEvent(flow);
@@ -46,7 +46,7 @@ namespace Venture.Assets
         {
             if (!IsActive(time)) return 0;
 
-            Data.Price? price = Data.Definitions.Prices.LastOrDefault(x => x.InstrumentId == this.SecurityDefinition.InstrumentId && x.Timestamp <= time.Date);
+            Data.Price? price = Data.Definitions.Prices.LastOrDefault(x => x.InstrumentUniqueId == this.InstrumentUniqueId && x.Timestamp <= time.Date);
             if (price == null)
             {
                 throw new Exception($"No price for: {UniqueId} at date: {time.Date:yyyy-MM-dd}.");

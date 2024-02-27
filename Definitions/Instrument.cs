@@ -12,15 +12,15 @@ namespace Venture.Data
 
     public class Instrument : DataPoint
     {
-        public string UniqueId { get { return $"{InstrumentType}_{InstrumentId}"; } }
+        public string UniqueId { get { return $"{AssetType}_{AssetId}"; } }
 
         public string ISIN { get; private set; } = "";
 
         public string Ticker { get; private set; } = "";
 
-        public string InstrumentId { get; private set; } = "";
+        public AssetType AssetType { get; private set; } = AssetType.Undefined;
 
-        public AssetType InstrumentType { get; private set; } = AssetType.Undefined;
+        public string AssetId { get; private set; } = "";
 
         public string Name { get; private set; } = "";
 
@@ -48,8 +48,8 @@ namespace Venture.Data
             {
                 if (headers[i] == "isin") ISIN = line[i];
                 if (headers[i] == "ticker") Ticker = line[i];
-                if (headers[i] == "instrumentid") InstrumentId = line[i];
-                if (headers[i] == "instrumenttype") InstrumentType = ConvertToEnum<AssetType>(line[i]);
+                if (headers[i] == "assetid") AssetId = line[i];
+                if (headers[i] == "assettype") AssetType = ConvertToEnum<AssetType>(line[i]);
                 if (headers[i] == "name") Name = line[i];
                 if (headers[i] == "issuer") Issuer = line[i];
                 if (headers[i] == "maturity") Maturity = ConvertToDateTime(line[i]);
@@ -73,7 +73,7 @@ namespace Venture.Data
 
         public override string ToString()
         {
-            return $"Data.Instrument: {InstrumentId} ({InstrumentType})";
+            return $"Instrument: {UniqueId}";
         }
     }
 }

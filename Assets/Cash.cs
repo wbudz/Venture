@@ -10,7 +10,7 @@ namespace Venture.Assets
 {
     public class Cash : Asset
     {
-        public Cash(Data.Transaction tr) : base(tr.Index)
+        public Cash(Data.Transaction tr) : base()
         {
             if (tr.TransactionType != TransactionType.Cash)
             {
@@ -33,7 +33,7 @@ namespace Venture.Assets
             GenerateFlows();
         }
 
-        public Cash(Data.Transaction tr, IEnumerable<Events.Derecognition> dr) : base(tr.Index)
+        public Cash(Data.Transaction tr, IEnumerable<Events.Derecognition> dr) : base()
         {
             if (dr.Count() < 1) throw new Exception("Tried to create cash with 0 derecognition events.");
             UniqueId = $"Cash_Sale_{dr.First().ParentAsset.UniqueId}_{dr.First().Timestamp.ToString("yyyyMMdd")}";
@@ -50,7 +50,7 @@ namespace Venture.Assets
             GenerateFlows();
         }
 
-        public Cash(Events.Recognition r) : base(r.TransactionIndex)
+        public Cash(Events.Recognition r) : base()
         {
             if (r.ParentAsset.AssetType != AssetType.Futures) throw new Exception("Tried to create cash with recognition event not originating from futures contract.");
             UniqueId = $"Cash_Futures_{r.ParentAsset.UniqueId}_{r.Timestamp.ToString("yyyyMMdd")}";
@@ -90,7 +90,7 @@ namespace Venture.Assets
         public Cash(Manual mn) : base()
         {
             // Creates cash from account balance interest manual event.
-            if (mn.AdjustmentType != ManualAdjustmentType.AccountBalanceInterest)
+            if (mn.AdjustmentType != ManualAdjustmentType.AdditionalPremium)
                 throw new Exception($"Unexpected manual adjustment type used for creating cash: {mn.AdjustmentType}.");
 
             UniqueId = $"Cash_{mn.AdjustmentType}_{mn.Text1}_{mn.Timestamp.ToString("yyyyMMdd")}";
@@ -101,7 +101,7 @@ namespace Venture.Assets
             Currency = mn.Text1.Split(':')[2];
             ValuationClass = ValuationClass.AvailableForSale;
 
-            AddEvent(new Events.Payment(this, mn, Venture.Events.PaymentDirection.Inflow));
+            AddEvent(new Events.Payment(this, mn, mn.Amount1, Venture.Events.PaymentDirection.Inflow));
             GenerateFlows();
         }
 

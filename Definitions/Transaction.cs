@@ -7,21 +7,42 @@ using static Financial.Calendar;
 
 namespace Venture.Data
 {
+    /// <summary>
+    /// Specifies type of cash payment:
+    ///     ShareCapital - payment increases or decreases share capital;
+    ///     OtherCapital - payment increases or decreases other capital;
+    ///     Tax - payment covers tax payables
+    /// </summary>
     public enum PaymentType { Undefined, ShareCapital, OtherCapital, Tax }
 
-    public enum TransactionType { Undefined, Buy, Sell, Cash }
+    /// <summary>
+    /// Specifies type of a transaction:
+    ///     Buy - purchase of an asset;
+    ///     Sell - sale of an asset;
+    ///     Cash - payment of cash;
+    ///     Transfer - transfer of assets between accounts or portfolios without actual sale.
+    /// </summary>
+    public enum TransactionType { Undefined, Buy, Sell, Cash, Transfer }
 
     public class Transaction : DataPoint
     {
-        public string UniqueId { get { return $"{TradeDate:yyyyMMddTHHmmss}_{InstrumentId}_{TransactionType}_{Index}"; } }
+        public string UniqueId { get { return $"{Index}_{TransactionType}_{AssetType}_{AssetId}"; } }
 
         public int Index { get; private set; } = 0;
 
         public TransactionType TransactionType { get; private set; } = TransactionType.Undefined;
 
-        public AssetType InstrumentType { get; private set; } = AssetType.Undefined;
+        public AssetType AssetType { get; private set; } = AssetType.Undefined;
 
-        public string InstrumentId { get; private set; } = "";
+        public string AssetId { get; private set; } = "";
+
+        public string InstrumentUniqueId
+        {
+            get
+            {
+                return AssetType + "_" + AssetId;
+            }
+        }
 
         public DateTime TradeDate { get; private set; } = DateTime.MinValue;
 
@@ -31,8 +52,8 @@ namespace Venture.Data
         {
             get
             {
-                bool recognitionOnTradeDate = InstrumentType == AssetType.Equity ||
-                    InstrumentType == AssetType.ETF;
+                bool recognitionOnTradeDate = AssetType == AssetType.Equity ||
+                    AssetType == AssetType.ETF;
                 return recognitionOnTradeDate ? TradeDate : SettlementDate;
             }
         }
@@ -61,11 +82,13 @@ namespace Venture.Data
 
         public PaymentType PaymentType { get; private set; } = PaymentType.Undefined;
 
+        public bool Original { get; private set; } = true;
+
         public decimal Amount
         {
             get
             {
-                switch (InstrumentType)
+                switch (AssetType)
                 {
                     case AssetType.Undefined: throw new Exception("Cannot give amount for undefined instrument type.");
                     case AssetType.Cash: return Common.Round(NominalAmount);
@@ -100,8 +123,8 @@ namespace Venture.Data
             {
                 if (headers[i] == "index" && !String.IsNullOrEmpty(line[i])) Index = ConvertToInt(line[i]);
                 if (headers[i] == "transactiontype") TransactionType = ConvertToEnum<TransactionType>(line[i]);
-                if (headers[i] == "instrumenttype") InstrumentType = ConvertToEnum<AssetType>(line[i]);
-                if (headers[i] == "instrumentid") InstrumentId = line[i];
+                if (headers[i] == "assettype") AssetType = ConvertToEnum<AssetType>(line[i]);
+                if (headers[i] == "assetid") AssetId = line[i];
                 if (headers[i] == "tradedate") TradeDate = ConvertToDateTime(line[i]);
                 if (headers[i] == "settlementdate") SettlementDate = ConvertToDateTime(line[i]);
                 if (headers[i] == "count") Count = ConvertToDecimal(line[i]);
@@ -131,7 +154,34 @@ namespace Venture.Data
 
         public override string ToString()
         {
-            return $"Data.Transaction: {Index}. {TransactionType}: {InstrumentId}, {(String.IsNullOrEmpty(PortfolioDst) ? PortfolioSrc : PortfolioDst)}, {(String.IsNullOrEmpty(AccountDst) ? AccountSrc : AccountDst)} @{TradeDate}";
+            return $"Transaction: {UniqueId}";
+        }
+
+        public static Transaction CreateModifiedTransaction(Transaction tr, decimal count, decimal amount, decimal price, decimal fee)
+        {
+            Transaction output = new Transaction()
+            {
+                Index = tr.Index,
+                TransactionType = tr.TransactionType,
+                AssetType = tr.AssetType,
+                AssetId = tr.AssetId,
+                TradeDate = tr.TradeDate,
+                SettlementDate = tr.SettlementDate,
+                Count = count,
+                Currency = tr.Currency,
+                NominalAmount = amount,
+                Price = price,
+                Fee = fee,
+                AccountSrc = tr.AccountSrc,
+                AccountDst = tr.AccountDst,
+                PortfolioSrc = tr.PortfolioSrc,
+                PortfolioDst = tr.PortfolioDst,
+                ValuationClass = tr.ValuationClass,
+                FXRate = tr.FXRate,
+                PaymentType = tr.PaymentType,
+                Original = false
+            };
+            return output;
         }
     }
 }

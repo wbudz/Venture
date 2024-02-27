@@ -10,12 +10,17 @@ using Venture.Data;
 
 namespace Venture.Assets
 {
+    /// <summary>
+    /// Represents generic asset presentable as part of assets (any instrument, traded or not, cash, etc.).
+    /// Includes derivatives.
+    /// </summary>
     public abstract class Asset
     {
         protected List<Events.Event> events = new List<Events.Event>();
+        /// <summary>
+        /// Events happening in asset's lifetime (purchases, sales, cash flows like coupons, etc.)
+        /// </summary>
         public IEnumerable<Events.Event> Events { get { return events.AsReadOnly(); } }
-
-        public int Index { get; protected set; } = -1;
 
         /// <summary>
         /// Unique identifier of the asset. Based on identifier of the transaction that results in asset creation.
@@ -23,16 +28,23 @@ namespace Venture.Assets
         /// </summary>
         public string UniqueId { get; protected set; }
 
-        public string InstrumentId
+        /// <summary>
+        /// If asset is a security, refers to unique identifier of that asset definition.
+        /// Otherwise is null (e.g. in case of cash).
+        /// </summary>
+        public string InstrumentUniqueId
         {
             get
             {
-                if (this is Security s) return s.SecurityDefinition.InstrumentId;
-                if (this is Futures f) return f.SecurityDefinition.InstrumentId;
+                if (this is Security s) return s.SecurityDefinition.UniqueId;
+                if (this is Futures f) return f.SecurityDefinition.UniqueId;
                 return "";
             }
         }
 
+        /// <summary>
+        /// Detailed asset type
+        /// </summary>
         public AssetType AssetType { get; protected set; } = AssetType.Undefined;
 
         /// <summary>
@@ -51,7 +63,10 @@ namespace Venture.Assets
         /// </summary>
         public string CustodyAccount { get; protected set; } = "";
 
-        public string Broker
+        /// <summary>
+        /// Denotes financial institution where asset is held.
+        /// </summary>
+        public string FinancialInstitution
         {
             get
             {
@@ -71,6 +86,9 @@ namespace Venture.Assets
         /// </summary>
         public ValuationClass ValuationClass { get; protected set; } = ValuationClass.AvailableForSale;
 
+        /// <summary>
+        /// Returns true if asset is a bond, otherwise false.
+        /// </summary>
         public bool IsBond
         {
             get
@@ -85,6 +103,9 @@ namespace Venture.Assets
             }
         }
 
+        /// <summary>
+        /// Returns true if asset is a non-traded open-ended fund, otherwise false.
+        /// </summary>
         public bool IsFund
         {
             get
@@ -96,20 +117,121 @@ namespace Venture.Assets
             }
         }
 
+        /// <summary>
+        /// Denotes when asset is first and last active, identified by date and transactions where recognition and final derecognition take place.
+        /// </summary>
         protected (DateTime startDate, int startIndex, DateTime endDate, int endIndex) bounds;
 
+        /// <summary>
+        /// Denotes date when asset becomes active.
+        /// </summary>
         public DateTime BoundsStart { get { return bounds.startDate; } }
 
+        /// <summary>
+        /// Denotes date when asset cases to be active.
+        /// </summary>
         public DateTime BoundsEnd { get { return bounds.endDate; } }
-
-        public Asset(int transactionIndex) : this()
-        {
-            Index = transactionIndex;
-        }
 
         public Asset()
         {
-            UniqueId = Guid.NewGuid().ToString();
+            UniqueId = Guid.NewGuid().ToString(); // UniqueId should actually never stay as GUID, it should be replaced by asset type specific constructs.
+        }
+
+        /// <summary>
+        /// Creates asset from a purchase transaction.
+        /// </summary>
+        /// <param name="tr"></param>
+        /// <param name="instr"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public static Asset CreateFromBuyTransaction(Transaction tr, Instrument instr)
+        {
+            switch (instr.AssetType)
+            {
+                case AssetType.Undefined:
+                    throw new Exception("Tried creating asset with undefined instrument type.");
+                case AssetType.Cash:
+                    throw new Exception("Tried creating asset with purchase transaction and cash instrument type.");
+                case AssetType.Equity:
+                case AssetType.ETF:
+                    return new Assets.Equity(tr, instr);
+                case AssetType.FixedTreasuryBonds:
+                case AssetType.FloatingTreasuryBonds:
+                case AssetType.FixedRetailTreasuryBonds:
+                case AssetType.FloatingRetailTreasuryBonds:
+                case AssetType.IndexedRetailTreasuryBonds:
+                case AssetType.FixedCorporateBonds:
+                case AssetType.FloatingCorporateBonds:
+                    return new Assets.Bond(tr, instr);
+                case AssetType.MoneyMarketFund:
+                case AssetType.EquityMixedFund:
+                case AssetType.TreasuryBondsFund:
+                case AssetType.CorporateBondsFund:
+                    return new Assets.Fund(tr, instr);
+                case AssetType.Futures:
+                    throw new Exception("Tried creating futures with purchase transaction.");
+                default: throw new Exception("Tried creating asset with unknown instrument type.");
+            }
+        }
+
+        public static Asset CreateFromTransferTransaction(Transaction tr, Security originalAsset)
+        {
+            switch (originalAsset.AssetType)
+            {
+                case AssetType.Undefined:
+                    throw new Exception("Tried creating asset with undefined instrument type.");
+                case AssetType.Cash:
+                    throw new Exception("Tried creating asset with transfer transaction and cash instrument type.");
+                case AssetType.Equity:
+                case AssetType.ETF:
+                    return new Assets.Equity(tr, originalAsset.SecurityDefinition);
+                case AssetType.FixedTreasuryBonds:
+                case AssetType.FloatingTreasuryBonds:
+                case AssetType.FixedRetailTreasuryBonds:
+                case AssetType.FloatingRetailTreasuryBonds:
+                case AssetType.IndexedRetailTreasuryBonds:
+                case AssetType.FixedCorporateBonds:
+                case AssetType.FloatingCorporateBonds:
+                    return new Assets.Bond(tr, originalAsset.SecurityDefinition);
+                case AssetType.MoneyMarketFund:
+                case AssetType.EquityMixedFund:
+                case AssetType.TreasuryBondsFund:
+                case AssetType.CorporateBondsFund:
+                    return new Assets.Fund(tr, originalAsset.SecurityDefinition);
+                case AssetType.Futures:
+                    throw new Exception("Tried creating futures with transfer transaction.");
+                default: throw new Exception("Tried creating asset with unknown instrument type.");
+            }
+        }
+
+        public static Type GetAssetType(AssetType type)
+        {
+            switch (type)
+            {
+                case AssetType.Undefined:
+                    throw new Exception("Undefined asset type.");
+                case AssetType.Cash:
+                    return typeof(Assets.Cash);
+                case AssetType.Equity:
+                case AssetType.ETF:
+                    return typeof(Assets.Equity);
+                case AssetType.FixedTreasuryBonds:
+                case AssetType.FloatingTreasuryBonds:
+                case AssetType.FixedRetailTreasuryBonds:
+                case AssetType.FloatingRetailTreasuryBonds:
+                case AssetType.IndexedRetailTreasuryBonds:
+                case AssetType.FixedCorporateBonds:
+                case AssetType.FloatingCorporateBonds:
+                    return typeof(Assets.Bond);
+                case AssetType.MoneyMarketFund:
+                case AssetType.EquityMixedFund:
+                case AssetType.TreasuryBondsFund:
+                case AssetType.CorporateBondsFund:
+                    return typeof(Assets.Fund);
+                case AssetType.Futures:
+                    return typeof(Assets.Futures);
+                default: throw new Exception("Unknown instrument type.");
+            }
         }
 
         /// <summary>

@@ -67,7 +67,7 @@ namespace Venture
             FVM.Portfolios = new ObservableCollection<string>(portfolios);
 
             List<string> brokers = new List<string>() { "*" };
-            brokers.AddRange(Assets.Select(x => x.Broker).Distinct().Order());
+            brokers.AddRange(Assets.Select(x => x.FinancialInstitution).Distinct().Order());
             FVM.Brokers = new ObservableCollection<string>(brokers);
         }
 

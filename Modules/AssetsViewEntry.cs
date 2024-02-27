@@ -66,7 +66,7 @@ namespace Venture.Modules
             CustodyAccount = asset.CustodyAccount;
             Currency = asset.Currency;
             ValuationClass = Common.ValuationClassToString(asset.ValuationClass);
-            InstrumentId = asset is Security ? ((Security)asset).SecurityDefinition.InstrumentId : "";
+            InstrumentId = asset is Security ? ((Security)asset).SecurityDefinition.AssetId : "";
             RecognitionDate = asset.GetPurchaseDate();
             Count = asset.GetCount(time);
             NominalAmount = asset.GetNominalAmount(time);

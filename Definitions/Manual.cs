@@ -11,7 +11,7 @@ namespace Venture.Data
         CouponAmountAdjustment, DividendAmountAdjustment, 
         RedemptionTaxAdjustment, CouponTaxAdjustment, DividendTaxAdjustment, IncomeTaxAdjustment, 
         EquitySpinOff, PrematureRedemption, EquityRedemption,
-        AccountBalanceInterest }
+        AdditionalPremium, AdditionalCharge }
 
     public class Manual: DataPoint
     {
@@ -51,7 +51,7 @@ namespace Venture.Data
 
         public override string ToString()
         {
-            return $"Data.Manual: {AdjustmentType}: {Text1} @{Timestamp:yyyy-MM-dd}";
+            return $"Manual: {UniqueId}";
         }
     }
 }

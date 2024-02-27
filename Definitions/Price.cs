@@ -8,11 +8,19 @@ namespace Venture.Data
 {
     public class Price : DataPoint
     {
-        public string UniqueId { get { return $"{InstrumentType}_{InstrumentId}_{Timestamp:yyyyMMddTHHmmss}"; } }
+        public string UniqueId { get { return $"{InstrumentUniqueId}_{Timestamp:yyyyMMddTHHmmss}"; } }
 
-        public string InstrumentType { get; private set; } = "Equity";
+        public AssetType AssetType { get; private set; } = AssetType.Undefined;
 
-        public string InstrumentId { get; private set; } = "";
+        public string AssetId { get; private set; } = "";
+
+        public string InstrumentUniqueId
+        {
+            get
+            {
+                return AssetType + "_" + AssetId;
+            }
+        }
 
         public DateTime Timestamp { get; private set; } = DateTime.MinValue;
 
@@ -32,8 +40,8 @@ namespace Venture.Data
         {
             for (int i = 0; i < Math.Min(headers.Length, line.Length); i++)
             {
-                if (headers[i] == "instrumenttype") InstrumentType = line[i];
-                if (headers[i] == "instrumentid") InstrumentId = line[i];
+                if (headers[i] == "assettype") AssetType = ConvertToEnum<AssetType>(line[i]);
+                if (headers[i] == "assetid") AssetId = line[i];
                 if (headers[i] == "timestamp") Timestamp = ConvertToDateTime(line[i]);
                 if (headers[i] == "volume") Volume = ConvertToLong(line[i]);
                 if (headers[i] == "open") Open = ConvertToDecimal(line[i]);
@@ -46,7 +54,7 @@ namespace Venture.Data
 
         public override string ToString()
         {
-            return $"Data.Price: {InstrumentId} ({InstrumentType}) @{Timestamp}";
+            return $"Price: {UniqueId}";
         }
     }
 }

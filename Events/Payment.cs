@@ -49,26 +49,27 @@ namespace Venture.Events
             FXRate = r.FXRate;
         }
 
-        public Payment(Assets.Asset parentAsset, Manual mn, PaymentDirection direction) : base(parentAsset, mn.Timestamp)
-        {
-            if (mn.AdjustmentType != ManualAdjustmentType.AccountBalanceInterest) 
-                throw new Exception($"Unexpected manual adjustment type used for creating cash: {mn.AdjustmentType}.");
-
-            UniqueId = $"Payment_{mn.AdjustmentType}_{mn.Text1}_{mn.Timestamp.ToString("yyyyMMdd")}";
-            Direction = direction;
-            Amount = mn.Amount1;
-            FXRate = mn.Amount2 == 0 ? 1 : mn.Amount2;
-        }
-
         public Payment(Assets.Asset parentAsset, Manual mn, decimal amount, PaymentDirection direction) : base(parentAsset, mn.Timestamp)
         {
-            if (mn.AdjustmentType != ManualAdjustmentType.EquityRedemption)
-                throw new Exception($"Unexpected manual adjustment type used for creating cash: {mn.AdjustmentType}.");
+            if (mn.AdjustmentType == ManualAdjustmentType.AdditionalPremium || mn.AdjustmentType != ManualAdjustmentType.AdditionalCharge)
+            {
+                UniqueId = $"Payment_{mn.AdjustmentType}_{mn.Text1}_{mn.Timestamp.ToString("yyyyMMdd")}";
+                Direction = direction;
+                Amount = amount;
+                FXRate = mn.Amount2 == 0 ? 1 : mn.Amount2;
+            }
+            else if (mn.AdjustmentType != ManualAdjustmentType.EquityRedemption)
+            {
 
-            UniqueId = $"Payment_{mn.AdjustmentType}_{mn.Text1}_{mn.Timestamp.ToString("yyyyMMdd")}";
-            Direction = direction;
-            Amount = amount;
-            FXRate = 1; //TODO: Implement looking for FX rate.
+                UniqueId = $"Payment_{mn.AdjustmentType}_{mn.Text1}_{mn.Timestamp.ToString("yyyyMMdd")}";
+                Direction = direction;
+                Amount = amount;
+                FXRate = 1; //TODO: Implement looking for FX rate.
+            }
+            else
+            {
+                throw new Exception($"Unexpected manual adjustment type used for creating payment event: {mn.AdjustmentType}.");
+            }
         }
     }
 }

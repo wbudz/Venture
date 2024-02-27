@@ -30,7 +30,7 @@ namespace Venture.Events
                 DirtyPrice = tr.Price;
                 CleanPrice = tr.Price;
                 Fee = tr.Fee;
-                if (tr.TransactionType == TransactionType.Buy)
+                if (tr.TransactionType == TransactionType.Buy || tr.TransactionType == TransactionType.Transfer)
                     Count = tr.Count;
                 else if (tr.TransactionType == TransactionType.Sell)
                     Count = -tr.Count;
@@ -41,7 +41,7 @@ namespace Venture.Events
             }
             else
             {
-                if (tr.TransactionType != Data.TransactionType.Buy) throw new ArgumentException("An attempt was made to create Recognition event with transaction type other than Buy.");
+                if (tr.TransactionType != Data.TransactionType.Buy && tr.TransactionType != Data.TransactionType.Transfer) throw new ArgumentException("An attempt was made to create Recognition event with transaction type other than Buy or Transfer.");
 
                 DirtyPrice = tr.Price;
                 CleanPrice = tr.Price - parentAsset.GetAccruedInterest(tr.Timestamp);

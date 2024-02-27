@@ -67,7 +67,7 @@ namespace Venture.Data
             {
                 coupons.Add(item);
             }
-            coupons = coupons.OrderBy(x => x.InstrumentId).ThenBy(x => x.Timestamp).ToList();
+            coupons = coupons.OrderBy(x => x.InstrumentUniqueId).ThenBy(x => x.Timestamp).ToList();
             coupons.ForEach(x => Coupons.Add(x));
 
             csv = new CSV(Properties.Settings.Default.ManualSource);
@@ -81,7 +81,7 @@ namespace Venture.Data
 
         public static Manual? GetManualAdjustment(ManualAdjustmentType type, DateTime timestamp, Transaction tr)
         {
-            string id = $"{tr.InstrumentType}_{tr.InstrumentId}_{tr.Index}";
+            string id = $"{tr.AssetType}_{tr.AssetId}_{tr.Index}";
             return GetManualAdjustment(type, timestamp, id);
         }
 
@@ -99,7 +99,8 @@ namespace Venture.Data
         {
             return Manual.Where(x => x.AdjustmentType == ManualAdjustmentType.EquitySpinOff || 
             x.AdjustmentType == ManualAdjustmentType.EquityRedemption || 
-            x.AdjustmentType == ManualAdjustmentType.AccountBalanceInterest);
+            x.AdjustmentType == ManualAdjustmentType.AdditionalPremium ||
+            x.AdjustmentType == ManualAdjustmentType.AdditionalCharge);
         }
 
         private static void CheckTransactionsOrder(List<Data.Transaction> transactions)
@@ -135,7 +136,7 @@ namespace Venture.Data
                     {
                         throw new Exception($"Error in manual event definition: {m}.");
                     }
-                    var transaction = transactions.SingleOrDefault(x => x.InstrumentType.ToString() == instrumentType && x.InstrumentId == instrumentId && x.Index == transactionIndex);
+                    var transaction = transactions.SingleOrDefault(x => x.AssetType.ToString() == instrumentType && x.AssetId == instrumentId && x.Index == transactionIndex);
                     if (transaction == null)
                     {
                         throw new Exception($"Transaction not found for manual event definition: {m}.");
@@ -156,15 +157,26 @@ namespace Venture.Data
                     {
                         throw new Exception($"Error in manual event definition: {m}.");
                     }
-                    var instrument = instruments.SingleOrDefault(x => x.InstrumentType.ToString() == instrumentType && x.InstrumentId == instrumentId);
+                    var instrument = instruments.SingleOrDefault(x => x.AssetType.ToString() == instrumentType && x.AssetId == instrumentId);
                     if (instrument == null)
                     {
                         throw new Exception($"Instrument not found for manual event definition: {m}.");
                     }
                 }
-                if (m.AdjustmentType == ManualAdjustmentType.AccountBalanceInterest)
+                if (m.AdjustmentType == ManualAdjustmentType.AdditionalPremium || m.AdjustmentType == ManualAdjustmentType.AdditionalCharge)
                 {
-
+                    if (String.IsNullOrEmpty(m.Text1) || m.Text1.Split(':').Length!=4)
+                    {
+                        throw new Exception($"Incorrect additional premium/charge account definition in Text1 field.");
+                    }
+                    if (String.IsNullOrEmpty(m.Text2))
+                    {
+                        throw new Exception($"Incorrect additional premium/charge portfolio definition in Text2 field.");
+                    }
+                    if (String.IsNullOrEmpty(m.Text3))
+                    {
+                        throw new Exception($"Incorrect additional premium/charge description in Text3 field.");
+                    }
                 }
             }
         }

@@ -74,12 +74,12 @@ namespace Venture.Assets
             }
             else
             {
-                var coupons = Definitions.Coupons.Where(x => x.InstrumentId == this.InstrumentId);
+                var coupons = Definitions.Coupons.Where(x => x.InstrumentUniqueId == this.InstrumentUniqueId);
 
                 while (date >= start)
                 {
                     var coupon = coupons.LastOrDefault(x => x.Timestamp <= date); // if no coupon is defined, use the last available
-                    if (coupon == null) throw new Exception($"No coupon rate defined for {SecurityDefinition.InstrumentId} at {date:yyyy-MM-dd}.");
+                    if (coupon == null) throw new Exception($"No coupon rate defined for {InstrumentUniqueId} at {date:yyyy-MM-dd}.");
 
                     if (date <= end)
                     {
@@ -167,7 +167,7 @@ namespace Venture.Assets
                 }
                 else if (SecurityDefinition.CouponType == CouponType.Floating)
                 {
-                    var coupons = Definitions.Coupons.Where(x => x.InstrumentId == this.InstrumentId);
+                    var coupons = Definitions.Coupons.Where(x => x.InstrumentUniqueId == this.InstrumentUniqueId);
                     var coupon = coupons.FirstOrDefault(x => x.Timestamp >= date) ?? coupons.Last(x => x.Timestamp < date);
                     return coupon.CouponRate;
                 }
@@ -183,7 +183,7 @@ namespace Venture.Assets
         {
             if (!IsActive(time)) return 0;
 
-            Data.Price? price = Data.Definitions.Prices.LastOrDefault(x => x.InstrumentId == this.SecurityDefinition.InstrumentId && x.Timestamp <= time.Date);
+            Data.Price? price = Data.Definitions.Prices.LastOrDefault(x => x.InstrumentUniqueId == this.InstrumentUniqueId && x.Timestamp <= time.Date);
             if (price == null)
             {
                 throw new Exception($"No price for: {UniqueId} at date: {time.Date:yyyy-MM-dd}.");

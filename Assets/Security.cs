@@ -15,11 +15,10 @@ namespace Venture.Assets
         /// </summary>
         public Data.Instrument SecurityDefinition { get; protected set; }
 
-        public Security(Data.Transaction tr, Data.Instrument definition)
+        public Security(Data.Transaction tr, Data.Instrument definition) : base()
         {
-            UniqueId = $"{definition.InstrumentType}_{definition.InstrumentId}_{tr.Index}";
-            Index = tr.Index;
-            AssetType = definition.InstrumentType;
+            UniqueId = $"{definition.AssetType}_{definition.AssetId}_{tr.Index}";
+            AssetType = definition.AssetType;
 
             Portfolio = tr.PortfolioDst;
             CashAccount = tr.AccountSrc;
@@ -32,8 +31,8 @@ namespace Venture.Assets
 
         public Security(Security template, Data.Instrument definition, string identifier)
         {
-            UniqueId = $"{definition.InstrumentType}_{definition.InstrumentId}_{template.Index}_{identifier}";
-            AssetType = definition.InstrumentType;
+            UniqueId = $"{definition.AssetType}_{definition.AssetId}_{template.UniqueId}_{identifier}";
+            AssetType = definition.AssetType;
 
             Portfolio = template.Portfolio;
             CashAccount = template.CashAccount;
