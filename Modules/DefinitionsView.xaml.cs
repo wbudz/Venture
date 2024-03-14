@@ -27,42 +27,42 @@ namespace Venture.Modules
             InitializeComponent();
 
             if (type.IsAbstract) throw new ArgumentException("DefinitionsView module cannot be created for abstract type.");
-            if (!type.IsSubclassOf(typeof(Data.DataPoint))) throw new ArgumentException("DefinitionsView module can only be created for types descended from Data.DataPoint.");
+            if (!type.IsSubclassOf(typeof(Definition))) throw new ArgumentException("DefinitionsView module can only be created for types descended from Data.DataPoint.");
             DataPointType = type;
         }
 
         public void Refresh()
         {
             lv.ItemsSource = null;
-            if (DataPointType == typeof(Data.Price))
+            if (DataPointType == typeof(PriceDefinition))
             {
                 lv.View = (GridView)Resources["PricesGridView"];
-                lv.ItemsSource = Data.Definitions.Prices;
+                lv.ItemsSource = Definitions.Prices;
             }
-            if (DataPointType == typeof(Data.Instrument))
+            if (DataPointType == typeof(InstrumentDefinition))
             {
                 lv.View = (GridView)Resources["InstrumentsGridView"];
-                lv.ItemsSource = Data.Definitions.Instruments;
+                lv.ItemsSource = Definitions.Instruments;
             }
-            if (DataPointType == typeof(Data.Transaction))
+            if (DataPointType == typeof(TransactionDefinition))
             {
                 lv.View = (GridView)Resources["TransactionsGridView"];
-                lv.ItemsSource = Data.Definitions.Transactions;
+                lv.ItemsSource = Definitions.Transactions;
             }
-            if (DataPointType == typeof(Data.Dividend))
+            if (DataPointType == typeof(DividendDefinition))
             {
                 lv.View = (GridView)Resources["DividendsGridView"];
-                lv.ItemsSource = Data.Definitions.Dividends;
+                lv.ItemsSource = Definitions.Dividends;
             }
-            if (DataPointType == typeof(Data.Coupon))
+            if (DataPointType == typeof(CouponDefinition))
             {
                 lv.View = (GridView)Resources["CouponsGridView"];
-                lv.ItemsSource = Data.Definitions.Coupons;
+                lv.ItemsSource = Definitions.Coupons;
             }
-            if (DataPointType == typeof(Data.Manual))
+            if (DataPointType == typeof(ManualEventDefinition))
             {
                 lv.View = (GridView)Resources["ManualGridView"];
-                lv.ItemsSource = Data.Definitions.Manual;
+                lv.ItemsSource = Definitions.ManualEvents;
             }
         }
 

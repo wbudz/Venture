@@ -1,12 +1,9 @@
-﻿using Venture.Events;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using Venture.Assets;
 
 namespace Venture.Modules
 {
@@ -44,20 +41,20 @@ namespace Venture.Modules
 
         public decimal BookValue { get; set; } = 0;
 
-        public ObservableCollection<Events.Recognition> Purchases { get; set; } = new ObservableCollection<Events.Recognition>();
+        public ObservableCollection<RecognitionEvent> Purchases { get; set; } = new ObservableCollection<RecognitionEvent>();
 
-        public ObservableCollection<Events.Derecognition> Sales { get; set; } = new ObservableCollection<Events.Derecognition>();
+        public ObservableCollection<DerecognitionEvent> Sales { get; set; } = new ObservableCollection<DerecognitionEvent>();
 
-        public ObservableCollection<Events.Flow> Flows { get; set; } = new ObservableCollection<Events.Flow>();
+        public ObservableCollection<FlowEvent> Flows { get; set; } = new ObservableCollection<FlowEvent>();
 
-        public ObservableCollection<Events.Payment> Payments { get; set; } = new ObservableCollection<Events.Payment>();
+        public ObservableCollection<PaymentEvent> Payments { get; set; } = new ObservableCollection<PaymentEvent>();
 
         public double YieldToMaturity { get; set; } = 0;
 
         public AssetsViewEntry(Asset asset, DateTime date)
         {
             TimeArg time = new TimeArg(TimeArgDirection.End, date);
-            var events = asset.GetEvents(time);
+            var events = asset.GetEventsUntil(time);
 
             UniqueId = asset.UniqueId;
             AssetType = asset.AssetType.ToString();
@@ -76,10 +73,10 @@ namespace Venture.Modules
             AccruedInterest = asset.GetInterestAmount(time);
             BookValue = asset.GetValue(time);
             // Events
-            Purchases = new(events.OfType<Events.Recognition>());
-            Sales = new(events.OfType<Events.Derecognition>());
-            Flows = new(events.OfType<Events.Flow>());
-            Payments = new(events.OfType<Events.Payment>());
+            Purchases = new(events.OfType<RecognitionEvent>());
+            Sales = new(events.OfType<DerecognitionEvent>());
+            Flows = new(events.OfType<FlowEvent>());
+            Payments = new(events.OfType<PaymentEvent>());
             // Bond args
             if (asset is Bond b)
             {

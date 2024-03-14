@@ -7,17 +7,17 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
 
-namespace Venture.Data
+namespace Venture
 {
 
     public static class Definitions
     {
-        public static ObservableCollection<Price> Prices = new ObservableCollection<Price>();
-        public static ObservableCollection<Instrument> Instruments = new ObservableCollection<Instrument>();
-        public static ObservableCollection<Transaction> Transactions = new ObservableCollection<Transaction>();
-        public static ObservableCollection<Dividend> Dividends = new ObservableCollection<Dividend>();
-        public static ObservableCollection<Coupon> Coupons = new ObservableCollection<Coupon>();
-        public static ObservableCollection<Manual> Manual = new ObservableCollection<Manual>();
+        public static ObservableCollection<PriceDefinition> Prices = new ObservableCollection<PriceDefinition>();
+        public static ObservableCollection<InstrumentDefinition> Instruments = new ObservableCollection<InstrumentDefinition>();
+        public static ObservableCollection<TransactionDefinition> Transactions = new ObservableCollection<TransactionDefinition>();
+        public static ObservableCollection<DividendDefinition> Dividends = new ObservableCollection<DividendDefinition>();
+        public static ObservableCollection<CouponDefinition> Coupons = new ObservableCollection<CouponDefinition>();
+        public static ObservableCollection<ManualEventDefinition> ManualEvents = new ObservableCollection<ManualEventDefinition>();
 
         public static void Load()
         {
@@ -26,154 +26,268 @@ namespace Venture.Data
             Transactions.Clear();
             Dividends.Clear();
             Coupons.Clear();
-            Manual.Clear();
+            ManualEvents.Clear();
 
+            // Prices
+            var prices = new List<PriceDefinition>();
             CSV csv = new CSV(Properties.Settings.Default.PricesSource);
             csv.Read();
-            foreach (var item in csv.Interpret<Price>().ToArray())
+            foreach (var item in csv.Interpret())
             {
-                Prices.Add(item);
+                var newItem = new PriceDefinition(item);
+                if (newItem.Active)
+                {
+                    prices.Add(newItem);
+                }
             }
+            prices = prices.OrderBy(x => x.InstrumentUniqueId).ThenBy(x => x.Timestamp).ToList();
+            prices.ForEach(x => Prices.Add(x));
 
+            // InstrumentDefinitions
+            var instruments = new List<InstrumentDefinition>();
             csv = new CSV(Properties.Settings.Default.InstrumentsSource);
             csv.Read();
-            foreach (var item in csv.Interpret<Instrument>().ToArray())
+            foreach (var item in csv.Interpret())
             {
-                Instruments.Add(item);
+                var newItem = new InstrumentDefinition(item);
+                if (newItem.Active)
+                {
+                    instruments.Add(newItem);
+                }
             }
+            instruments = instruments.OrderBy(x => x.UniqueId).ToList();
+            instruments.ForEach(x => Instruments.Add(x));
 
-            var transactions = new List<Transaction>();
+            // TransactionDefinitions
+            var transactions = new List<TransactionDefinition>();
             csv = new CSV(Properties.Settings.Default.TransactionsSource);
             csv.Read();
-            foreach (var item in csv.Interpret<Transaction>().ToArray())
+            foreach (var item in csv.Interpret())
             {
-                transactions.Add(item);
+                TransactionDefinition newItem;
+                switch (item["transactiontype"].ToLower().Trim())
+                {
+                    case "buy": newItem = new BuyTransactionDefinition(item); break;
+                    case "sell": newItem = new SellTransactionDefinition(item); break;
+                    case "pay": newItem = new PayTransactionDefinition(item); break;
+                    case "transfer": newItem = new TransferTransactionDefinition(item); break;
+                    default:
+                        throw new Exception($"Incorrect transaction type definition: {item}.");
+                }
+                if (newItem.Active)
+                {
+                    transactions.Add(newItem);
+                }
             }
             transactions = transactions.OrderBy(x => x.Timestamp).ThenBy(x => x.Index).ToList();
             CheckTransactionsOrder(transactions);
             transactions.ForEach(x => Transactions.Add(x));
 
+            // DividendDefinitions
+            var dividends = new List<DividendDefinition>();
             csv = new CSV(Properties.Settings.Default.DividendsSource);
             csv.Read();
-            foreach (var item in csv.Interpret<Dividend>().ToArray())
+            foreach (var item in csv.Interpret())
             {
-                Dividends.Add(item);
+                var newItem = new DividendDefinition(item);
+                if (newItem.Active)
+                {
+                    dividends.Add(newItem);
+                }
             }
+            dividends = dividends.OrderBy(x => x.InstrumentUniqueId).ThenBy(x => x.PaymentDate).ToList();
+            dividends.ForEach(x => Dividends.Add(x));
 
-            var coupons = new List<Coupon>();
+            // CouponDefinitions
+            var coupons = new List<CouponDefinition>();
             csv = new CSV(Properties.Settings.Default.CouponsSource);
             csv.Read();
-            foreach (var item in csv.Interpret<Coupon>().ToArray())
+            foreach (var item in csv.Interpret())
             {
-                coupons.Add(item);
+                var newItem = new CouponDefinition(item);
+                if (newItem.Active)
+                {
+                    coupons.Add(newItem);
+                }
             }
             coupons = coupons.OrderBy(x => x.InstrumentUniqueId).ThenBy(x => x.Timestamp).ToList();
             coupons.ForEach(x => Coupons.Add(x));
 
+            // ManualEventsDefinitions
+            var manuals = new List<ManualEventDefinition>();
             csv = new CSV(Properties.Settings.Default.ManualSource);
             csv.Read();
-            foreach (var item in csv.Interpret<Manual>().ToArray())
+            foreach (var item in csv.Interpret())
             {
-                Manual.Add(item);
+                ManualEventDefinition newItem;
+                switch (item["adjustmenttype"].ToLower().Trim())
+                {
+                    case "couponamountadjustment": newItem = new CouponAmountAdjustmentEventDefinition(item); break;
+                    case "dividendamountadjustment": newItem = new DividendAmountAdjustmentEventDefinition(item); break;
+                    case "redemptiontaxadjustment": newItem = new RedemptionTaxAdjustmentEventDefinition(item); break;
+                    case "coupontaxadjustment": newItem = new CouponTaxAdjustmentEventDefinition(item); break;
+                    case "dividendtaxadjustment": newItem = new DividendTaxAdjustmentEventDefinition(item); break;
+                    case "incometaxadjustment": newItem = new IncomeTaxAdjustmentEventDefinition(item); break;
+                    case "equityspinoff": newItem = new EquitySpinOffEventDefinition(item); break;
+                    case "prematureredemption": newItem = new PrematureRedemptionEventDefinition(item); break;
+                    case "equityredemption": newItem = new EquityRedemptionEventDefinition(item); break;
+                    case "additionalpremium": newItem = new AdditionalPremiumEventDefinition(item); break;
+                    case "additionalcharge": newItem = new AdditionalChargeEventDefinition(item); break;
+                    default:
+                        throw new Exception($"Incorrect manual event definition: {item}.");
+                }
+                if (newItem.Active)
+                {
+                    manuals.Add(newItem);
+                }
             }
-            CheckManualReferences(Manual, Transactions, Instruments);
+            manuals = manuals.OrderBy(x => x.Timestamp).ToList();
+            CheckManualReferences(manuals, Transactions, Instruments);
+            manuals.ForEach(x => ManualEvents.Add(x));
         }
 
-        public static Manual? GetManualAdjustment(ManualAdjustmentType type, DateTime timestamp, Transaction tr)
+        private static void CheckTransactionsOrder(IEnumerable<TransactionDefinition> transactions)
         {
-            string id = $"{tr.AssetType}_{tr.AssetId}_{tr.Index}";
-            return GetManualAdjustment(type, timestamp, id);
-        }
-
-        public static Manual? GetManualAdjustment(ManualAdjustmentType type, DateTime timestamp, string instrumentId)
-        {
-            return Manual.FirstOrDefault(x => x.AdjustmentType == type && x.Timestamp == timestamp && x.Text1 == instrumentId);
-        }
-
-        public static Manual? GetManualAdjustment(ManualAdjustmentType type, string instrumentId)
-        {
-            return Manual.FirstOrDefault(x => x.AdjustmentType == type && x.Text1 == instrumentId);
-        }
-
-        public static IEnumerable<Manual> GetManualEventSources()
-        {
-            return Manual.Where(x => x.AdjustmentType == ManualAdjustmentType.EquitySpinOff || 
-            x.AdjustmentType == ManualAdjustmentType.EquityRedemption || 
-            x.AdjustmentType == ManualAdjustmentType.AdditionalPremium ||
-            x.AdjustmentType == ManualAdjustmentType.AdditionalCharge);
-        }
-
-        private static void CheckTransactionsOrder(List<Data.Transaction> transactions)
-        {
-            for (int i = 1; i < transactions.Count; i++)
+            var array = transactions.ToArray();
+            for (int i = 1; i < array.Length; i++)
             {
-                if (transactions[i].Index <= transactions[i - 1].Index) throw new Exception($"Error ordering transactions: {transactions[i - 1]}, {transactions[i]}.");
-                if (transactions[i].Timestamp < transactions[i - 1].Timestamp) throw new Exception($"Error ordering transactions: {transactions[i - 1]}, {transactions[i]}.");
+                if (array[i].Index <= array[i - 1].Index) throw new Exception($"Error ordering transactions: {array[i - 1]}, {array[i]}.");
+                if (array[i].Timestamp < array[i - 1].Timestamp) throw new Exception($"Error ordering transactions: {array[i - 1]}, {array[i]}.");
             }
         }
 
-        private static void CheckManualReferences(IEnumerable<Manual> manual, IEnumerable<Transaction> transactions, IEnumerable<Instrument> instruments)
+        private static void CheckManualReferences(IEnumerable<ManualEventDefinition> manuals, IEnumerable<TransactionDefinition> transactions, IEnumerable<InstrumentDefinition> instruments)
         {
-            foreach (var m in manual)
+            foreach (var mn in manuals)
             {
-                if (m.AdjustmentType == ManualAdjustmentType.CouponAmountAdjustment ||
-                    m.AdjustmentType == ManualAdjustmentType.CouponTaxAdjustment ||
-                    m.AdjustmentType == ManualAdjustmentType.IncomeTaxAdjustment ||
-                    m.AdjustmentType == ManualAdjustmentType.DividendAmountAdjustment ||
-                    m.AdjustmentType == ManualAdjustmentType.RedemptionTaxAdjustment ||
-                    m.AdjustmentType == ManualAdjustmentType.DividendTaxAdjustment)
+                if (mn is FlowAmountAdjustmentEventDefinition faa)
                 {
                     string instrumentType;
                     string instrumentId;
                     int transactionIndex;
                     try
                     {
-                        instrumentType = m.Text1.Split('_')[0];
-                        instrumentId = m.Text1.Split('_')[1];
-                        transactionIndex = Int32.Parse(m.Text1.Split('_')[2]);
+                        instrumentType = faa.AssetUniqueId.Split('_')[0];
+                        instrumentId = faa.AssetUniqueId.Split('_')[1];
+                        transactionIndex = Int32.Parse(faa.AssetUniqueId.Split('_')[2]);
                     }
                     catch
                     {
-                        throw new Exception($"Error in manual event definition: {m}.");
+                        throw new Exception($"Error in manual event definition: {faa}.");
                     }
                     var transaction = transactions.SingleOrDefault(x => x.AssetType.ToString() == instrumentType && x.AssetId == instrumentId && x.Index == transactionIndex);
                     if (transaction == null)
                     {
-                        throw new Exception($"Transaction not found for manual event definition: {m}.");
+                        throw new Exception($"Transaction not found for manual event definition: {faa}.");
                     }
                 }
-                if (m.AdjustmentType == ManualAdjustmentType.EquitySpinOff ||
-                    m.AdjustmentType == ManualAdjustmentType.PrematureRedemption)
+                if (mn is TaxAmountAdjustmentEventDefinition taa)
+                {
+                    string instrumentType;
+                    string instrumentId;
+                    int transactionIndex;
+                    try
+                    {
+                        instrumentType = taa.AssetUniqueId.Split('_')[0];
+                        instrumentId = taa.AssetUniqueId.Split('_')[1];
+                        transactionIndex = Int32.Parse(taa.AssetUniqueId.Split('_')[2]);
+                    }
+                    catch
+                    {
+                        throw new Exception($"Error in manual event definition: {taa}.");
+                    }
+                    var transaction = transactions.SingleOrDefault(x => x.AssetType.ToString() == instrumentType && x.AssetId == instrumentId && x.Index == transactionIndex);
+                    if (transaction == null)
+                    {
+                        throw new Exception($"Transaction not found for manual event definition: {taa}.");
+                    }
+                }
+                if (mn is EquitySpinOffEventDefinition eso)
+                {
+                    string instrumentType1;
+                    string instrumentId1;
+                    string instrumentType2;
+                    string instrumentId2;
+                    string instrumentType3;
+                    string instrumentId3;
+                    try
+                    {
+                        instrumentType1 = eso.OriginalInstrumentUniqueId.Split('_')[0];
+                        instrumentId1 = eso.OriginalInstrumentUniqueId.Split('_')[1];
+                        if (eso.OriginalInstrumentUniqueId.Split('_').Length > 2) throw new Exception("Manual event definition too long.");
+                        instrumentType2 = eso.ConvertedInstrumentUniqueId.Split('_')[0];
+                        instrumentId2 = eso.ConvertedInstrumentUniqueId.Split('_')[1];
+                        if (eso.ConvertedInstrumentUniqueId.Split('_').Length > 2) throw new Exception("Manual event definition too long.");
+                        instrumentType3 = eso.SpunOffInstrumentUniqueId.Split('_')[0];
+                        instrumentId3 = eso.SpunOffInstrumentUniqueId.Split('_')[1];
+                        if (eso.SpunOffInstrumentUniqueId.Split('_').Length > 2) throw new Exception("Manual event definition too long.");
+                    }
+                    catch
+                    {
+                        throw new Exception($"Error in manual event definition: {eso}.");
+                    }
+                    var instrument1 = instruments.SingleOrDefault(x => x.AssetType.ToString() == instrumentType1 && x.AssetId == instrumentId1);
+                    if (instrument1 == null)
+                    {
+                        throw new Exception($"Instrument not found for manual event definition: {eso}.");
+                    }
+                    var instrument2 = instruments.SingleOrDefault(x => x.AssetType.ToString() == instrumentType2 && x.AssetId == instrumentId2);
+                    if (instrument2 == null)
+                    {
+                        throw new Exception($"Instrument not found for manual event definition: {eso}.");
+                    }
+                    var instrument3 = instruments.SingleOrDefault(x => x.AssetType.ToString() == instrumentType3 && x.AssetId == instrumentId3);
+                    if (instrument3 == null)
+                    {
+                        throw new Exception($"Instrument not found for manual event definition: {eso}.");
+                    }
+                }
+                if (mn is PrematureRedemptionEventDefinition pr)
                 {
                     string instrumentType;
                     string instrumentId;
                     try
                     {
-                        instrumentType = m.Text1.Split('_')[0];
-                        instrumentId = m.Text1.Split('_')[1];
-                        if (m.Text1.Split('_').Length > 2) throw new Exception("Manual event definition too long.");
+                        instrumentType = pr.InstrumentUniqueId.Split('_')[0];
+                        instrumentId = pr.InstrumentUniqueId.Split('_')[1];
+                        if (pr.InstrumentUniqueId.Split('_').Length > 2) throw new Exception("Manual event definition too long.");
                     }
                     catch
                     {
-                        throw new Exception($"Error in manual event definition: {m}.");
+                        throw new Exception($"Error in manual event definition: {pr}.");
                     }
                     var instrument = instruments.SingleOrDefault(x => x.AssetType.ToString() == instrumentType && x.AssetId == instrumentId);
                     if (instrument == null)
                     {
-                        throw new Exception($"Instrument not found for manual event definition: {m}.");
+                        throw new Exception($"Instrument not found for manual event definition: {pr}.");
                     }
                 }
-                if (m.AdjustmentType == ManualAdjustmentType.AdditionalPremium || m.AdjustmentType == ManualAdjustmentType.AdditionalCharge)
+                if (mn is AdditionalPremiumEventDefinition ape)
                 {
-                    if (String.IsNullOrEmpty(m.Text1) || m.Text1.Split(':').Length!=4)
+                    if (String.IsNullOrEmpty(ape.CashAccount) || ape.CashAccount.Split(':').Length != 4)
                     {
                         throw new Exception($"Incorrect additional premium/charge account definition in Text1 field.");
                     }
-                    if (String.IsNullOrEmpty(m.Text2))
+                    if (String.IsNullOrEmpty(ape.Portfolio))
                     {
                         throw new Exception($"Incorrect additional premium/charge portfolio definition in Text2 field.");
                     }
-                    if (String.IsNullOrEmpty(m.Text3))
+                    if (String.IsNullOrEmpty(ape.Description))
+                    {
+                        throw new Exception($"Incorrect additional premium/charge description in Text3 field.");
+                    }                    
+                }
+                if (mn is AdditionalChargeEventDefinition ace)
+                {
+                    if (String.IsNullOrEmpty(ace.CashAccount) || ace.CashAccount.Split(':').Length != 4)
+                    {
+                        throw new Exception($"Incorrect additional premium/charge account definition in Text1 field.");
+                    }
+                    if (String.IsNullOrEmpty(ace.Portfolio))
+                    {
+                        throw new Exception($"Incorrect additional premium/charge portfolio definition in Text2 field.");
+                    }
+                    if (String.IsNullOrEmpty(ace.Description))
                     {
                         throw new Exception($"Incorrect additional premium/charge description in Text3 field.");
                     }

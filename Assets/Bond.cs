@@ -1,6 +1,4 @@
-﻿using Venture.Data;
-using Venture.Events;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
@@ -8,9 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
-namespace Venture.Assets
+namespace Venture
 {
     public class Bond : Security
     {
@@ -26,14 +23,26 @@ namespace Venture.Assets
 
         private List<(DateTime startDate, double ytm)> YieldsToMaturity = new List<(DateTime startDate, double ytm)>();
 
-        public Bond(Data.Transaction tr, Data.Instrument definition) : base(tr, definition)
+        public Bond(BuyTransactionDefinition btd, InstrumentDefinition definition) : base(btd, definition)
         {
-            UnitPrice = tr.NominalAmount;
+            UnitPrice = definition.UnitPrice;
             CouponRate = definition.CouponRate;
             CouponFreq = definition.CouponFreq;
             CouponType = definition.CouponType;
             MaturityDate = definition.Maturity;
-            AddEvent(new Events.Recognition(this, tr, tr.Timestamp));
+            AddEvent(new RecognitionEvent(this, btd));
+            GenerateFlows();
+            GenerateYields();
+        }
+
+        public Bond(TransferTransactionDefinition ttd, Bond originalAsset) : base(ttd, originalAsset)
+        {
+            UnitPrice = originalAsset.UnitPrice;
+            CouponRate = originalAsset.CouponRate;
+            CouponFreq = originalAsset.CouponFreq;
+            CouponType = originalAsset.CouponType;
+            MaturityDate = originalAsset.MaturityDate;
+            AddEvent(new RecognitionEvent(this, ttd, originalAsset));
             GenerateFlows();
             GenerateYields();
         }
@@ -45,11 +54,11 @@ namespace Venture.Assets
             decimal redemption = 1;
 
             // Check for premature redemption
-            var manual = Data.Definitions.GetManualAdjustment(ManualAdjustmentType.PrematureRedemption, SecurityDefinition.UniqueId);
+            var manual = Definitions.ManualEvents.OfType<PrematureRedemptionEventDefinition>().SingleOrDefault(x=>x.InstrumentUniqueId == InstrumentUniqueId);
             if (manual != null)
             {
                 end = manual.Timestamp;
-                redemption = manual.Amount1 / 100;
+                redemption = manual.DirtyPrice / 100;
             }
 
             if (start > end) throw new Exception("Bond purchased after maturity date.");
@@ -66,7 +75,7 @@ namespace Venture.Assets
                     {
                         if (date <= end)
                         {
-                            AddEvent(new Events.Flow(this, Financial.Calendar.WorkingDays(date, -2), date, Venture.Events.FlowType.Coupon, CouponRate / CouponFreq, Currency, FX.GetRate(date, Currency)));
+                            AddEvent(new FlowEvent(this, Financial.Calendar.WorkingDays(date, -2), date, FlowType.Coupon, CouponRate / CouponFreq, Currency, FX.GetRate(date, Currency)));
                         }
                         date = ShiftDate(date, monthStep);
                     }
@@ -83,14 +92,14 @@ namespace Venture.Assets
 
                     if (date <= end)
                     {
-                        AddEvent(new Events.Flow(this, Financial.Calendar.WorkingDays(date, -2), date, Venture.Events.FlowType.Coupon, coupon.CouponRate / CouponFreq, Currency, FX.GetRate(date, Currency)));
+                        AddEvent(new FlowEvent(this, Financial.Calendar.WorkingDays(date, -2), date, FlowType.Coupon, coupon.CouponRate / CouponFreq, Currency, FX.GetRate(date, Currency)));
                     }
                     date = ShiftDate(date, monthStep);
                 }
             }
 
             // Redemption
-            AddEvent(new Events.Flow(this, Financial.Calendar.WorkingDays(end, -2), end, Venture.Events.FlowType.Redemption, redemption, Currency, FX.GetRate(end, Currency)));
+            AddEvent(new FlowEvent(this, Financial.Calendar.WorkingDays(end, -2), end, FlowType.Redemption, redemption, Currency, FX.GetRate(end, Currency)));
         }
 
         private DateTime ShiftDate(DateTime date, int monthStep)
@@ -124,7 +133,7 @@ namespace Venture.Assets
 
             // For floaters, coupon-based yields
             bool firstCoupon = true; // we skip first coupon, because we will save second coupon's calculation on first coupon's date, and so on
-            foreach (var fl in Events.OfType<Flow>().Where(x => x.FlowType == FlowType.Coupon && x.Timestamp > date).OrderBy(x => x.Timestamp))
+            foreach (var fl in Events.OfType<FlowEvent>().Where(x => x.FlowType == FlowType.Coupon && x.Timestamp > date).OrderBy(x => x.Timestamp))
             {
                 if (!firstCoupon)
                 {
@@ -154,7 +163,7 @@ namespace Venture.Assets
             try
             {
                 // Derive from the next flow
-                var nextFlow = Events.OfType<Events.Flow>().Where(x => x.FlowType == FlowType.Coupon).FirstOrDefault(x => x.Timestamp >= date);
+                var nextFlow = Events.OfType<FlowEvent>().Where(x => x.FlowType == FlowType.Coupon).FirstOrDefault(x => x.Timestamp >= date);
                 if (nextFlow != null)
                 {
                     return nextFlow.Rate * CouponFreq;
@@ -183,7 +192,7 @@ namespace Venture.Assets
         {
             if (!IsActive(time)) return 0;
 
-            Data.Price? price = Data.Definitions.Prices.LastOrDefault(x => x.InstrumentUniqueId == this.InstrumentUniqueId && x.Timestamp <= time.Date);
+            PriceDefinition? price = Definitions.Prices.LastOrDefault(x => x.InstrumentUniqueId == this.InstrumentUniqueId && x.Timestamp <= time.Date);
             if (price == null)
             {
                 throw new Exception($"No price for: {UniqueId} at date: {time.Date:yyyy-MM-dd}.");
@@ -281,22 +290,22 @@ namespace Venture.Assets
             decimal previousPrice = 0;
             decimal currentPrice = 0;
 
-            foreach (var e in GetEvents(end))
+            foreach (var e in GetEventsUntil(end))
             {
-                if (e is Events.Recognition p)
+                if (e is RecognitionEvent p)
                 {
                     count = p.Count;
                     currentPrice = GetAmortizedCostPrice(new TimeArg(TimeArgDirection.End, p.Timestamp, p.TransactionIndex), true);
                     previousPrice = currentPrice;
                 }
-                if (e is Events.Derecognition s)
+                if (e is DerecognitionEvent s)
                 {
                     currentPrice = GetAmortizedCostPrice(new TimeArg(TimeArgDirection.End, s.Timestamp, s.TransactionIndex), true);
                     result += Common.Round((currentPrice - previousPrice) * count / 100 * UnitPrice);
                     previousPrice = currentPrice;
                     count -= s.Count;
                 }
-                if (e is Events.Flow f && f.FlowType == FlowType.Redemption)
+                if (e is FlowEvent f && f.FlowType == FlowType.Redemption)
                 {
                     currentPrice = 100;
                     result += Common.Round((currentPrice - previousPrice) * count / 100 * UnitPrice);
@@ -314,9 +323,9 @@ namespace Venture.Assets
         {
             decimal income = 0;
 
-            foreach (var e in GetEvents(end))
+            foreach (var e in GetEventsUntil(end))
             {
-                if (e is Events.Flow f)
+                if (e is FlowEvent f)
                 {
                     if (f.FlowType == FlowType.Redemption)
                     {
@@ -332,14 +341,14 @@ namespace Venture.Assets
             return income;
         }
 
-        public override decimal GetRealizedGainsLossesFromValuation(Events.Event e)
+        public override decimal GetRealizedGainsLossesFromValuation(Event e)
         {
-            if (!(e is Events.Derecognition))
+            if (!(e is DerecognitionEvent))
             {
                 throw new ArgumentException("GetRealizedGainsLossesFromValuation called for different event type than sale.");
             }
 
-            Events.Derecognition s = (Events.Derecognition)e;
+            DerecognitionEvent s = (DerecognitionEvent)e;
 
             decimal factor = s.Count / GetCount(new TimeArg(TimeArgDirection.Start, s.Timestamp, s.TransactionIndex));
             decimal result = factor * GetUnrealizedGainsLossesFromValuation(new TimeArg(TimeArgDirection.Start, s.Timestamp, s.TransactionIndex));
@@ -354,15 +363,15 @@ namespace Venture.Assets
             (decimal marketPrice, decimal amortizedPrice) previous = (0, 0);
             (decimal marketPrice, decimal amortizedPrice) current = (0, 0);
 
-            foreach (var e in GetEvents(time))
+            foreach (var e in GetEventsUntil(time))
             {
-                if (e is Events.Recognition p)
+                if (e is RecognitionEvent p)
                 {
                     count = p.Count;
                     previous = (p.CleanPrice, p.CleanPrice);
                     current = (p.CleanPrice, p.CleanPrice);
                 }
-                if (e is Events.Derecognition s)
+                if (e is DerecognitionEvent s)
                 {
                     previous = current;
                     current = (s.CleanPrice, s.AmortizedCostCleanPrice);
@@ -372,7 +381,7 @@ namespace Venture.Assets
 
                     count -= s.Count;
                 }
-                if (e is Events.Flow f && f.FlowType == FlowType.Redemption)
+                if (e is FlowEvent f && f.FlowType == FlowType.Redemption)
                 {
                     result -= Common.Round((previous.marketPrice - previous.amortizedPrice) / 100 * UnitPrice * count);
                     return result;
@@ -387,7 +396,7 @@ namespace Venture.Assets
             return result;
         }
 
-        public override decimal GetRealizedGainsLossesFromFX(Events.Event e)
+        public override decimal GetRealizedGainsLossesFromFX(Event e)
         {
             throw new NotImplementedException();
         }

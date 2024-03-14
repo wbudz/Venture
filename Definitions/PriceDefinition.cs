@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Venture.Data
+namespace Venture
 {
-    public class Price : DataPoint
+    public class PriceDefinition : Definition
     {
         public string UniqueId { get { return $"{InstrumentUniqueId}_{Timestamp:yyyyMMddTHHmmss}"; } }
 
@@ -36,20 +36,20 @@ namespace Venture.Data
 
         public decimal Value { get { return Close; } }
 
-        public override void FromCSV(string[] headers, string[] line, int index)
+        public PriceDefinition(Dictionary<string, string> data) : base(data)
         {
-            for (int i = 0; i < Math.Min(headers.Length, line.Length); i++)
-            {
-                if (headers[i] == "assettype") AssetType = ConvertToEnum<AssetType>(line[i]);
-                if (headers[i] == "assetid") AssetId = line[i];
-                if (headers[i] == "timestamp") Timestamp = ConvertToDateTime(line[i]);
-                if (headers[i] == "volume") Volume = ConvertToLong(line[i]);
-                if (headers[i] == "open") Open = ConvertToDecimal(line[i]);
-                if (headers[i] == "high") High = ConvertToDecimal(line[i]);
-                if (headers[i] == "low") Low = ConvertToDecimal(line[i]);
-                if (headers[i] == "close") Close = ConvertToDecimal(line[i]);
-                if (headers[i] == "active") Active = ConvertToBool(line[i]);
-            }
+            AssetType = ConvertToEnum<AssetType>(data["assettype"]);
+            AssetId = data["assetid"];
+            Timestamp = ConvertToDateTime(data["timestamp"]);
+            if (data.ContainsKey("volume"))
+                Volume = ConvertToLong(data["volume"]);
+            if (data.ContainsKey("open"))
+                Open = ConvertToDecimal(data["open"]);
+            if (data.ContainsKey("high"))
+                High = ConvertToDecimal(data["high"]);
+            if (data.ContainsKey("low"))
+                Low = ConvertToDecimal(data["low"]);
+            Close = ConvertToDecimal(data["close"]);
         }
 
         public override string ToString()

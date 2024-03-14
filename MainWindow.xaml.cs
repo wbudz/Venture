@@ -38,12 +38,12 @@ namespace Venture
         {
             CurrentModule.Children.Clear();
 
-            if ((sender as TreeViewItem)?.Header.ToString() == "Prices") CurrentModule.Children.Add(new Modules.DefinitionsView(typeof(Data.Price)));
-            if ((sender as TreeViewItem)?.Header.ToString() == "Instruments") CurrentModule.Children.Add(new Modules.DefinitionsView(typeof(Data.Instrument)));
-            if ((sender as TreeViewItem)?.Header.ToString() == "Transactions") CurrentModule.Children.Add(new Modules.DefinitionsView(typeof(Data.Transaction)));
-            if ((sender as TreeViewItem)?.Header.ToString() == "Dividends") CurrentModule.Children.Add(new Modules.DefinitionsView(typeof(Data.Dividend)));
-            if ((sender as TreeViewItem)?.Header.ToString() == "Coupons") CurrentModule.Children.Add(new Modules.DefinitionsView(typeof(Data.Coupon)));
-            if ((sender as TreeViewItem)?.Header.ToString() == "Manual adjustments") CurrentModule.Children.Add(new Modules.DefinitionsView(typeof(Data.Manual)));
+            if ((sender as TreeViewItem)?.Header.ToString() == "Prices") CurrentModule.Children.Add(new Modules.DefinitionsView(typeof(PriceDefinition)));
+            if ((sender as TreeViewItem)?.Header.ToString() == "Instruments") CurrentModule.Children.Add(new Modules.DefinitionsView(typeof(InstrumentDefinition)));
+            if ((sender as TreeViewItem)?.Header.ToString() == "Transactions") CurrentModule.Children.Add(new Modules.DefinitionsView(typeof(TransactionDefinition)));
+            if ((sender as TreeViewItem)?.Header.ToString() == "Dividends") CurrentModule.Children.Add(new Modules.DefinitionsView(typeof(DividendDefinition)));
+            if ((sender as TreeViewItem)?.Header.ToString() == "Coupons") CurrentModule.Children.Add(new Modules.DefinitionsView(typeof(CouponDefinition)));
+            if ((sender as TreeViewItem)?.Header.ToString() == "Manual adjustments") CurrentModule.Children.Add(new Modules.DefinitionsView(typeof(ManualEventDefinition)));
 
             if ((sender as TreeViewItem)?.Header.ToString() == "Assets") CurrentModule.Children.Add(new Modules.AssetsView());
             if ((sender as TreeViewItem)?.Header.ToString() == "Reports") CurrentModule.Children.Add(new Modules.AssetsReports());
@@ -79,7 +79,7 @@ namespace Venture
         {
             Stopwatch sw = new Stopwatch();
             sw.Start();
-            Data.Definitions.Load();
+            Definitions.Load();
             sw.Stop();
             StatusText.Text = $"Data loading took: {(sw.ElapsedMilliseconds / 1000.0):0.000} seconds.";
         }

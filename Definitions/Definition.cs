@@ -5,16 +5,36 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Venture.Data
+namespace Venture
 {
-    public abstract class DataPoint
+    public abstract class Definition
     {
         protected static readonly CultureInfo cultureIntegerWithDotSeparator = new CultureInfo("") { NumberFormat = new NumberFormatInfo() { NumberDecimalSeparator = "." } };
         protected static readonly CultureInfo cultureIntegerWithCommaSeparator = new CultureInfo("") { NumberFormat = new NumberFormatInfo() { NumberDecimalSeparator = "," } };
 
         public bool Active { get; protected set; } = true;
 
-        public abstract void FromCSV(string[] headers, string[] line, int index);
+        public Definition(Dictionary<string, string> data)
+        {
+            if (data.ContainsKey("active"))
+                Active = ConvertToBool(data["active"]);
+        }
+
+        protected static decimal GetFXRateFromData(string data)
+        {
+            if (String.IsNullOrEmpty(data))
+                return 1;
+            else
+                return ConvertToDecimal(data);
+        }
+
+        protected static ValuationClass GetValuationClassFromData(string data)
+        {
+            if (data.ToLower().Trim() == "afs" || data.Replace(" ", "").ToLower().Trim() == "availableforsale") return ValuationClass.AvailableForSale;
+            else if (data.ToLower().Trim() == "trd" || data.Replace(" ", "").ToLower().Trim() == "trading") return ValuationClass.Trading;
+            else if (data.ToLower().Trim() == "htm" || data.Replace(" ", "").ToLower().Trim() == "heldtomaturity") return ValuationClass.HeldToMaturity;
+            else return ValuationClass.Undefined;
+        }
 
         protected static DateTime ConvertToDateTime(string text)
         {

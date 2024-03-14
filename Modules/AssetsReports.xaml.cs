@@ -47,7 +47,7 @@ namespace Venture.Modules
             return new DataTemplate { VisualTree = factory };
         }
 
-        object[] GenerateReportEntry(Assets.Asset asset, int optionIndex, List<DateTime> dates)
+        object[] GenerateReportEntry(Asset asset, int optionIndex, List<DateTime> dates)
         {
             object[] result = new object[DESCRIPTION_COLUMNS_COUNT + dates.Count];
             result[0] = asset.UniqueId;
@@ -88,7 +88,7 @@ namespace Venture.Modules
             ReportEntries.Clear();
             foreach (var asset in Common.Assets)
             {
-                if (asset is Assets.Cash) continue;
+                if (asset is Cash) continue;
                 if (!asset.IsActive(new DateTime(startYear, 1, 1), new DateTime(endYear, 12, 31))) continue;
                 if (asset.BoundsStart.Year == asset.BoundsEnd.Year && asset.BoundsStart.Month == asset.BoundsEnd.Month) continue; // omit assets that were owned only during one month
                 if (PortfolioComboBox.SelectedItem.ToString() != "*" && PortfolioComboBox.SelectedItem.ToString() != asset.Portfolio) continue;

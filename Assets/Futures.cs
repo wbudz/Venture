@@ -1,19 +1,16 @@
-﻿using Venture.Data;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using Venture.Events;
 
-namespace Venture.Assets
+namespace Venture
 {
     public class Futures : Asset
     {
-        public Data.Instrument SecurityDefinition { get; protected set; }
+        public InstrumentDefinition SecurityDefinition { get; protected set; }
 
         public string AssociatedTicker { get; set; }
 
@@ -21,7 +18,7 @@ namespace Venture.Assets
 
         public DateTime MaturityDate { get; protected set; }
 
-        public Futures(Data.Transaction tr, Data.Instrument definition)
+        private Futures(TransactionDefinition tr, InstrumentDefinition definition)
         {
             UniqueId = $"{definition.AssetType}_{definition.AssetId}_{tr.Index}";
             AssetType = definition.AssetType;
@@ -37,27 +34,42 @@ namespace Venture.Assets
             AssociatedTicker = definition.Ticker;
             Multiplier = definition.UnitPrice;
             MaturityDate = definition.Maturity;
+        }
 
-            AddEvent(new Events.Recognition(this, tr, tr.Timestamp));
+        public Futures(BuyTransactionDefinition btd, InstrumentDefinition definition) : this((TransactionDefinition)btd, definition)
+        {
+            AddEvent(new FuturesRecognitionEvent(this, btd));
             GenerateFlows();
         }
-        public override void AddEvent(Events.Event e)
+
+        public Futures(SellTransactionDefinition std, InstrumentDefinition definition) : this((TransactionDefinition)std, definition)
+        {
+            AddEvent(new FuturesRecognitionEvent(this, std));
+            GenerateFlows();
+        }
+
+        public override void AddEvent(Event e)
         {
             var index = events.FindIndex(x => x.Timestamp > e.Timestamp || (e.TransactionIndex > -1 && x.TransactionIndex > e.TransactionIndex));
             if (index == -1)
-            { index = events.FindIndex(x => x.Timestamp == e.Timestamp && x is Flow f && f.FlowType == FlowType.FuturesSettlement); }
+            { index = events.FindIndex(x => x.Timestamp == e.Timestamp && x is FuturesSettlementEvent fs); }
             if (index == -1)
             { index = events.Count; }
             events.Insert(index, e);
 
-            // Adjust later events.
-            if (index > -1 && e is Events.Derecognition dr)
+            // Check if total derecognition
+            if (e is FuturesRecognitionEvent fr)
             {
-                for (int i = events.Count - 1; i > index; i--)
+                if (GetCount(new TimeArg(TimeArgDirection.End, e.Timestamp, e.TransactionIndex)) == 0)
                 {
-                    events.RemoveAt(i);
+                    fr.IsTotalDerecognition = true;
+                    for (int i = events.Count - 1; i > index; i--)
+                    {
+                        events.RemoveAt(i);
+                    }
                 }
             }
+
             RecalculateBounds();
         }
 
@@ -65,12 +77,12 @@ namespace Venture.Assets
         {
             bounds.startDate = Events.First().Timestamp;
             bounds.startIndex = Events.First().TransactionIndex;
-            foreach (Events.Event e in Events)
+            foreach (Event e in Events)
             {
-                if (e is Events.Derecognition s)
+                if (e is FuturesRecognitionEvent r && r.IsTotalDerecognition)
                 {
-                    bounds.endDate = s.Timestamp;
-                    bounds.endIndex = s.TransactionIndex;
+                    bounds.endDate = r.Timestamp;
+                    bounds.endIndex = r.TransactionIndex;
                     return;
                 }
             }
@@ -105,7 +117,7 @@ namespace Venture.Assets
                 currentPrice = price.Value;
 
                 decimal amount = Common.Round((currentPrice - previousPrice) * count * Multiplier);
-                AddEvent(new Events.Flow(this, currentEnd, currentEnd, Venture.Events.FlowType.FuturesSettlement, amount, Currency, FX.GetRate(currentEnd, Currency)));
+                AddEvent(new FuturesSettlementEvent(this, count, amount, currentEnd));
                 previousPrice = currentPrice;
 
                 previousEnd = currentEnd;
@@ -122,27 +134,22 @@ namespace Venture.Assets
 
             foreach (var evt in Events.Skip(1))
             {
-                if (evt is Events.Derecognition)
+                if (evt is FuturesRecognitionEvent fr)
                 {
-                    continue;
+                    currentPrice = fr.Price;
+                    decimal amount = Common.Round((currentPrice - previousPrice) * count * Multiplier);
+                    fr.Amount = amount;
+                    count += fr.Count;
+                    if (fr.IsTotalDerecognition) continue;
                 }
-                if (evt is Events.Recognition r1)
+                if (evt is FuturesSettlementEvent fs)
                 {
-                    currentPrice = r1.CleanPrice;
-                }
-                if (evt is Events.Flow f)
-                {
-                    var price = prices.LastOrDefault(x => x.Timestamp <= f.Timestamp); // if no coupon is defined, use the last available
-                    if (price == null) throw new Exception($"No price defined for {AssociatedTicker} at {f.Timestamp:yyyy-MM-dd}.");
+                    var price = prices.LastOrDefault(x => x.Timestamp <= fs.Timestamp); // if no coupon is defined, use the last available
+                    if (price == null) throw new Exception($"No price defined for {AssociatedTicker} at {fs.Timestamp:yyyy-MM-dd}.");
                     currentPrice = price.Value;
-                }
-
-                decimal amount = Common.Round((currentPrice - previousPrice) * count * Multiplier);
-                evt.Amount = amount;
-
-                if (evt is Events.Recognition r2)
-                {
-                    count += r2.Count;
+                    decimal amount = Common.Round((currentPrice - previousPrice) * count * Multiplier);
+                    fs.Amount = amount;
+                    if (fs.IsTotalDerecognition) continue;
                 }
                 previousPrice = currentPrice;
             }
@@ -155,18 +162,28 @@ namespace Venture.Assets
 
         public override decimal GetCount()
         {
-            if (Events.FirstOrDefault() is Events.Recognition p) return p.Count;
+            if (Events.FirstOrDefault() is FuturesRecognitionEvent p) return p.Count;
             else throw new Exception("First event is not recognition.");
         }
 
         public override decimal GetCount(TimeArg time)
         {
             decimal count = 0;
-            foreach (Events.Event e in GetEvents(time))
+            var events = GetEventsUntil(time);
+            foreach (Event e in events)
             {
-                if (e is Events.Recognition p) count += p.Count;
-                if (e is Events.Derecognition s) count = 0;
-                if ((e is Events.Flow f) && f.FlowType == Venture.Events.FlowType.Redemption) count = 0;
+                if (e is FuturesRecognitionEvent fr)
+                {
+                    if (fr.IsTotalDerecognition)
+                        count = 0;
+                    else
+                        count += fr.Count;
+                }
+                if (e is FuturesSettlementEvent fs)
+                {
+                    if (fs.IsTotalDerecognition)
+                        count = 0;
+                }
             }
             return count;
         }
@@ -207,14 +224,14 @@ namespace Venture.Assets
         {
             if (!IsActive(time)) return 0;
 
-            var events = GetEvents(time).OfType<Events.Recognition>();
+            var events = GetEventsUntil(time).OfType<FuturesRecognitionEvent>();
 
-            return events.Sum(x => x.Count * x.CleanPrice) / events.Sum(x => x.Count);
+            return events.Sum(x => x.Count * x.Price) / events.Sum(x => x.Count);
         }
 
         public override decimal GetNominalAmount()
         {
-            var evt = Events.OfType<Events.Recognition>().FirstOrDefault();
+            var evt = Events.OfType<RecognitionEvent>().FirstOrDefault();
             if (evt != null)
             {
                 return GetNominalAmount(new TimeArg(TimeArgDirection.End, evt.Timestamp, evt.TransactionIndex));
@@ -287,9 +304,9 @@ namespace Venture.Assets
         {
             decimal income = 0;
 
-            foreach (var e in GetEvents(end))
+            foreach (var e in GetEventsUntil(end))
             {
-                if (e is Events.Flow f && f.FlowType == Venture.Events.FlowType.Dividend)
+                if (e is FlowEvent f && f.FlowType == FlowType.Dividend)
                 {
                     income += Common.Round(f.Amount);
                 }
@@ -298,14 +315,14 @@ namespace Venture.Assets
             return income;
         }
 
-        public override decimal GetRealizedGainsLossesFromValuation(Events.Event e)
+        public override decimal GetRealizedGainsLossesFromValuation(Event e)
         {
-            if (!(e is Events.Derecognition))
+            if (!(e is DerecognitionEvent))
             {
                 throw new ArgumentException("GetRealizedGainsLossesFromValuation called for different event type than sale.");
             }
 
-            Events.Derecognition s = (Events.Derecognition)e;
+            DerecognitionEvent s = (DerecognitionEvent)e;
 
             decimal factor = s.Count / GetCount(new TimeArg(TimeArgDirection.Start, s.Timestamp, s.TransactionIndex));
             decimal result = factor * GetUnrealizedGainsLossesFromValuation(new TimeArg(TimeArgDirection.Start, s.Timestamp, s.TransactionIndex));
@@ -320,15 +337,15 @@ namespace Venture.Assets
             (decimal marketPrice, decimal amortizedPrice) previous = (0, 0);
             (decimal marketPrice, decimal amortizedPrice) current = (0, 0);
 
-            foreach (var e in GetEvents(time))
+            foreach (var e in GetEventsUntil(time))
             {
-                if (e is Events.Recognition p)
+                if (e is RecognitionEvent p)
                 {
                     count = p.Count;
                     previous = (p.CleanPrice, p.CleanPrice);
                     current = (p.CleanPrice, p.CleanPrice);
                 }
-                if (e is Events.Derecognition s)
+                if (e is DerecognitionEvent s)
                 {
                     previous = current;
                     current = (s.CleanPrice, s.AmortizedCostCleanPrice);
@@ -348,7 +365,7 @@ namespace Venture.Assets
             return result;
         }
 
-        public override decimal GetRealizedGainsLossesFromFX(Events.Event e)
+        public override decimal GetRealizedGainsLossesFromFX(Event e)
         {
             throw new NotImplementedException();
         }
@@ -365,15 +382,12 @@ namespace Venture.Assets
             // TODO: Come up with better formula.
             decimal fee = 0;
 
-            foreach (Events.Event e in GetEvents(time))
+            foreach (Event e in GetEventsUntil(time))
             {
-                if (e is Events.Recognition evt)
+                if (e is FuturesRecognitionEvent evt)
                 {
                     fee += evt.Fee;
-                }
-                if (e is Events.Derecognition sale)
-                {
-                    return 0;
+                    if (evt.IsTotalDerecognition) return 0;
                 }
             }
             return fee;

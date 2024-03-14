@@ -1,39 +1,33 @@
-﻿using Venture.Modules;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Venture.Data;
 
-namespace Venture.Assets
+namespace Venture
 {
-    public class Cash : Asset
+    public class Cash : StandardAsset
     {
-        public Cash(Data.Transaction tr) : base()
+        public Cash(PayTransactionDefinition ptd) : base()
         {
-            if (tr.TransactionType != TransactionType.Cash)
-            {
-                throw new Exception("Tried creating cash with transaction type other than cash.");
-            }
-            if (String.IsNullOrEmpty(tr.AccountDst))
+            if (String.IsNullOrEmpty(ptd.AccountDst))
             {
                 throw new Exception("Tried creating cash with outgoing transaction.");
             }
 
-            UniqueId = $"Cash_{tr.TransactionType}_{tr.Index}";
+            UniqueId = $"Cash_Payment_{ptd.Index}";
             AssetType = AssetType.Cash;
-            Portfolio = tr.PortfolioDst;
-            CashAccount = tr.AccountDst;
+            Portfolio = ptd.PortfolioDst;
+            CashAccount = ptd.AccountDst;
             CustodyAccount = "";
-            Currency = tr.Currency;
+            Currency = ptd.Currency;
             ValuationClass = ValuationClass.AvailableForSale;
 
-            AddEvent(new Events.Payment(this, tr, tr.Amount, Venture.Events.PaymentDirection.Inflow));
+            AddEvent(new PaymentEvent(this, ptd, ptd.Amount, PaymentDirection.Inflow));
             GenerateFlows();
         }
 
-        public Cash(Data.Transaction tr, IEnumerable<Events.Derecognition> dr) : base()
+        public Cash(SellTransactionDefinition std, IEnumerable<DerecognitionEvent> dr) : base()
         {
             if (dr.Count() < 1) throw new Exception("Tried to create cash with 0 derecognition events.");
             UniqueId = $"Cash_Sale_{dr.First().ParentAsset.UniqueId}_{dr.First().Timestamp.ToString("yyyyMMdd")}";
@@ -46,29 +40,45 @@ namespace Venture.Assets
 
             if (dr.Sum(x => x.Amount) == 0) throw new Exception($"Tried to create cash (from sale) with amount equal to 0.");
 
-            AddEvent(new Events.Payment(this, tr, dr, Venture.Events.PaymentDirection.Inflow));
+            AddEvent(new PaymentEvent(this, std, dr));
             GenerateFlows();
         }
 
-        public Cash(Events.Recognition r) : base()
+        public Cash(FuturesRecognitionEvent fr) : base()
         {
-            if (r.ParentAsset.AssetType != AssetType.Futures) throw new Exception("Tried to create cash with recognition event not originating from futures contract.");
-            UniqueId = $"Cash_Futures_{r.ParentAsset.UniqueId}_{r.Timestamp.ToString("yyyyMMdd")}";
+            UniqueId = $"Cash_FuturesRecognition_{fr.ParentAsset.UniqueId}_{fr.Timestamp.ToString("yyyyMMdd")}";
             AssetType = AssetType.Cash;
-            Portfolio = r.ParentAsset.Portfolio;
-            CashAccount = r.ParentAsset.CashAccount;
+            Portfolio = fr.ParentAsset.Portfolio;
+            CashAccount = fr.ParentAsset.CashAccount;
             CustodyAccount = "";
-            Currency = r.ParentAsset.Currency;
+            Currency = fr.ParentAsset.Currency;
             ValuationClass = ValuationClass.AvailableForSale;
 
-            if (r.Amount == 0) throw new Exception($"Tried to create cash (from sale) with amount equal to 0.");
+            if (fr.Amount <= 0) throw new Exception($"Tried to create cash (from sale) with amount equal or less than 0.");
 
-            Events.PaymentDirection direction = Venture.Events.PaymentDirection.Inflow;
-            AddEvent(new Events.Payment(this, r, Math.Abs(r.Amount), direction));
+            PaymentDirection direction = PaymentDirection.Inflow;
+            AddEvent(new PaymentEvent(this, fr, fr.Amount, direction));
             GenerateFlows();
         }
 
-        public Cash(Events.Flow fl) : base()
+        public Cash(FuturesSettlementEvent fs) : base()
+        {
+            UniqueId = $"Cash_FuturesSettlement_{fs.ParentAsset.UniqueId}_{fs.Timestamp.ToString("yyyyMMdd")}";
+            AssetType = AssetType.Cash;
+            Portfolio = fs.ParentAsset.Portfolio;
+            CashAccount = fs.ParentAsset.CashAccount;
+            CustodyAccount = "";
+            Currency = fs.ParentAsset.Currency;
+            ValuationClass = ValuationClass.AvailableForSale;
+
+            if (fs.Amount <= 0) throw new Exception($"Tried to create cash (from sale) with amount equal or less than 0.");
+
+            PaymentDirection direction = PaymentDirection.Inflow;
+            AddEvent(new PaymentEvent(this, fs, fs.Amount, direction));
+            GenerateFlows();
+        }
+
+        public Cash(FlowEvent fl) : base()
         {
             UniqueId = $"Cash_{fl.FlowType}_{fl.ParentAsset.UniqueId}_{fl.Timestamp.ToString("yyyyMMdd")}";
             AssetType = AssetType.Cash;
@@ -83,35 +93,27 @@ namespace Venture.Assets
 
             if (fl.Amount == 0) throw new Exception($"Tried to create cash (from {fl.FlowType}) with amount equal to 0.");
 
-            AddEvent(new Events.Payment(this, fl, fl.Amount, Venture.Events.PaymentDirection.Inflow));
+            AddEvent(new PaymentEvent(this, fl, fl.Amount));
             GenerateFlows();
         }
 
-        public Cash(Manual mn) : base()
+        public Cash(AdditionalPremiumEventDefinition mn) : base()
         {
-            // Creates cash from account balance interest manual event.
-            if (mn.AdjustmentType != ManualAdjustmentType.AdditionalPremium)
-                throw new Exception($"Unexpected manual adjustment type used for creating cash: {mn.AdjustmentType}.");
-
-            UniqueId = $"Cash_{mn.AdjustmentType}_{mn.Text1}_{mn.Timestamp.ToString("yyyyMMdd")}";
+            UniqueId = $"Cash_AdditionalPremium_{mn.Description}_{mn.Timestamp.ToString("yyyyMMdd")}";
             AssetType = AssetType.Cash;
-            Portfolio = mn.Text2;
+            Portfolio = mn.Portfolio;
             CustodyAccount = "";
-            CashAccount = mn.Text1;
-            Currency = mn.Text1.Split(':')[2];
+            CashAccount = mn.CashAccount;
+            Currency = mn.CashAccount.Split(':')[2];
             ValuationClass = ValuationClass.AvailableForSale;
 
-            AddEvent(new Events.Payment(this, mn, mn.Amount1, Venture.Events.PaymentDirection.Inflow));
+            AddEvent(new PaymentEvent(this, mn));
             GenerateFlows();
         }
 
-        public Cash(Manual mn, Security parentAsset, decimal amount) : base()
+        public Cash(EquityRedemptionEventDefinition mn, Security parentAsset, decimal amount) : base()
         {
-            // Creates cash from equity redemption manual event.
-            if (mn.AdjustmentType != ManualAdjustmentType.EquityRedemption)
-                throw new Exception($"Unexpected manual adjustment type used for creating cash: {mn.AdjustmentType}.");
-
-            UniqueId = $"Cash_{mn.AdjustmentType}_{mn.Text1}_{mn.Timestamp.ToString("yyyyMMdd")}";
+            UniqueId = $"Cash_EquityRedemption_{mn.InstrumentUniqueId}_{mn.Timestamp.ToString("yyyyMMdd")}";
             AssetType = AssetType.Cash;
             Portfolio = parentAsset.Portfolio;
             CustodyAccount = "";
@@ -119,7 +121,7 @@ namespace Venture.Assets
             Currency = parentAsset.Currency;
             ValuationClass = ValuationClass.AvailableForSale;
 
-            AddEvent(new Events.Payment(this, mn, amount, Venture.Events.PaymentDirection.Inflow));
+            AddEvent(new PaymentEvent(this, mn, amount));
             GenerateFlows();
         }
 
@@ -131,15 +133,15 @@ namespace Venture.Assets
         protected override void RecalculateBounds()
         {
             decimal amount = 0;
-            foreach (Events.Payment p in Events.OfType<Events.Payment>())
+            foreach (PaymentEvent p in Events.OfType<PaymentEvent>())
             {
-                if (p.Direction == Venture.Events.PaymentDirection.Inflow)
+                if (p.Direction == PaymentDirection.Inflow)
                 {
                     amount = p.Amount;
                     bounds.startDate = p.Timestamp;
                     bounds.startIndex = p.TransactionIndex;
                 }
-                if (p.Direction == Venture.Events.PaymentDirection.Outflow)
+                if (p.Direction == PaymentDirection.Outflow)
                 {
                     amount -= p.Amount;
                     if (amount <= 0)
@@ -204,17 +206,17 @@ namespace Venture.Assets
             if (!IsActive(time)) return 0;
 
             decimal amount = 0;
-            foreach (Events.Payment p in GetEvents(time).OfType<Events.Payment>())
+            foreach (PaymentEvent p in GetEventsUntil(time).OfType<PaymentEvent>())
             {
-                if (p.Direction == Venture.Events.PaymentDirection.Inflow) amount += p.Amount;
-                if (p.Direction == Venture.Events.PaymentDirection.Outflow) amount -= p.Amount;
+                if (p.Direction == PaymentDirection.Inflow) amount += p.Amount;
+                if (p.Direction == PaymentDirection.Outflow) amount -= p.Amount;
             }
             return Common.Round(amount);
         }
 
         public override decimal GetNominalAmount()
         {
-            return Events.OfType<Events.Payment>().Where(x => x.Direction == Venture.Events.PaymentDirection.Inflow).FirstOrDefault()?.Amount ?? 0;
+            return Events.OfType<PaymentEvent>().Where(x => x.Direction == PaymentDirection.Inflow).FirstOrDefault()?.Amount ?? 0;
         }
 
         public override decimal GetInterestAmount(TimeArg time)
@@ -280,7 +282,7 @@ namespace Venture.Assets
             return 0;
         }
 
-        public override decimal GetRealizedGainsLossesFromValuation(Events.Event e)
+        public override decimal GetRealizedGainsLossesFromValuation(Event e)
         {
             return 0;
         }
@@ -290,7 +292,7 @@ namespace Venture.Assets
             return 0;
         }
 
-        public override decimal GetRealizedGainsLossesFromFX(Events.Event e)
+        public override decimal GetRealizedGainsLossesFromFX(Event e)
         {
             throw new NotImplementedException();
         }

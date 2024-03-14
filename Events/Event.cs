@@ -1,14 +1,8 @@
-﻿using Venture.Data;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Venture.Events
+namespace Venture
 {
-    public enum PaymentDirection { Unspecified, Neutral, Inflow, Outflow }
-
     public abstract class Event
     {
         public string UniqueId { get; protected set; } = $"Event_{Guid.NewGuid()}";
@@ -17,7 +11,7 @@ namespace Venture.Events
 
         public DateTime Timestamp { get; set; }
 
-        public Assets.Asset ParentAsset { get; set; }
+        public Asset ParentAsset { get; set; }
 
         public decimal Amount { get; set; } = 0;
 
@@ -25,7 +19,7 @@ namespace Venture.Events
 
         public decimal FXRate { get; protected set; } = 1;
 
-        public Event(Assets.Asset parentAsset, DateTime timestamp)
+        public Event(Asset parentAsset, DateTime timestamp)
         {
             ParentAsset = parentAsset;
             Timestamp = timestamp;
@@ -36,5 +30,21 @@ namespace Venture.Events
         {
             return UniqueId;
         }
+    }
+
+    public abstract class StandardAssetEvent: Event
+    {
+        public StandardAssetEvent(StandardAsset parentAsset, DateTime timestamp): base(parentAsset, timestamp)
+        { 
+        }
+
+    }
+
+    public abstract class FuturesEvent: Event
+    {
+        public FuturesEvent(Futures parentAsset, DateTime timestamp) : base(parentAsset, timestamp)
+        {
+        }
+
     }
 }

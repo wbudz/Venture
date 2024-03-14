@@ -32,7 +32,7 @@ namespace Venture
 
     public static class Common
     {
-        public static List<Assets.Asset> Assets = new List<Assets.Asset>();
+        public static List<Asset> Assets = new List<Asset>();
 
         public static DateTime CurrentDate { get { return new DateTime(FVM.CurrentYear, FVM.CurrentMonth, DateTime.DaysInMonth(FVM.CurrentYear, FVM.CurrentMonth)); } }
 

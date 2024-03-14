@@ -1,35 +1,48 @@
-﻿using Venture.Events;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 
-namespace Venture.Assets
+namespace Venture
 {
-    public abstract class Security : Asset
+    public abstract class Security : StandardAsset
     {
         /// <summary>
         /// Underlying security (where applicable).
         /// </summary>
-        public Data.Instrument SecurityDefinition { get; protected set; }
+        public InstrumentDefinition SecurityDefinition { get; protected set; }
 
-        public Security(Data.Transaction tr, Data.Instrument definition) : base()
+        public Security(BuyTransactionDefinition btd, InstrumentDefinition definition) : base()
         {
-            UniqueId = $"{definition.AssetType}_{definition.AssetId}_{tr.Index}";
+            UniqueId = $"{definition.AssetType}_{definition.AssetId}_{btd.Index}";
             AssetType = definition.AssetType;
 
-            Portfolio = tr.PortfolioDst;
-            CashAccount = tr.AccountSrc;
-            CustodyAccount = tr.AccountDst;
-            Currency = tr.Currency;
-            ValuationClass = tr.ValuationClass;
+            Portfolio = btd.PortfolioDst;
+            CashAccount = btd.AccountSrc;
+            CustodyAccount = btd.AccountDst;
+            Currency = btd.Currency;
+            ValuationClass = btd.ValuationClass;
 
             SecurityDefinition = definition;
         }
 
-        public Security(Security template, Data.Instrument definition, string identifier)
+        public Security(TransferTransactionDefinition ttd, Security originalAsset) : base()
+        {
+            UniqueId = $"{originalAsset.SecurityDefinition.AssetType}_{originalAsset.SecurityDefinition.AssetId}_{ttd.Index}";
+            AssetType = originalAsset.SecurityDefinition.AssetType;
+
+            Portfolio = ttd.PortfolioDst;
+            CashAccount = originalAsset.CashAccount;
+            CustodyAccount = ttd.AccountDst;
+            Currency = ttd.Currency;
+            ValuationClass = ttd.ValuationClass;
+
+            SecurityDefinition = originalAsset.SecurityDefinition;
+        }
+
+        public Security(Security template, InstrumentDefinition definition, string identifier)
         {
             UniqueId = $"{definition.AssetType}_{definition.AssetId}_{template.UniqueId}_{identifier}";
             AssetType = definition.AssetType;
@@ -46,15 +59,15 @@ namespace Venture.Assets
         protected override void RecalculateBounds()
         {
             decimal count = 0;
-            foreach (Events.Event e in Events)
+            foreach (Event e in Events)
             {
-                if (e is Events.Recognition p)
+                if (e is RecognitionEvent p)
                 {
                     count = p.Count;
                     bounds.startDate = p.Timestamp;
                     bounds.startIndex = p.TransactionIndex;
                 }
-                if (e is Events.Derecognition s)
+                if (e is DerecognitionEvent s)
                 {
                     count -= s.Count;
                     if (count <= 0)
@@ -64,7 +77,7 @@ namespace Venture.Assets
                         return;
                     }
                 }
-                if (e is Events.Flow f)
+                if (e is FlowEvent f)
                 {
                     if (f.FlowType == FlowType.Redemption)
                     {
@@ -80,18 +93,18 @@ namespace Venture.Assets
 
         public override decimal GetCount()
         {
-            if (Events.FirstOrDefault() is Events.Recognition p) return p.Count;
+            if (Events.FirstOrDefault() is RecognitionEvent p) return p.Count;
             else throw new Exception("First event is not recognition.");
         }
 
         public override decimal GetCount(TimeArg time)
         {
             decimal count = 0;
-            foreach (Events.Event e in GetEvents(time))
+            foreach (Event e in GetEventsUntil(time))
             {
-                if (e is Events.Recognition p) count += p.Count;
-                if (e is Events.Derecognition s) count -= s.Count;
-                if ((e is Events.Flow f) && f.FlowType == Venture.Events.FlowType.Redemption) count = 0;
+                if (e is RecognitionEvent p) count += p.Count;
+                if (e is DerecognitionEvent s) count -= s.Count;
+                if ((e is FlowEvent f) && f.FlowType == FlowType.Redemption) count = 0;
             }
             return count;
         }
@@ -100,7 +113,7 @@ namespace Venture.Assets
         {
             if (!IsActive(time)) return 0;
 
-            var evt = Events.OfType<Events.Recognition>().FirstOrDefault();
+            var evt = Events.OfType<RecognitionEvent>().FirstOrDefault();
 
             if (evt != null)
             {
@@ -114,7 +127,7 @@ namespace Venture.Assets
 
         public override decimal GetNominalAmount()
         {
-            var evt = Events.OfType<Events.Recognition>().FirstOrDefault();
+            var evt = Events.OfType<RecognitionEvent>().FirstOrDefault();
             if (evt != null)
             {
                 return GetNominalAmount(new TimeArg(TimeArgDirection.End, evt.Timestamp, evt.TransactionIndex));
@@ -130,14 +143,14 @@ namespace Venture.Assets
             decimal count = 0;
             decimal fee = 0;
 
-            foreach (Events.Event e in GetEvents(time))
+            foreach (Event e in GetEventsUntil(time))
             {
-                if (e is Events.Recognition purchase)
+                if (e is RecognitionEvent purchase)
                 {
                     count = purchase.Count;
                     fee += purchase.Fee;
                 }
-                if (e is Events.Derecognition sale)
+                if (e is DerecognitionEvent sale)
                 {
                     decimal current = Common.Round(sale.Count / count * fee);
                     count -= sale.Count;

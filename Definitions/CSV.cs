@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using System.Windows.Shapes;
 using Venture.Modules;
 
-namespace Venture.Data
+namespace Venture
 {
     public class CSV
     {
@@ -84,22 +84,22 @@ namespace Venture.Data
             Lines = lines.ToArray();
         }
 
-        public IEnumerable<T> Interpret<T>() where T : DataPoint, new()
+        public IEnumerable<Dictionary<string, string>> Interpret()
         {
             if (Lines == null) yield break;
             if (Headers == null) yield break;
 
             var headers = Headers.Select(x => x.ToLower()).ToArray();
 
-            T newItem;
-
             for (int i = 0; i < Lines.Length; i++)
             {
+                Dictionary<string, string> newItem = new();
                 try
                 {
-                    newItem = new();
-                    newItem.FromCSV(headers, Lines[i], i);
-                    if (!newItem.Active) continue;
+                    for (int j = 0; j < headers.Length; j++)
+                    {
+                        newItem.Add(headers[j], Lines[i][j]);
+                    }
                 }
                 catch (Exception ex)
                 {

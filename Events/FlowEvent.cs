@@ -5,11 +5,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Venture.Events
+namespace Venture
 {
-    public enum FlowType { Undefined, Dividend, Coupon, Redemption, FuturesSettlement }
+    public enum FlowType { Undefined, Dividend, Coupon, Redemption }
 
-    public class Flow : Event
+    public class FlowEvent : Event
     {
         public DateTime RecordDate { get; protected set; }
 
@@ -21,7 +21,7 @@ namespace Venture.Events
 
         public decimal GrossAmount { get { return Amount + Tax; } }
 
-        public Flow(Assets.Asset parentAsset, DateTime recordDate, DateTime timestamp, FlowType type, decimal rate, string currency, decimal fxRate) : base(parentAsset, timestamp)
+        public FlowEvent(StandardAsset parentAsset, DateTime recordDate, DateTime timestamp, FlowType type, decimal rate, string currency, decimal fxRate) : base(parentAsset, timestamp)
         {
             UniqueId = $"Flow_{type}_{parentAsset.UniqueId}_{timestamp.ToString("yyyyMMdd")}";
             RecordDate = recordDate;
@@ -35,16 +35,15 @@ namespace Venture.Events
         public void RecalculateAmount()
         {
             TimeArg time = new TimeArg(TimeArgDirection.End, RecordDate);
-            Data.Manual? manualAdjustment;
             switch (FlowType)
             {
                 case FlowType.Undefined: throw new Exception("Cannot recalculate amount for undefined flow event.");
                 case FlowType.Dividend:
                     // Dividend amount, with potential adjustments
-                    manualAdjustment = Data.Definitions.GetManualAdjustment(Data.ManualAdjustmentType.DividendAmountAdjustment, Timestamp, ParentAsset.UniqueId ?? "");
-                    if (manualAdjustment != null)
+                    var daa = Definitions.ManualEvents.OfType<DividendAmountAdjustmentEventDefinition>().SingleOrDefault(x => x.Timestamp == Timestamp && x.AssetUniqueId == ParentAsset.UniqueId);
+                    if (daa != null)
                     {
-                        Amount = manualAdjustment.Amount1;
+                        Amount = daa.Amount;
                     }
                     else
                     {
@@ -60,9 +59,9 @@ namespace Venture.Events
                         Amount = Common.Round(Rate * ParentAsset.GetCount(time) * fxRate);
                     }
                     // Tax, with potential adjustments
-                    manualAdjustment = Data.Definitions.GetManualAdjustment(Data.ManualAdjustmentType.DividendTaxAdjustment, Timestamp, ParentAsset.UniqueId ?? "");
-                    if (manualAdjustment != null)
-                    { Tax = manualAdjustment.Amount1; }
+                    var dta = Definitions.ManualEvents.OfType<DividendTaxAdjustmentEventDefinition>().SingleOrDefault(x => x.Timestamp == Timestamp && x.AssetUniqueId == ParentAsset.UniqueId);
+                    if (dta != null)
+                    { Tax = dta.Tax; }
                     else if (Globals.TaxFreePortfolios.Contains(ParentAsset.Portfolio))
                     { Tax = 0; }
                     else
@@ -71,10 +70,10 @@ namespace Venture.Events
                     break;
                 case FlowType.Coupon:
                     // Coupon amount, with potential adjustments
-                    manualAdjustment = Data.Definitions.GetManualAdjustment(Data.ManualAdjustmentType.CouponAmountAdjustment, Timestamp, ParentAsset.UniqueId ?? "");
-                    if (manualAdjustment != null)
+                    var caa = Definitions.ManualEvents.OfType<CouponAmountAdjustmentEventDefinition>().SingleOrDefault(x => x.Timestamp == Timestamp && x.AssetUniqueId == ParentAsset.UniqueId);
+                    if (caa != null)
                     {
-                        Amount = manualAdjustment.Amount1;
+                        Amount = caa.Amount;
                     }
                     else
                     {
@@ -90,9 +89,9 @@ namespace Venture.Events
                         Amount = Common.Round(Rate * ParentAsset.GetNominalAmount(time) * fxRate);
                     }
                     // Tax, with potential adjustments
-                    manualAdjustment = Data.Definitions.GetManualAdjustment(Data.ManualAdjustmentType.CouponTaxAdjustment, Timestamp, ParentAsset.UniqueId ?? "");
-                    if (manualAdjustment != null)
-                    { Tax = manualAdjustment.Amount1; }
+                    var cta = Definitions.ManualEvents.OfType<CouponTaxAdjustmentEventDefinition>().SingleOrDefault(x => x.Timestamp == Timestamp && x.AssetUniqueId == ParentAsset.UniqueId);
+                    if (cta != null)
+                    { Tax = cta.Tax; }
                     else if (Globals.TaxFreePortfolios.Contains(ParentAsset.Portfolio))
                     { Tax = 0; }
                     else
@@ -102,9 +101,9 @@ namespace Venture.Events
                 case FlowType.Redemption:
                     Amount = Common.Round(Rate * ParentAsset.GetNominalAmount(time));
                     // Tax, with potential adjustments
-                    manualAdjustment = Data.Definitions.GetManualAdjustment(Data.ManualAdjustmentType.RedemptionTaxAdjustment, Timestamp, ParentAsset.UniqueId ?? "");
-                    if (manualAdjustment != null)
-                    { Tax = manualAdjustment.Amount1; }
+                    var rta = Definitions.ManualEvents.OfType<RedemptionTaxAdjustmentEventDefinition>().SingleOrDefault(x => x.Timestamp == Timestamp && x.AssetUniqueId == ParentAsset.UniqueId);
+                    if (rta != null)
+                    { Tax = rta.Tax; }
                     else if (Globals.TaxFreePortfolios.Contains(ParentAsset.Portfolio))
                     { Tax = 0; }
                     else
@@ -114,10 +113,6 @@ namespace Venture.Events
                         Tax = TaxCalculations.CalculateFromRedemption(Amount - Math.Min(purchaseAmount, nominalAmount));
                     }
                     Amount -= Tax;
-                    break;
-                case FlowType.FuturesSettlement:
-                    Amount = Rate;
-                    Rate = 0;
                     break;
                 default: throw new Exception("Cannot recalculate amount for undefined flow event.");
             }

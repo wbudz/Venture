@@ -1,5 +1,4 @@
-﻿using Venture.Events;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -13,6 +12,8 @@ namespace Venture.Modules
         public string UniqueId { get; set; } = "";
 
         public string ParentAssetUniqueId { get; set; } = "";
+
+        public string AssociatedEvent { get; set; } = "";
 
         public string Portfolio { get; set; } = "";
 
@@ -42,10 +43,11 @@ namespace Venture.Modules
 
         public decimal FXRate { get; set; } = 1;
 
-        public CashflowViewEntry(Events.Payment p)
+        public CashflowViewEntry(PaymentEvent p)
         {
             UniqueId = p.UniqueId;
             ParentAssetUniqueId = p.ParentAsset.UniqueId;
+            AssociatedEvent = p.AssociatedEvent?.UniqueId ?? "";
             Portfolio = p.ParentAsset.Portfolio;
             CashAccount = p.ParentAsset.CashAccount;
             Broker = CashAccount.Split(':')[1];
@@ -60,16 +62,22 @@ namespace Venture.Modules
             GrossAmount = Amount;
             FXRate = p.FXRate;
 
-            if (TransactionIndex < 0) throw new Exception("Transaction index missing.");
-            Data.Transaction tr = Data.Definitions.Transactions.Single(x => x.Index == TransactionIndex);
-            if (tr.TransactionType == Data.TransactionType.Buy) CashflowType = "Purchase";
-            if (tr.TransactionType == Data.TransactionType.Sell) CashflowType = "Sale";
-            if (tr.TransactionType == Data.TransactionType.Cash) CashflowType = "Cash payment";
-            if (tr.TransactionType == Data.TransactionType.Transfer) CashflowType = "Asset transfer";
+            if (p.TransactionIndex > -1)
+            {
+                TransactionDefinition tr = Definitions.Transactions.Single(x => x.Index == TransactionIndex);
+                if (tr is BuyTransactionDefinition) CashflowType = "Purchase";
+                if (tr is SellTransactionDefinition) CashflowType = "Sale";
+                if (tr is PayTransactionDefinition) CashflowType = "Cash payment";
+                if (tr is TransferTransactionDefinition) CashflowType = "Asset transfer";
+            }
+            else if (p.AssociatedEvent != null)
+            {
+                CashflowType = p.AssociatedEvent.GetType().ToString();
+            }
 
         }
 
-        public CashflowViewEntry(Events.Flow f)
+        public CashflowViewEntry(FlowEvent f)
         {
             UniqueId = f.UniqueId;
             ParentAssetUniqueId = f.ParentAsset.UniqueId;
@@ -90,7 +98,7 @@ namespace Venture.Modules
             CashflowType = f.FlowType.ToString();
         }
 
-        public CashflowViewEntry(Events.Recognition r)
+        public CashflowViewEntry(RecognitionEvent r)
         {
             UniqueId = r.UniqueId;
             ParentAssetUniqueId = r.ParentAsset.UniqueId;

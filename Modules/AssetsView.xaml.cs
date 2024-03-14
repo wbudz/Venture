@@ -55,7 +55,7 @@ namespace Venture.Modules
 
         private void CopyButton_Click(object sender, RoutedEventArgs e)
         {
-            Clipboard.SetText(Data.CSV.Export<AssetsViewEntry>(AssetEntries));
+            Clipboard.SetText(CSV.Export<AssetsViewEntry>(AssetEntries));
         }
 
         private void UserControl_Loaded(object sender, RoutedEventArgs e)

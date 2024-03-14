@@ -50,17 +50,18 @@ namespace Venture.Modules
                 1);
             endDate = new DateTime(endDate.Year, endDate.Month, DateTime.DaysInMonth(endDate.Year, endDate.Month));
 
-            foreach (var asset in Common.Assets.OfType<Assets.Cash>())
+            foreach (var asset in Common.Assets.OfType<Cash>())
             {
-                source.AddRange(asset.Events.OfType<Events.Payment>().Where(x => x.TransactionIndex != -1 && x.Timestamp >= startDate && x.Timestamp <= endDate).Select(x => new CashflowViewEntry(x)));
+                source.AddRange(asset.Events.OfType<PaymentEvent>().Where(x => x.Timestamp >= startDate && x.Timestamp <= endDate).Select(x => new CashflowViewEntry(x)));
             }
             foreach (var asset in Common.Assets)
             {
-                source.AddRange(asset.Events.OfType<Events.Flow>().Where(x => x.Timestamp >= startDate && x.Timestamp <= endDate).Select(x => new CashflowViewEntry(x)));
+                //source.AddRange(asset.Events.OfType<FlowEvent>().Where(x => x.Timestamp >= startDate && x.Timestamp <= endDate).Select(x => new CashflowViewEntry(x)));
             }
             foreach (var asset in Common.Assets)
             {
-                source.AddRange(asset.Events.OfType<Events.Recognition>().Where(x => x.ParentAsset.AssetType == AssetType.Futures && x.Timestamp >= startDate && x.Timestamp <= endDate && x.Amount != 0).Select(x => new CashflowViewEntry(x)));
+                //source.AddRange(asset.Events.OfType<Events.FuturesRecognition>().Where(x => x.Timestamp >= startDate && x.Timestamp <= endDate).Select(x => new CashflowViewEntry(x)));
+                //source.AddRange(asset.Events.OfType<Events.FuturesSettlement>().Where(x => x.Timestamp >= startDate && x.Timestamp <= endDate).Select(x => new CashflowViewEntry(x)));
             }
 
             foreach (var item in source.OrderBy(x => x.Timestamp).ThenBy(x => x.TransactionIndex))
@@ -79,7 +80,7 @@ namespace Venture.Modules
 
         private void CopyButton_Click(object sender, RoutedEventArgs e)
         {
-            Clipboard.SetText(Data.CSV.Export<CashflowViewEntry>(CashflowViewEntries));
+            Clipboard.SetText(CSV.Export<CashflowViewEntry>(CashflowViewEntries));
         }
 
         private void UserControl_Loaded(object sender, RoutedEventArgs e)

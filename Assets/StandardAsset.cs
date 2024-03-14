@@ -6,11 +6,7 @@ using System.Threading.Tasks;
 
 namespace Venture
 {
-    public class FX
+    public abstract class StandardAsset: Asset
     {
-        public static decimal GetRate(DateTime timestamp, string currencyCode)
-        {
-            return 1;
-        }
     }
 }

@@ -1,18 +1,19 @@
-﻿using System;
+﻿using Financial;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
-using Venture.Assets;
+using System.Xml.Linq;
 using static Financial.Calendar;
 
-namespace Venture.Data
+namespace Venture
 {
     // InstrumentId	RecordDate	ExDate	PaymentDate	PaymentPerShare
 
-    public class Dividend : DataPoint
+    public class DividendDefinition : Definition
     {
         public string UniqueId { get { return $"{InstrumentUniqueId}_{PaymentDate:yyyyMMdd}"; } }
 
@@ -40,21 +41,17 @@ namespace Venture.Data
 
         public decimal FXRate { get; private set; } = 1;
 
-        public override void FromCSV(string[] headers, string[] line, int index)
+        public DividendDefinition(Dictionary<string, string> data) : base(data)
         {
-            for (int i = 0; i < Math.Min(headers.Length, line.Length); i++)
-            {
-                if (headers[i] == "assettype") AssetType = ConvertToEnum<AssetType>(line[i]);
-                if (headers[i] == "assetid") AssetId = line[i];
-                if (headers[i] == "recorddate") RecordDate = ConvertToDateTime(line[i]);
-                if (headers[i] == "exdate") ExDate = ConvertToDateTime(line[i]);
-                if (headers[i] == "paymentdate") PaymentDate = ConvertToDateTime(line[i]);
-                if (headers[i] == "paymentpershare") PaymentPerShare = ConvertToDecimal(line[i]);
-                if (headers[i] == "currency") Currency = line[i];
-                if (headers[i] == "fxrate") FXRate = ConvertToDecimal(line[i]);
-                if (headers[i] == "active") Active = ConvertToBool(line[i]);
-            }
-        }
+            AssetType = ConvertToEnum<AssetType>(data["assettype"]);
+            AssetId = data["assetid"];
+            RecordDate = ConvertToDateTime(data["recorddate"]);
+            ExDate = ConvertToDateTime(data["exdate"]);
+            PaymentDate = ConvertToDateTime(data["paymentdate"]);
+            PaymentPerShare = ConvertToDecimal(data["paymentpershare"]);
+            Currency = data["currency"];
+            FXRate = GetFXRateFromData(data["fxrate"]);
+        }            
 
         public override string ToString()
         {

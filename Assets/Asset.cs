@@ -6,9 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Documents;
-using Venture.Data;
 
-namespace Venture.Assets
+namespace Venture
 {
     /// <summary>
     /// Represents generic asset presentable as part of assets (any instrument, traded or not, cash, etc.).
@@ -16,11 +15,11 @@ namespace Venture.Assets
     /// </summary>
     public abstract class Asset
     {
-        protected List<Events.Event> events = new List<Events.Event>();
+        protected List<Event> events = new List<Event>();
         /// <summary>
         /// Events happening in asset's lifetime (purchases, sales, cash flows like coupons, etc.)
         /// </summary>
-        public IEnumerable<Events.Event> Events { get { return events.AsReadOnly(); } }
+        public IEnumerable<Event> Events { get { return events.AsReadOnly(); } }
 
         /// <summary>
         /// Unique identifier of the asset. Based on identifier of the transaction that results in asset creation.
@@ -144,7 +143,7 @@ namespace Venture.Assets
         /// <param name="instr"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public static Asset CreateFromBuyTransaction(Transaction tr, Instrument instr)
+        public static Asset CreateFromBuyTransaction(BuyTransactionDefinition btd, InstrumentDefinition instr)
         {
             switch (instr.AssetType)
             {
@@ -154,7 +153,7 @@ namespace Venture.Assets
                     throw new Exception("Tried creating asset with purchase transaction and cash instrument type.");
                 case AssetType.Equity:
                 case AssetType.ETF:
-                    return new Assets.Equity(tr, instr);
+                    return new Equity(btd, instr);
                 case AssetType.FixedTreasuryBonds:
                 case AssetType.FloatingTreasuryBonds:
                 case AssetType.FixedRetailTreasuryBonds:
@@ -162,19 +161,19 @@ namespace Venture.Assets
                 case AssetType.IndexedRetailTreasuryBonds:
                 case AssetType.FixedCorporateBonds:
                 case AssetType.FloatingCorporateBonds:
-                    return new Assets.Bond(tr, instr);
+                    return new Bond(btd, instr);
                 case AssetType.MoneyMarketFund:
                 case AssetType.EquityMixedFund:
                 case AssetType.TreasuryBondsFund:
                 case AssetType.CorporateBondsFund:
-                    return new Assets.Fund(tr, instr);
+                    return new Fund(btd, instr);
                 case AssetType.Futures:
                     throw new Exception("Tried creating futures with purchase transaction.");
                 default: throw new Exception("Tried creating asset with unknown instrument type.");
             }
         }
 
-        public static Asset CreateFromTransferTransaction(Transaction tr, Security originalAsset)
+        public static Asset CreateFromTransferTransaction(TransferTransactionDefinition ttd, Asset originalAsset)
         {
             switch (originalAsset.AssetType)
             {
@@ -184,7 +183,7 @@ namespace Venture.Assets
                     throw new Exception("Tried creating asset with transfer transaction and cash instrument type.");
                 case AssetType.Equity:
                 case AssetType.ETF:
-                    return new Assets.Equity(tr, originalAsset.SecurityDefinition);
+                    return new Equity(ttd, (Equity)originalAsset);
                 case AssetType.FixedTreasuryBonds:
                 case AssetType.FloatingTreasuryBonds:
                 case AssetType.FixedRetailTreasuryBonds:
@@ -192,12 +191,12 @@ namespace Venture.Assets
                 case AssetType.IndexedRetailTreasuryBonds:
                 case AssetType.FixedCorporateBonds:
                 case AssetType.FloatingCorporateBonds:
-                    return new Assets.Bond(tr, originalAsset.SecurityDefinition);
+                    return new Bond(ttd, (Bond)originalAsset);
                 case AssetType.MoneyMarketFund:
                 case AssetType.EquityMixedFund:
                 case AssetType.TreasuryBondsFund:
                 case AssetType.CorporateBondsFund:
-                    return new Assets.Fund(tr, originalAsset.SecurityDefinition);
+                    return new Fund(ttd, (Fund)originalAsset);
                 case AssetType.Futures:
                     throw new Exception("Tried creating futures with transfer transaction.");
                 default: throw new Exception("Tried creating asset with unknown instrument type.");
@@ -211,10 +210,10 @@ namespace Venture.Assets
                 case AssetType.Undefined:
                     throw new Exception("Undefined asset type.");
                 case AssetType.Cash:
-                    return typeof(Assets.Cash);
+                    return typeof(Cash);
                 case AssetType.Equity:
                 case AssetType.ETF:
-                    return typeof(Assets.Equity);
+                    return typeof(Equity);
                 case AssetType.FixedTreasuryBonds:
                 case AssetType.FloatingTreasuryBonds:
                 case AssetType.FixedRetailTreasuryBonds:
@@ -222,14 +221,14 @@ namespace Venture.Assets
                 case AssetType.IndexedRetailTreasuryBonds:
                 case AssetType.FixedCorporateBonds:
                 case AssetType.FloatingCorporateBonds:
-                    return typeof(Assets.Bond);
+                    return typeof(Bond);
                 case AssetType.MoneyMarketFund:
                 case AssetType.EquityMixedFund:
                 case AssetType.TreasuryBondsFund:
                 case AssetType.CorporateBondsFund:
-                    return typeof(Assets.Fund);
+                    return typeof(Fund);
                 case AssetType.Futures:
-                    return typeof(Assets.Futures);
+                    return typeof(Futures);
                 default: throw new Exception("Unknown instrument type.");
             }
         }
@@ -241,20 +240,20 @@ namespace Venture.Assets
 
         protected abstract void RecalculateBounds();
 
-        public virtual void AddEvent(Events.Event e)
+        public virtual void AddEvent(Event e)
         {
             var index = events.FindIndex(x => x.Timestamp > e.Timestamp || (e.TransactionIndex > -1 && x.TransactionIndex > e.TransactionIndex));
             events.Insert(index == -1 ? events.Count : index, e);
 
             // Adjust later events.
-            if (index > -1 && e is Events.Derecognition dr)
+            if (index > -1 && e is DerecognitionEvent dr)
             {
                 // total derecognition
                 if (dr.IsTotal)
                 {
                     for (int i = events.Count - 1; i > index; i--)
                     {
-                        if (events[i] is Events.Flow f && f.RecordDate < dr.Timestamp)
+                        if (events[i] is FlowEvent f && f.RecordDate < dr.Timestamp)
                         {
                             f.RecalculateAmount(); // continue?
                         }
@@ -269,7 +268,7 @@ namespace Venture.Assets
                 {
                     for (int i = events.Count - 1; i > index; i--)
                     {
-                        if (events[i] is Events.Flow f) f.RecalculateAmount();
+                        if (events[i] is FlowEvent f) f.RecalculateAmount();
                     }
                 }
             }
@@ -350,7 +349,7 @@ namespace Venture.Assets
             return IsActive(date, date);
         }
 
-        public IEnumerable<Events.Event> GetEvents(TimeArg time)
+        public IEnumerable<Event> GetEventsUntil(TimeArg time)
         {
             foreach (var evt in events)
             {
@@ -364,11 +363,11 @@ namespace Venture.Assets
                     }
                     if (time.Direction == TimeArgDirection.Start && time.TransactionIndex >= 0)
                     {
-                        if (evt.TransactionIndex < time.TransactionIndex) yield return evt;
+                        if (evt.TransactionIndex > -1 && evt.TransactionIndex < time.TransactionIndex) yield return evt;
                     }
                     if (time.Direction == TimeArgDirection.End && time.TransactionIndex >= 0)
                     {
-                        if (evt.TransactionIndex <= time.TransactionIndex) yield return evt;
+                        if (evt.TransactionIndex > -1 && evt.TransactionIndex <= time.TransactionIndex) yield return evt;
                     }
                     if (time.Direction == TimeArgDirection.End && time.TransactionIndex < 0)
                     {
@@ -388,7 +387,9 @@ namespace Venture.Assets
         public DateTime GetPurchaseDate()
         {
             var evt = events.First();
-            if (!(evt is Venture.Events.Recognition) && !(evt is Venture.Events.Payment p && p.Direction == Venture.Events.PaymentDirection.Inflow && this is Cash))
+            if (!(evt is RecognitionEvent) 
+                && !(evt is PaymentEvent p && p.Direction == PaymentDirection.Inflow && this is Cash)
+                && !(evt is FuturesRecognitionEvent && this is Futures))
                 throw new Exception($"Unexpected first event of an asset: {evt}");
             return evt.Timestamp;
         }
@@ -399,7 +400,7 @@ namespace Venture.Assets
         /// <returns>Maturity date of the investment or null if there is no maturity date (e.g. in case of equity instruments)</returns>
         public DateTime? GetMaturityDate()
         {
-            return events.OfType<Events.Flow>().LastOrDefault(x => x.FlowType == Venture.Events.FlowType.Redemption)?.Timestamp;
+            return events.OfType<FlowEvent>().LastOrDefault(x => x.FlowType == FlowType.Redemption)?.Timestamp;
         }
 
         /// <summary>
@@ -409,7 +410,7 @@ namespace Venture.Assets
         /// <returns>Date of the next coupon or null if there is no next coupon date (e.g. in case of equity instruments)</returns>
         public DateTime? GetNextCouponDate(DateTime date)
         {
-            return events.OfType<Events.Flow>().FirstOrDefault(x => x.Timestamp > date && x.FlowType == Venture.Events.FlowType.Coupon || x.FlowType == Venture.Events.FlowType.Redemption)?.Timestamp;
+            return events.OfType<FlowEvent>().FirstOrDefault(x => x.Timestamp > date && x.FlowType == FlowType.Coupon || x.FlowType == FlowType.Redemption)?.Timestamp;
         }
 
         public abstract decimal GetCount();
@@ -600,7 +601,7 @@ namespace Venture.Assets
         /// <param name="tax">If true, rules regarding tax calculation will be applied, if needed</param>
         /// <param name="yearly">If true, unrealized gains/losses from the current year will be derecognized, otherwise from the point of initial recognition</param>
         /// <returns>Market valuation gain or loss</returns>
-        public abstract decimal GetRealizedGainsLossesFromValuation(Events.Event e);
+        public abstract decimal GetRealizedGainsLossesFromValuation(Event e);
 
         /// <summary>
         /// Gets income resulting from market valuation of the investment, i.e. difference between market valuation (market prices) and amortized cost valuation. Resulting difference may be booked, depending on accounting environment, in profit and loss statement or as other comprehensive income (capital).
@@ -623,7 +624,7 @@ namespace Venture.Assets
         /// <param name="tax">If true, rules regarding tax calculation will be applied, if needed</param>
         /// <param name="yearly">If true, unrealized gains/losses from the current year will be derecognized, otherwise from the point of initial recognition</param>
         /// <returns>FX gain or loss</returns>
-        public abstract decimal GetRealizedGainsLossesFromFX(Events.Event e);
+        public abstract decimal GetRealizedGainsLossesFromFX(Event e);
 
         /// <summary>
         /// Gets income resulting from FX effects of the investment.
@@ -637,6 +638,41 @@ namespace Venture.Assets
         public abstract decimal GetUnrealizedGainsLossesFromFX(TimeArg time);
 
         #endregion
+
+        public static bool ConformsToAssetUniqueId(string assetUniqueId)
+        {
+            string[] id = assetUniqueId.Split('_');
+            if (id.Length != 3) return false;
+            if (!Definitions.Instruments.Any(x => x.AssetType.ToString() == id[0])) return false;
+            if (!Definitions.Instruments.Any(x => x.AssetId == id[1])) return false;
+            if (!Definitions.Transactions.Any(x => x.Index.ToString() == id[2])) return false;
+            return true;
+        }
+
+        public static bool ConformsToInstrumentUniqueId(string instrumentUniqueId)
+        {
+            string[] id = instrumentUniqueId.Split('_');
+            if (id.Length != 2) return false;
+            if (!Definitions.Instruments.Any(x => x.AssetType.ToString() == id[0])) return false;
+            if (!Definitions.Instruments.Any(x => x.AssetId == id[1])) return false;
+            return true;
+        }
+
+        public static bool ConformsToCashAccountId(string accountId)
+        {
+            string[] id = accountId.Split(':');
+            if (id.Length != 4) return false;
+            if (id[0]!="CASH") return false;
+            return true;
+        }
+
+        public static bool ConformsToCustodyAccountId(string accountId)
+        {
+            string[] id = accountId.Split(':');
+            if (id.Length != 4) return false;
+            if (id[0] != "CSTD") return false;
+            return true;
+        }
 
     }
 }

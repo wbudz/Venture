@@ -1,5 +1,4 @@
-﻿using Venture.Data;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,27 +6,34 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace Venture.Assets
+namespace Venture
 {
     public class Equity : Security
     {
-        public Equity(Data.Transaction tr, Data.Instrument definition) : base(tr, definition)
+        public Equity(BuyTransactionDefinition btd, InstrumentDefinition definition) : base(btd, definition)
         {
-            AddEvent(new Events.Recognition(this, tr, tr.Timestamp));
+            AddEvent(new RecognitionEvent(this, btd));
             GenerateFlows();
         }
 
-        public Equity(Equity template, Data.Instrument definition, Manual manual, decimal count, decimal price) : base(template, definition, manual.UniqueId)
+        public Equity(TransferTransactionDefinition ttd, Equity originalAsset) : base(ttd, originalAsset)
         {
-            AddEvent(new Events.Recognition(this, manual, count, price));
+            AddEvent(new RecognitionEvent(this, ttd, originalAsset));
+            GenerateFlows();
+        }
+
+        public Equity(Equity template, InstrumentDefinition definition, EquitySpinOffEventDefinition manual, decimal count, decimal price, bool includeFee) : base(template, definition, manual.UniqueId)
+        {
+            // Used for equity spin-offs
+            AddEvent(new RecognitionEvent(this, manual, count, price, template, includeFee));
             GenerateFlows();
         }
 
         protected override void GenerateFlows()
         {
-            foreach (var d in Data.Definitions.Dividends.Where(x => x.InstrumentUniqueId == InstrumentUniqueId && x.RecordDate >= events.First().Timestamp))
+            foreach (var d in Definitions.Dividends.Where(x => x.InstrumentUniqueId == InstrumentUniqueId && x.RecordDate >= events.First().Timestamp))
             {
-                var flow = new Events.Flow(this, d.RecordDate, d.PaymentDate, Venture.Events.FlowType.Dividend, d.PaymentPerShare, d.Currency, d.FXRate);
+                var flow = new FlowEvent(this, d.RecordDate, d.PaymentDate, FlowType.Dividend, d.PaymentPerShare, d.Currency, d.FXRate);
                 AddEvent(flow);
             }
         }
@@ -46,11 +52,10 @@ namespace Venture.Assets
         {
             if (!IsActive(time)) return 0;
 
-            Data.Price? price = Data.Definitions.Prices.LastOrDefault(x => x.InstrumentUniqueId == this.InstrumentUniqueId && x.Timestamp <= time.Date);
+            PriceDefinition? price = Definitions.Prices.LastOrDefault(x => x.InstrumentUniqueId == this.InstrumentUniqueId && x.Timestamp <= time.Date);
             if (price == null)
             {
                 throw new Exception($"No price for: {UniqueId} at date: {time.Date:yyyy-MM-dd}.");
-                //return GetAmortizedCostPrice(time, dirty);
             }
             else
             {
@@ -128,9 +133,9 @@ namespace Venture.Assets
         {
             decimal income = 0;
 
-            foreach (var e in GetEvents(end))
+            foreach (var e in GetEventsUntil(end))
             {
-                if (e is Events.Flow f && f.FlowType == Venture.Events.FlowType.Dividend)
+                if (e is FlowEvent f && f.FlowType == FlowType.Dividend)
                 {
                     income += Common.Round(f.Amount);
                 }
@@ -139,14 +144,14 @@ namespace Venture.Assets
             return income;
         }
 
-        public override decimal GetRealizedGainsLossesFromValuation(Events.Event e)
+        public override decimal GetRealizedGainsLossesFromValuation(Event e)
         {
-            if (!(e is Events.Derecognition))
+            if (!(e is DerecognitionEvent))
             {
                 throw new ArgumentException("GetRealizedGainsLossesFromValuation called for different event type than sale.");
             }
 
-            Events.Derecognition s = (Events.Derecognition)e;
+            DerecognitionEvent s = (DerecognitionEvent)e;
 
             decimal factor = s.Count / GetCount(new TimeArg(TimeArgDirection.Start, s.Timestamp, s.TransactionIndex));
             decimal result = factor * GetUnrealizedGainsLossesFromValuation(new TimeArg(TimeArgDirection.Start, s.Timestamp, s.TransactionIndex));
@@ -161,15 +166,15 @@ namespace Venture.Assets
             (decimal marketPrice, decimal amortizedPrice) previous = (0, 0);
             (decimal marketPrice, decimal amortizedPrice) current = (0, 0);
 
-            foreach (var e in GetEvents(time))
+            foreach (var e in GetEventsUntil(time))
             {
-                if (e is Events.Recognition p)
+                if (e is RecognitionEvent p)
                 {
                     count = p.Count;
                     previous = (p.CleanPrice, p.CleanPrice);
                     current = (p.CleanPrice, p.CleanPrice);
                 }
-                if (e is Events.Derecognition s)
+                if (e is DerecognitionEvent s)
                 {
                     previous = current;
                     current = (s.CleanPrice, s.AmortizedCostCleanPrice);
@@ -189,7 +194,7 @@ namespace Venture.Assets
             return result;
         }
 
-        public override decimal GetRealizedGainsLossesFromFX(Events.Event e)
+        public override decimal GetRealizedGainsLossesFromFX(Event e)
         {
             throw new NotImplementedException();
         }
