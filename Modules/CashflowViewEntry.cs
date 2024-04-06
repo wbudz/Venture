@@ -56,10 +56,17 @@ namespace Venture.Modules
             RecordDate = p.Timestamp;
             Direction = p.Direction;
             Rate = 0;
-            Tax = 0;
+
+            if (p.AssociatedEvent is FlowEvent fe)
+                Tax = fe.Tax;
+            else if (p.AssociatedEvent is DerecognitionEvent de)
+                Tax = de.Tax;
+            else
+                Tax = 0;
+
             TransactionIndex = p.TransactionIndex;
             Amount = p.Amount * (p.Direction == PaymentDirection.Outflow ? -1 : 1);
-            GrossAmount = Amount;
+            GrossAmount = Amount + Tax;
             FXRate = p.FXRate;
 
             if (p.TransactionIndex > -1)
@@ -75,48 +82,6 @@ namespace Venture.Modules
                 CashflowType = p.AssociatedEvent.GetType().ToString();
             }
 
-        }
-
-        public CashflowViewEntry(FlowEvent f)
-        {
-            UniqueId = f.UniqueId;
-            ParentAssetUniqueId = f.ParentAsset.UniqueId;
-            Portfolio = f.ParentAsset.Portfolio;
-            CashAccount = f.ParentAsset.CashAccount;
-            Broker = CashAccount.Split(':')[1];
-            Currency = f.ParentAsset.Currency;
-            Timestamp = f.Timestamp;
-            RecordDate = f.RecordDate;
-            Direction = PaymentDirection.Inflow;
-            Rate = f.Rate;
-            Tax = f.Tax;
-            TransactionIndex = f.TransactionIndex;
-            Amount = f.Amount;
-            GrossAmount = f.GrossAmount;
-            FXRate = f.FXRate;
-
-            CashflowType = f.FlowType.ToString();
-        }
-
-        public CashflowViewEntry(RecognitionEvent r)
-        {
-            UniqueId = r.UniqueId;
-            ParentAssetUniqueId = r.ParentAsset.UniqueId;
-            Portfolio = r.ParentAsset.Portfolio;
-            CashAccount = r.ParentAsset.CashAccount;
-            Broker = CashAccount.Split(':')[1];
-            Currency = r.ParentAsset.Currency;
-            Timestamp = r.Timestamp;
-            RecordDate = r.Timestamp;
-            Direction = r.Amount > 0 ? PaymentDirection.Inflow : PaymentDirection.Outflow;
-            Rate = 0;
-            Tax = 0;
-            TransactionIndex = r.TransactionIndex;
-            Amount = r.Amount;
-            GrossAmount = r.GrossAmount;
-            FXRate = r.FXRate;
-
-            CashflowType = "Futures settlement";
         }
     }
 }

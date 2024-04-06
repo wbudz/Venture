@@ -72,7 +72,7 @@ namespace Venture
                     case "pay": newItem = new PayTransactionDefinition(item); break;
                     case "transfer": newItem = new TransferTransactionDefinition(item); break;
                     default:
-                        throw new Exception($"Incorrect transaction type definition: {item}.");
+                        continue;
                 }
                 if (newItem.Active)
                 {

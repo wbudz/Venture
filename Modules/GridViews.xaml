@@ -443,10 +443,17 @@
     </GridView>
     <GridView x:Key="AssetsGridView">
         <GridView.Columns>
+            <GridViewColumn Header="Unique Id" Width="Auto">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding UniqueId}"/>
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
             <GridViewColumn Header="Type" Width="Auto">
                 <GridViewColumn.CellTemplate>
                     <DataTemplate>
-                        <TextBlock Text="{Binding AssetType}" ToolTip="{Binding UniqueId}"/>
+                        <TextBlock Text="{Binding AssetType}"/>
                     </DataTemplate>
                 </GridViewColumn.CellTemplate>
             </GridViewColumn>

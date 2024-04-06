@@ -87,7 +87,8 @@ namespace Venture
 
                 while (date >= start)
                 {
-                    var coupon = coupons.LastOrDefault(x => x.Timestamp <= date); // if no coupon is defined, use the last available
+                    var coupon = coupons.FirstOrDefault(x => x.Timestamp >= date);
+                    if (coupon == null) coupon = coupons.LastOrDefault();
                     if (coupon == null) throw new Exception($"No coupon rate defined for {InstrumentUniqueId} at {date:yyyy-MM-dd}.");
 
                     if (date <= end)
@@ -192,14 +193,24 @@ namespace Venture
         {
             if (!IsActive(time)) return 0;
 
-            PriceDefinition? price = Definitions.Prices.LastOrDefault(x => x.InstrumentUniqueId == this.InstrumentUniqueId && x.Timestamp <= time.Date);
-            if (price == null)
+            // Check if bond is not market-traded
+            if (SecurityDefinition.AssetType == AssetType.FixedRetailTreasuryBonds ||
+                SecurityDefinition.AssetType == AssetType.FloatingRetailTreasuryBonds ||
+                SecurityDefinition.AssetType == AssetType.IndexedRetailTreasuryBonds)
             {
-                throw new Exception($"No price for: {UniqueId} at date: {time.Date:yyyy-MM-dd}.");
+                return GetAmortizedCostPrice(time, dirty);
             }
             else
             {
-                return price.Value + (dirty ? GetAccruedInterest(time.Date) : 0);
+                PriceDefinition? price = Definitions.Prices.LastOrDefault(x => x.InstrumentUniqueId == this.InstrumentUniqueId && x.Timestamp <= time.Date);
+                if (price == null)
+                {
+                    throw new Exception($"No price for: {UniqueId} at date: {time.Date:yyyy-MM-dd}.");
+                }
+                else
+                {
+                    return price.Value + (dirty ? GetAccruedInterest(time.Date) : 0);
+                }
             }
         }
 
