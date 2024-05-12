@@ -287,6 +287,7 @@ namespace Venture
         public override double GetYieldToMaturity(DateTime date)
         {
             if (!IsActive(date)) return 0;
+            if (date == YieldsToMaturity.First().startDate) return YieldsToMaturity.First().ytm;
             return YieldsToMaturity.Last(x => x.startDate < date).ytm;
         }
 

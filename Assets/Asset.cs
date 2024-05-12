@@ -299,12 +299,20 @@ namespace Venture
                 }
                 else
                 {
-                    if (time.TransactionIndex < bounds.startIndex) afterStart = false;
-                    if (time.TransactionIndex > bounds.startIndex) afterStart = true;
-                    if (time.TransactionIndex == bounds.startIndex)
+                    if (bounds.startIndex == -1)
                     {
-                        if (time.Direction == TimeArgDirection.Start) afterStart = false;
-                        if (time.Direction == TimeArgDirection.End) afterStart = true;
+                        // This will include redemptions happening on this day.
+                        afterStart = true;
+                    }
+                    else
+                    {
+                        if (time.TransactionIndex < bounds.startIndex) afterStart = false;
+                        if (time.TransactionIndex > bounds.startIndex) afterStart = true;
+                        if (time.TransactionIndex == bounds.startIndex)
+                        {
+                            if (time.Direction == TimeArgDirection.Start) afterStart = false;
+                            if (time.Direction == TimeArgDirection.End) afterStart = true;
+                        }
                     }
                 }
             }
@@ -318,18 +326,27 @@ namespace Venture
                 }
                 else
                 {
-                    if (time.TransactionIndex < bounds.endIndex) beforeEnd = true;
-                    if (time.TransactionIndex > bounds.endIndex) beforeEnd = false;
-                    if (time.TransactionIndex == bounds.endIndex)
+                    if (bounds.endIndex == -1)
                     {
-                        if (time.Direction == TimeArgDirection.Start) beforeEnd = true;
-                        if (time.Direction == TimeArgDirection.End) beforeEnd = false;
+                        // This will include redemptions happening on this day.
+                        beforeEnd = true;
+                    }
+                    else
+                    {
+                        if (time.TransactionIndex < bounds.endIndex) beforeEnd = true;
+                        if (time.TransactionIndex > bounds.endIndex) beforeEnd = false;
+                        if (time.TransactionIndex == bounds.endIndex)
+                        {
+                            if (time.Direction == TimeArgDirection.Start) beforeEnd = true;
+                            if (time.Direction == TimeArgDirection.End) beforeEnd = false;
+                        }
                     }
                 }
             }
 
             return afterStart && beforeEnd;
         }
+
 
         public bool IsActive(DateTime start, DateTime end)
         {
@@ -359,11 +376,11 @@ namespace Venture
                 {
                     if (time.Direction == TimeArgDirection.Start && time.TransactionIndex < 0)
                     {
-                        continue;
+                        yield return evt; // This will include redemptions happening on this day.
                     }
                     if (time.Direction == TimeArgDirection.Start && time.TransactionIndex >= 0)
                     {
-                        if (evt.TransactionIndex > -1 && evt.TransactionIndex < time.TransactionIndex) yield return evt;
+                        if (evt.TransactionIndex < 0 || evt.TransactionIndex < time.TransactionIndex) yield return evt; // This will include redemptions happening on this day.
                     }
                     if (time.Direction == TimeArgDirection.End && time.TransactionIndex >= 0)
                     {
@@ -387,7 +404,7 @@ namespace Venture
         public DateTime GetPurchaseDate()
         {
             var evt = events.First();
-            if (!(evt is RecognitionEvent) 
+            if (!(evt is RecognitionEvent)
                 && !(evt is PaymentEvent p && p.Direction == PaymentDirection.Inflow && this is Cash)
                 && !(evt is FuturesRecognitionEvent && this is Futures))
                 throw new Exception($"Unexpected first event of an asset: {evt}");
@@ -662,7 +679,7 @@ namespace Venture
         {
             string[] id = accountId.Split(':');
             if (id.Length != 4) return false;
-            if (id[0]!="CASH") return false;
+            if (id[0] != "CASH") return false;
             return true;
         }
 

@@ -15,8 +15,9 @@ namespace Venture
     ///     ShareCapital - payment increases or decreases share capital;
     ///     OtherCapital - payment increases or decreases other capital;
     ///     Tax - payment covers tax payables
+    ///     Receivables - no actual flow; only receivables are recognized
     /// </summary>
-    public enum PaymentType { Undefined, ShareCapital, OtherCapital, Tax }
+    public enum PaymentType { Undefined, ShareCapital, OtherCapital, Tax, Receivables }
 
     public abstract class TransactionDefinition : Definition
     {
