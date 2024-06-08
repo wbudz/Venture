@@ -13,17 +13,17 @@
                     </DataTemplate>
                 </GridViewColumn.CellTemplate>
             </GridViewColumn>
-            <GridViewColumn Header="Instrument type" Width="Auto">
+            <GridViewColumn Header="Asset type" Width="Auto">
                 <GridViewColumn.CellTemplate>
                     <DataTemplate>
-                        <TextBlock Text="{Binding InstrumentType}" />
+                        <TextBlock Text="{Binding AssetType}" />
                     </DataTemplate>
                 </GridViewColumn.CellTemplate>
             </GridViewColumn>
-            <GridViewColumn Header="Instrument id" Width="Auto">
+            <GridViewColumn Header="Asset id" Width="Auto">
                 <GridViewColumn.CellTemplate>
                     <DataTemplate>
-                        <TextBlock Text="{Binding InstrumentId}" />
+                        <TextBlock Text="{Binding AssetId}" />
                     </DataTemplate>
                 </GridViewColumn.CellTemplate>
             </GridViewColumn>
@@ -34,45 +34,10 @@
                     </DataTemplate>
                 </GridViewColumn.CellTemplate>
             </GridViewColumn>
-            <GridViewColumn Header="Open" Width="Auto">
-                <GridViewColumn.CellTemplate>
-                    <DataTemplate>
-                        <TextBlock Text="{Binding Open}" HorizontalAlignment="Right" />
-                    </DataTemplate>
-                </GridViewColumn.CellTemplate>
-            </GridViewColumn>
-            <GridViewColumn Header="High" Width="Auto">
-                <GridViewColumn.CellTemplate>
-                    <DataTemplate>
-                        <TextBlock Text="{Binding High}" HorizontalAlignment="Right" />
-                    </DataTemplate>
-                </GridViewColumn.CellTemplate>
-            </GridViewColumn>
-            <GridViewColumn Header="Low" Width="Auto">
-                <GridViewColumn.CellTemplate>
-                    <DataTemplate>
-                        <TextBlock Text="{Binding Low}" HorizontalAlignment="Right" />
-                    </DataTemplate>
-                </GridViewColumn.CellTemplate>
-            </GridViewColumn>
-            <GridViewColumn Header="Close" Width="Auto">
-                <GridViewColumn.CellTemplate>
-                    <DataTemplate>
-                        <TextBlock Text="{Binding Close}" HorizontalAlignment="Right" />
-                    </DataTemplate>
-                </GridViewColumn.CellTemplate>
-            </GridViewColumn>
             <GridViewColumn Header="Value" Width="Auto">
                 <GridViewColumn.CellTemplate>
                     <DataTemplate>
                         <TextBlock Text="{Binding Value}" HorizontalAlignment="Right" />
-                    </DataTemplate>
-                </GridViewColumn.CellTemplate>
-            </GridViewColumn>
-            <GridViewColumn Header="Volume" Width="Auto">
-                <GridViewColumn.CellTemplate>
-                    <DataTemplate>
-                        <TextBlock Text="{Binding Volume}" HorizontalAlignment="Right" />
                     </DataTemplate>
                 </GridViewColumn.CellTemplate>
             </GridViewColumn>
@@ -101,17 +66,17 @@
                     </DataTemplate>
                 </GridViewColumn.CellTemplate>
             </GridViewColumn>
-            <GridViewColumn Header="Instrument id" Width="Auto">
+            <GridViewColumn Header="Asset id" Width="Auto">
                 <GridViewColumn.CellTemplate>
                     <DataTemplate>
-                        <TextBlock Text="{Binding InstrumentId}" />
+                        <TextBlock Text="{Binding AssetId}" />
                     </DataTemplate>
                 </GridViewColumn.CellTemplate>
             </GridViewColumn>
-            <GridViewColumn Header="Instrument type" Width="Auto">
+            <GridViewColumn Header="Asset type" Width="Auto">
                 <GridViewColumn.CellTemplate>
                     <DataTemplate>
-                        <TextBlock Text="{Binding InstrumentType}" />
+                        <TextBlock Text="{Binding AssetType}" />
                     </DataTemplate>
                 </GridViewColumn.CellTemplate>
             </GridViewColumn>
@@ -210,10 +175,10 @@
                     </DataTemplate>
                 </GridViewColumn.CellTemplate>
             </GridViewColumn>
-            <GridViewColumn Header="Instrument id" Width="Auto">
+            <GridViewColumn Header="Asset id" Width="Auto">
                 <GridViewColumn.CellTemplate>
                     <DataTemplate>
-                        <TextBlock Text="{Binding InstrumentId}" />
+                        <TextBlock Text="{Binding AssetId}" />
                     </DataTemplate>
                 </GridViewColumn.CellTemplate>
             </GridViewColumn>
@@ -333,10 +298,10 @@
                     </DataTemplate>
                 </GridViewColumn.CellTemplate>
             </GridViewColumn>
-            <GridViewColumn Header="Instrument id" Width="Auto">
+            <GridViewColumn Header="Asset id" Width="Auto">
                 <GridViewColumn.CellTemplate>
                     <DataTemplate>
-                        <TextBlock Text="{Binding InstrumentId}" />
+                        <TextBlock Text="{Binding AssetId}" />
                     </DataTemplate>
                 </GridViewColumn.CellTemplate>
             </GridViewColumn>
@@ -386,10 +351,10 @@
                     </DataTemplate>
                 </GridViewColumn.CellTemplate>
             </GridViewColumn>
-            <GridViewColumn Header="Instrument id" Width="Auto">
+            <GridViewColumn Header="Asset id" Width="Auto">
                 <GridViewColumn.CellTemplate>
                     <DataTemplate>
-                        <TextBlock Text="{Binding InstrumentId}" />
+                        <TextBlock Text="{Binding AssetId}" />
                     </DataTemplate>
                 </GridViewColumn.CellTemplate>
             </GridViewColumn>
@@ -422,13 +387,6 @@
                 <GridViewColumn.CellTemplate>
                     <DataTemplate>
                         <TextBlock Text="{Binding Timestamp, StringFormat = {}{0:yyyy-MM-dd}}" />
-                    </DataTemplate>
-                </GridViewColumn.CellTemplate>
-            </GridViewColumn>
-            <GridViewColumn Header="Instrument id" Width="Auto">
-                <GridViewColumn.CellTemplate>
-                    <DataTemplate>
-                        <TextBlock Text="{Binding InstrumentId}" />
                     </DataTemplate>
                 </GridViewColumn.CellTemplate>
             </GridViewColumn>

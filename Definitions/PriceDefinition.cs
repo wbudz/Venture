@@ -8,7 +8,7 @@ namespace Venture
 {
     public class PriceDefinition : Definition
     {
-        public string UniqueId { get { return $"{InstrumentUniqueId}_{Timestamp:yyyyMMddTHHmmss}"; } }
+        public string UniqueId { get { return $"{InstrumentUniqueId}_{Timestamp:yyyyMMdd}"; } }
 
         public AssetType AssetType { get; private set; } = AssetType.Undefined;
 

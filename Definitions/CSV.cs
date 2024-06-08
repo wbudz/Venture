@@ -147,9 +147,9 @@ namespace Venture
             {
                 var properties = typeof(T).GetProperties();
                 sb.AppendJoin('\t', properties.Select(x => x.Name));
-                sb.AppendLine();
                 foreach (var line in list)
                 {
+                    sb.AppendLine();
                     for (int i = 0; i < properties.Length; i++)
                     {
                         if (i > 0) sb.Append('\t');
@@ -158,7 +158,50 @@ namespace Venture
                         if (value is System.Collections.IEnumerable && !(value is string)) continue;
                         sb.Append(properties[i].GetValue(line));
                     }
+                }
+            }
+
+            return sb.ToString();
+        }
+
+        public static string Export<T>(IEnumerable<T> list, IEnumerable<(string property, string header)> columns)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            if (typeof(T) is IEnumerable)
+            {
+                foreach (var line in list)
+                {
+                    sb.AppendJoin('\t', line);
+                }
+                sb.AppendLine();
+            }
+            else
+            {
+                var properties = typeof(T).GetProperties();
+                var columnsArray = columns.ToArray();
+
+                for (int i = 0; i < columnsArray.Length; i++)
+                {
+                    if (i > 0) sb.Append('\t');
+                    sb.Append(columnsArray[i].header);
+                }
+
+                foreach (var line in list)
+                {
                     sb.AppendLine();
+                    for (int i = 0; i < columnsArray.Length; i++)
+                    {
+                        if (i > 0) sb.Append('\t');
+
+                        var property = properties.FirstOrDefault(x => x.Name == columnsArray[i].property);
+                        if (property == null) continue;
+
+                        object? value = property.GetValue(line);
+                        if (value == null) continue;
+                        if (value is System.Collections.IEnumerable && !(value is string)) continue;
+                        sb.Append(value.ToString());
+                    }
                 }
             }
 

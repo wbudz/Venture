@@ -26,7 +26,7 @@ namespace Venture.Modules
         {
             InitializeComponent();
 
-            if (type.IsAbstract) throw new ArgumentException("DefinitionsView module cannot be created for abstract type.");
+            //if (type.IsAbstract) throw new ArgumentException("DefinitionsView module cannot be created for abstract type.");
             if (!type.IsSubclassOf(typeof(Definition))) throw new ArgumentException("DefinitionsView module can only be created for types descended from Data.DataPoint.");
             DataPointType = type;
         }

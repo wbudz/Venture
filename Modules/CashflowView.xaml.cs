@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -80,7 +81,23 @@ namespace Venture.Modules
 
         private void CopyButton_Click(object sender, RoutedEventArgs e)
         {
-            Clipboard.SetText(CSV.Export<CashflowViewEntry>(CashflowViewEntries));
+            List<(string property, string header)> columns = new List<(string property, string header)>();
+            columns.Add(("UniqueId", "Unique id"));
+            columns.Add(("ParentAssetUniqueId", "Source"));
+            columns.Add(("CashflowType", "Cashflow type"));
+            columns.Add(("AssociatedEvent", "Associated event"));
+            columns.Add(("Timestamp", "Timestamp"));
+            columns.Add(("Portfolio", "Portfolio"));
+            columns.Add(("CashAccount", "Cash account"));
+            columns.Add(("Broker", "Broker"));
+            columns.Add(("Direction", "Direction"));
+            columns.Add(("Currency", "Currency"));
+            columns.Add(("TransactionIndex", "Transaction index"));
+            columns.Add(("GrossAmount", "Gross amount"));
+            columns.Add(("Tax", "Tax"));
+            columns.Add(("Amount", "Amount"));
+            columns.Add(("FXRate", "FX Rate"));
+            Clipboard.SetText(CSV.Export<CashflowViewEntry>(CashflowViewEntries, columns));
         }
 
         private void UserControl_Loaded(object sender, RoutedEventArgs e)

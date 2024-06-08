@@ -79,7 +79,8 @@ namespace Venture.Modules
             }
             else if (p.AssociatedEvent != null)
             {
-                CashflowType = p.AssociatedEvent.GetType().ToString();
+                if (p.AssociatedEvent is FlowEvent) CashflowType = "Flow";
+                else CashflowType = p.AssociatedEvent.GetType().ToString();
             }
 
         }

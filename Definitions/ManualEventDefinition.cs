@@ -11,6 +11,8 @@ namespace Venture
     {
         public abstract string UniqueId { get; }
 
+        public abstract string AdjustmentType { get; }
+
         public DateTime Timestamp { get; private set; } = DateTime.MinValue;
 
         public ManualEventDefinition(Dictionary<string, string> data) : base(data)
@@ -33,7 +35,9 @@ namespace Venture
 
     public abstract class FlowAmountAdjustmentEventDefinition : ModifyingManualEventDefinition
     {
-        public override string UniqueId { get { return $"{GetType()}_{Timestamp:yyyyMMdd}_{AssetUniqueId}"; } }
+        public override string UniqueId { get { return $"{AdjustmentType}_{Timestamp:yyyyMMdd}_{AssetUniqueId}"; } }
+
+        public override string AdjustmentType { get { return "FlowAmountAdjustment"; } }
 
         public string AssetUniqueId { get; private set; }
 
@@ -63,7 +67,9 @@ namespace Venture
 
     public abstract class TaxAmountAdjustmentEventDefinition : ModifyingManualEventDefinition
     {
-        public override string UniqueId { get { return $"{GetType()}_{Timestamp:yyyyMMdd}_{AssetUniqueId}"; } }
+        public override string UniqueId { get { return $"{AdjustmentType}_{Timestamp:yyyyMMdd}_{AssetUniqueId}"; } }
+
+        public override string AdjustmentType { get { return "TaxAmountAdjustment"; } }
 
         public string AssetUniqueId { get; private set; }
 
@@ -106,7 +112,9 @@ namespace Venture
 
     public class PrematureRedemptionEventDefinition : ModifyingManualEventDefinition
     {
-        public override string UniqueId { get { return $"{GetType()}_{Timestamp:yyyyMMdd}_{InstrumentUniqueId}"; } }
+        public override string UniqueId { get { return $"{AdjustmentType}_{Timestamp:yyyyMMdd}_{InstrumentUniqueId}"; } }
+
+        public override string AdjustmentType { get { return "PrematureRedemption"; } }
 
         public string InstrumentUniqueId { get; private set; }
 
@@ -128,7 +136,9 @@ namespace Venture
 
     public class EquitySpinOffEventDefinition : NonModifyingManualEventDefinition
     {
-        public override string UniqueId { get { return $"{GetType()}_{Timestamp:yyyyMMdd}_{OriginalInstrumentUniqueId}"; } }
+        public override string UniqueId { get { return $"{AdjustmentType}_{Timestamp:yyyyMMdd}_{OriginalInstrumentUniqueId}"; } }
+
+        public override string AdjustmentType { get { return "EquitySpinOff"; } }
 
         public string OriginalInstrumentUniqueId { get; private set; }
 
@@ -155,7 +165,9 @@ namespace Venture
 
     public class EquityRedemptionEventDefinition : NonModifyingManualEventDefinition
     {
-        public override string UniqueId { get { return $"{GetType()}_{Timestamp:yyyyMMdd}_{InstrumentUniqueId}"; } }
+        public override string UniqueId { get { return $"{AdjustmentType}_{Timestamp:yyyyMMdd}_{InstrumentUniqueId}"; } }
+
+        public override string AdjustmentType { get { return "EquityRedemption"; } }
 
         public string InstrumentUniqueId { get; private set; }
 
@@ -170,7 +182,9 @@ namespace Venture
 
     public class AdditionalPremiumEventDefinition : NonModifyingManualEventDefinition
     {
-        public override string UniqueId { get { return $"{GetType()}_{Timestamp:yyyyMMdd}_{CashAccount}_{Portfolio}"; } }
+        public override string UniqueId { get { return $"{AdjustmentType}_{Timestamp:yyyyMMdd}_{CashAccount}_{Portfolio}"; } }
+
+        public override string AdjustmentType { get { return "AdditionalPremium"; } }
 
         public string CashAccount { get; private set; }
 
@@ -194,7 +208,9 @@ namespace Venture
 
     public class AdditionalChargeEventDefinition : NonModifyingManualEventDefinition
     {
-        public override string UniqueId { get { return $"{GetType()}_{Timestamp:yyyyMMdd}_{CashAccount}_{Portfolio}"; } }
+        public override string UniqueId { get { return $"{AdjustmentType}_{Timestamp:yyyyMMdd}_{CashAccount}_{Portfolio}"; } }
+
+        public override string AdjustmentType { get { return "AdditionalCharge"; } }
 
         public string CashAccount { get; private set; }
 

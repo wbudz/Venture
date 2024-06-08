@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -55,7 +56,24 @@ namespace Venture.Modules
 
         private void CopyButton_Click(object sender, RoutedEventArgs e)
         {
-            Clipboard.SetText(CSV.Export<AssetsViewEntry>(AssetEntries));
+            List<(string property, string header)> columns = new List<(string property, string header)>();
+            columns.Add(("UniqueId", "Unique id"));
+            columns.Add(("Type", "Type"));
+            columns.Add(("Portfolio", "Portfolio"));
+            columns.Add(("CustodyAccount", "Custody account"));
+            columns.Add(("CashAccount", "Cash account"));
+            columns.Add(("Currency", "Currency"));
+            columns.Add(("ValuationClass", "Valuation class"));
+            columns.Add(("InstrumentId", "Instrument"));
+            columns.Add(("RecognitionDate", "Recognition date"));
+            columns.Add(("Count", "Count"));
+            columns.Add(("NominalAmount", "Nominal amount"));
+            columns.Add(("PurchaseAmount", "Purchase amount"));
+            columns.Add(("AmortizedCostValue", "Amortized cost value"));
+            columns.Add(("MarketValue", "Market value"));
+            columns.Add(("AccruedInterest", "Accrued interest"));
+            columns.Add(("BookValue", "Value"));
+            Clipboard.SetText(CSV.Export<AssetsViewEntry>(AssetEntries, columns));
         }
 
         private void UserControl_Loaded(object sender, RoutedEventArgs e)

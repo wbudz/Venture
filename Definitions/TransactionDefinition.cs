@@ -21,7 +21,9 @@ namespace Venture
 
     public abstract class TransactionDefinition : Definition
     {
-        public string UniqueId { get { return $"{Index}_{GetType()}_{AssetType}_{AssetId}_{Timestamp.ToString("yyyy-MM-dd")}"; } }
+        public abstract string UniqueId { get; }
+
+        public string TransactionType { get { return GetType().Name.Replace("TransactionDefinition", ""); } }
 
         public int Index { get; private set; } = 0;
 
@@ -143,6 +145,8 @@ namespace Venture
 
     public class BuyTransactionDefinition : TransactionDefinition
     {
+        public override string UniqueId { get { return $"{Index}_Buy_{AssetType}_{AssetId}"; } }
+
         public BuyTransactionDefinition(Dictionary<string, string> data) : base(data)
         {
             AssetType = ConvertToEnum<AssetType>(data["assettype"]);
@@ -161,6 +165,8 @@ namespace Venture
 
     public class SellTransactionDefinition : TransactionDefinition
     {
+        public override string UniqueId { get { return $"{Index}_Sell_{AssetType}_{AssetId}"; } }
+
         public SellTransactionDefinition(Dictionary<string, string> data) : base(data)
         {
             AssetType = ConvertToEnum<AssetType>(data["assettype"]);
@@ -180,6 +186,8 @@ namespace Venture
 
     public class PayTransactionDefinition : TransactionDefinition
     {
+        public override string UniqueId { get { return $"{Index}_Pay"; } }
+
         public PayTransactionDefinition(Dictionary<string, string> data) : base(data)
         {
             AssetType = ConvertToEnum<AssetType>(data["assettype"]);
@@ -195,6 +203,8 @@ namespace Venture
 
     public class TransferTransactionDefinition : TransactionDefinition
     {
+        public override string UniqueId { get { return $"{Index}_Transfer_{AssetType}_{AssetId}"; } }
+
         public TransferTransactionDefinition(Dictionary<string, string> data) : base(data)
         {
             AssetType = ConvertToEnum<AssetType>(data["assettype"]);
