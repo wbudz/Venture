@@ -23,9 +23,6 @@ namespace Venture
             UniqueId = $"{definition.AssetType}_{definition.AssetId}_{tr.Index}";
             AssetType = definition.AssetType;
 
-            Portfolio = tr.PortfolioDst;
-            CashAccount = tr.AccountSrc;
-            CustodyAccount = tr.AccountDst;
             Currency = tr.Currency;
             ValuationClass = tr.ValuationClass;
 
@@ -38,12 +35,16 @@ namespace Venture
 
         public Futures(BuyTransactionDefinition btd, InstrumentDefinition definition) : this((TransactionDefinition)btd, definition)
         {
+            Portfolio = Definitions.Portfolios.Single(x=>x.UniqueId == btd.PortfolioDst);
+
             AddEvent(new FuturesRecognitionEvent(this, btd));
             GenerateFlows();
         }
 
         public Futures(SellTransactionDefinition std, InstrumentDefinition definition) : this((TransactionDefinition)std, definition)
         {
+            Portfolio = Definitions.Portfolios.Single(x => x.UniqueId == std.PortfolioSrc);
+
             AddEvent(new FuturesRecognitionEvent(this, std));
             GenerateFlows();
         }
@@ -138,13 +139,13 @@ namespace Venture
                 {
                     currentPrice = fr.Price;
                     decimal amount = Common.Round((currentPrice - previousPrice) * count * Multiplier);
-                    fr.Amount = amount;
+                    fr.Amount = amount; // - fr.Fee ??
                     count += fr.Count;
                     if (fr.IsTotalDerecognition) continue;
                 }
                 if (evt is FuturesSettlementEvent fs)
                 {
-                    var price = prices.LastOrDefault(x => x.Timestamp <= fs.Timestamp); // if no coupon is defined, use the last available
+                    var price = prices.LastOrDefault(x => x.Timestamp <= fs.Timestamp); // if no price is defined, use the last available
                     if (price == null) throw new Exception($"No price defined for {AssociatedTicker} at {fs.Timestamp:yyyy-MM-dd}.");
                     currentPrice = price.Value;
                     decimal amount = Common.Round((currentPrice - previousPrice) * count * Multiplier);

@@ -182,15 +182,15 @@ namespace Venture
 
     public class AdditionalPremiumEventDefinition : NonModifyingManualEventDefinition
     {
-        public override string UniqueId { get { return $"{AdjustmentType}_{Timestamp:yyyyMMdd}_{CashAccount}_{Portfolio}"; } }
+        public override string UniqueId { get { return $"{AdjustmentType}_{Timestamp:yyyyMMdd}_{Portfolio}"; } }
 
         public override string AdjustmentType { get { return "AdditionalPremium"; } }
-
-        public string CashAccount { get; private set; }
 
         public string Portfolio { get; private set; }
 
         public string Description { get; private set; }
+
+        public string Currency { get; private set; }
 
         public decimal Amount { get; private set; }
 
@@ -198,8 +198,8 @@ namespace Venture
 
         public AdditionalPremiumEventDefinition(Dictionary<string, string> data) : base(data)
         {
-            CashAccount = data["text1"];
-            Portfolio = data["text2"];
+            Portfolio = data["text1"];
+            Currency = data["text2"];
             Description = data["text3"];
             Amount = ConvertToDecimal(data["amount1"]);
             FXRate = GetFXRateFromData(data["amount2"]);
@@ -208,15 +208,15 @@ namespace Venture
 
     public class AdditionalChargeEventDefinition : NonModifyingManualEventDefinition
     {
-        public override string UniqueId { get { return $"{AdjustmentType}_{Timestamp:yyyyMMdd}_{CashAccount}_{Portfolio}"; } }
+        public override string UniqueId { get { return $"{AdjustmentType}_{Timestamp:yyyyMMdd}_{Portfolio}"; } }
 
         public override string AdjustmentType { get { return "AdditionalCharge"; } }
-
-        public string CashAccount { get; private set; }
 
         public string Portfolio { get; private set; }
 
         public string Description { get; private set; }
+
+        public string Currency { get; private set; }
 
         public decimal Amount { get; private set; }
 
@@ -224,8 +224,8 @@ namespace Venture
 
         public AdditionalChargeEventDefinition(Dictionary<string, string> data) : base(data)
         {
-            CashAccount = data["text1"];
-            Portfolio = data["text2"];
+            Portfolio = data["text1"];
+            Currency = data["text2"];
             Description = data["text3"];
             Amount = ConvertToDecimal(data["amount1"]);
             FXRate = GetFXRateFromData(data["amount2"]);

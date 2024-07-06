@@ -38,6 +38,7 @@ namespace Venture
         {
             CurrentModule.Children.Clear();
 
+            if ((sender as TreeViewItem)?.Header.ToString() == "Portfolios") CurrentModule.Children.Add(new Modules.DefinitionsView(typeof(PortfolioDefinition)));
             if ((sender as TreeViewItem)?.Header.ToString() == "Prices") CurrentModule.Children.Add(new Modules.DefinitionsView(typeof(PriceDefinition)));
             if ((sender as TreeViewItem)?.Header.ToString() == "Instruments") CurrentModule.Children.Add(new Modules.DefinitionsView(typeof(InstrumentDefinition)));
             if ((sender as TreeViewItem)?.Header.ToString() == "Transactions") CurrentModule.Children.Add(new Modules.DefinitionsView(typeof(TransactionDefinition)));

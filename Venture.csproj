@@ -54,6 +54,9 @@
     <None Update="input\manual.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="input\portfolios.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="input\prices.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

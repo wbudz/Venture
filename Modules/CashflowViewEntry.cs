@@ -7,21 +7,11 @@ using System.Threading.Tasks;
 
 namespace Venture.Modules
 {
-    public class CashflowViewEntry
+    public class CashflowViewEntry : ModuleEntry
     {
-        public string UniqueId { get; set; } = "";
-
         public string ParentAssetUniqueId { get; set; } = "";
 
         public string AssociatedEvent { get; set; } = "";
-
-        public string Portfolio { get; set; } = "";
-
-        public string CashAccount { get; set; } = "";
-
-        public string Broker { get; set; } = "";
-
-        public string Currency { get; set; } = "PLN";
 
         public DateTime Timestamp { get; set; } = DateTime.MinValue;
 
@@ -48,9 +38,9 @@ namespace Venture.Modules
             UniqueId = p.UniqueId;
             ParentAssetUniqueId = p.ParentAsset.UniqueId;
             AssociatedEvent = p.AssociatedEvent?.UniqueId ?? "";
-            Portfolio = p.ParentAsset.Portfolio;
-            CashAccount = p.ParentAsset.CashAccount;
-            Broker = CashAccount.Split(':')[1];
+            Portfolio = p.ParentAsset.Portfolio.UniqueId;
+            CashAccount = p.ParentAsset.Portfolio.CashAccount;
+            Broker = p.ParentAsset.Portfolio.Broker;
             Currency = p.ParentAsset.Currency;
             Timestamp = p.Timestamp;
             RecordDate = p.Timestamp;

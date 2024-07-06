@@ -17,9 +17,7 @@ namespace Venture
 
             UniqueId = $"Cash_Payment_{ptd.Index}";
             AssetType = AssetType.Cash;
-            Portfolio = ptd.PortfolioDst;
-            CashAccount = ptd.AccountDst;
-            CustodyAccount = "";
+            Portfolio = Definitions.Portfolios.Single(x=>x.UniqueId == ptd.PortfolioDst);
             Currency = ptd.Currency;
             ValuationClass = ValuationClass.AvailableForSale;
 
@@ -33,8 +31,6 @@ namespace Venture
             UniqueId = $"Cash_Sale_{dr.First().ParentAsset.UniqueId}_{dr.First().Timestamp.ToString("yyyyMMdd")}";
             AssetType = AssetType.Cash;
             Portfolio = dr.First().ParentAsset.Portfolio;
-            CashAccount = dr.First().ParentAsset.CashAccount;
-            CustodyAccount = "";
             Currency = dr.First().ParentAsset.Currency;
             ValuationClass = ValuationClass.AvailableForSale;
 
@@ -49,8 +45,6 @@ namespace Venture
             UniqueId = $"Cash_FuturesRecognition_{fr.ParentAsset.UniqueId}_{fr.Timestamp.ToString("yyyyMMdd")}";
             AssetType = AssetType.Cash;
             Portfolio = fr.ParentAsset.Portfolio;
-            CashAccount = fr.ParentAsset.CashAccount;
-            CustodyAccount = "";
             Currency = fr.ParentAsset.Currency;
             ValuationClass = ValuationClass.AvailableForSale;
 
@@ -66,8 +60,6 @@ namespace Venture
             UniqueId = $"Cash_FuturesSettlement_{fs.ParentAsset.UniqueId}_{fs.Timestamp.ToString("yyyyMMdd")}";
             AssetType = AssetType.Cash;
             Portfolio = fs.ParentAsset.Portfolio;
-            CashAccount = fs.ParentAsset.CashAccount;
-            CustodyAccount = "";
             Currency = fs.ParentAsset.Currency;
             ValuationClass = ValuationClass.AvailableForSale;
 
@@ -83,8 +75,6 @@ namespace Venture
             UniqueId = $"Cash_{fl.FlowType}_{fl.ParentAsset.UniqueId}_{fl.Timestamp.ToString("yyyyMMdd")}";
             AssetType = AssetType.Cash;
             Portfolio = fl.ParentAsset.Portfolio;
-            CashAccount = fl.ParentAsset.CashAccount;
-            CustodyAccount = "";
             Currency = fl.ParentAsset.Currency;
             ValuationClass = ValuationClass.AvailableForSale;
 
@@ -101,10 +91,8 @@ namespace Venture
         {
             UniqueId = $"Cash_AdditionalPremium_{mn.Description}_{mn.Timestamp.ToString("yyyyMMdd")}";
             AssetType = AssetType.Cash;
-            Portfolio = mn.Portfolio;
-            CustodyAccount = "";
-            CashAccount = mn.CashAccount;
-            Currency = mn.CashAccount.Split(':')[2];
+            Portfolio = Definitions.Portfolios.Single(x => x.UniqueId == mn.Portfolio);
+            Currency = mn.Currency;
             ValuationClass = ValuationClass.AvailableForSale;
 
             AddEvent(new PaymentEvent(this, mn));
@@ -116,8 +104,6 @@ namespace Venture
             UniqueId = $"Cash_EquityRedemption_{mn.InstrumentUniqueId}_{mn.Timestamp.ToString("yyyyMMdd")}";
             AssetType = AssetType.Cash;
             Portfolio = parentAsset.Portfolio;
-            CustodyAccount = "";
-            CashAccount = parentAsset.CashAccount;
             Currency = parentAsset.Currency;
             ValuationClass = ValuationClass.AvailableForSale;
 

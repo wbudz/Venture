@@ -34,6 +34,11 @@ namespace Venture.Modules
         public void Refresh()
         {
             lv.ItemsSource = null;
+            if (DataPointType == typeof(PortfolioDefinition))
+            {
+                lv.View = (GridView)Resources["PortfoliosGridView"];
+                lv.ItemsSource = Definitions.Portfolios;
+            }
             if (DataPointType == typeof(PriceDefinition))
             {
                 lv.View = (GridView)Resources["PricesGridView"];

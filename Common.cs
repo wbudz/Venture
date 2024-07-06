@@ -63,11 +63,12 @@ namespace Venture
             FVM.ReportingYears = new ObservableCollection<int>(FVM.ReportingDates.Select(x => x.Year).Distinct().Order());
 
             List<string> portfolios = new List<string>() { "*" };
-            portfolios.AddRange(Assets.Select(x => x.Portfolio).Distinct().Order());
-            FVM.Portfolios = new ObservableCollection<string>(portfolios);
+            portfolios.AddRange(Definitions.Portfolios.Select(x => x.UniqueId).Distinct());
+            portfolios.AddRange(Definitions.Portfolios.Select(x => x.PortfolioName + "_*").Distinct());
+            FVM.Portfolios = new ObservableCollection<string>(portfolios.Order());
 
             List<string> brokers = new List<string>() { "*" };
-            brokers.AddRange(Assets.Select(x => x.FinancialInstitution).Distinct().Order());
+            brokers.AddRange(Definitions.Portfolios.Select(x => x.Broker).Distinct().Order());
             FVM.Brokers = new ObservableCollection<string>(brokers);
         }
 

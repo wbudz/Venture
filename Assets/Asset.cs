@@ -49,31 +49,23 @@ namespace Venture
         /// <summary>
         /// Portfolio which the investment belongs to.
         /// </summary>
-        public string Portfolio { get; protected set; } = "";
+        public PortfolioDefinition Portfolio { get; protected set; }
 
         /// <summary>
         /// For securities, cash account which receives potential flows; by default cash account from which the purchase was made.
         /// In case of cash instruments (e.g. deposit, cash, receivable), bank account where the cash resides or where it would flow at the maturity.
         /// </summary>
-        public string CashAccount { get; protected set; } = "";
+        public string CashAccount { get { return Portfolio.CashAccount; } }
 
         /// <summary>
         /// In case of securities, custody account where the instrument is kept; otherwise empty.
         /// </summary>
-        public string CustodyAccount { get; protected set; } = "";
+        public string CustodyAccount { get { return Portfolio.CustodyAccount; } }
 
         /// <summary>
         /// Denotes financial institution where asset is held.
         /// </summary>
-        public string FinancialInstitution
-        {
-            get
-            {
-                if (CustodyAccount.IndexOf(":") > 0) return CustodyAccount.Split(":")[1];
-                if (CashAccount.IndexOf(":") > 0) return CashAccount.Split(":")[1];
-                return "";
-            }
-        }
+        public string Broker { get { return Portfolio.Broker; } }
 
         /// <summary>
         /// Currency in which the investment is denominated.

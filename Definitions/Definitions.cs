@@ -12,6 +12,7 @@ namespace Venture
 
     public static class Definitions
     {
+        public static ObservableCollection<PortfolioDefinition> Portfolios = new ObservableCollection<PortfolioDefinition>();
         public static ObservableCollection<PriceDefinition> Prices = new ObservableCollection<PriceDefinition>();
         public static ObservableCollection<InstrumentDefinition> Instruments = new ObservableCollection<InstrumentDefinition>();
         public static ObservableCollection<TransactionDefinition> Transactions = new ObservableCollection<TransactionDefinition>();
@@ -21,6 +22,7 @@ namespace Venture
 
         public static void Load()
         {
+            Portfolios.Clear();
             Prices.Clear();
             Instruments.Clear();
             Transactions.Clear();
@@ -28,9 +30,24 @@ namespace Venture
             Coupons.Clear();
             ManualEvents.Clear();
 
+            // Portfolios
+            var portfolios = new List<PortfolioDefinition>();
+            CSV csv = new CSV(Properties.Settings.Default.PortfoliosSource);
+            csv.Read();
+            foreach (var item in csv.Interpret())
+            {
+                var newItem = new PortfolioDefinition(item);
+                if (newItem.Active)
+                {
+                    portfolios.Add(newItem);
+                }
+            }
+            portfolios = portfolios.OrderBy(x => x.UniqueId).ToList();
+            portfolios.ForEach(x => Portfolios.Add(x));
+
             // Prices
             var prices = new List<PriceDefinition>();
-            CSV csv = new CSV(Properties.Settings.Default.PricesSource);
+            csv = new CSV(Properties.Settings.Default.PricesSource);
             csv.Read();
             foreach (var item in csv.Interpret())
             {
@@ -80,6 +97,7 @@ namespace Venture
                 }
             }
             transactions = transactions.OrderBy(x => x.Timestamp).ThenBy(x => x.Index).ToList();
+            CheckTransactionsPortfolios(transactions);
             CheckTransactionsOrder(transactions);
             transactions.ForEach(x => Transactions.Add(x));
 
@@ -153,6 +171,15 @@ namespace Venture
             {
                 if (array[i].Index <= array[i - 1].Index) throw new Exception($"Error ordering transactions: {array[i - 1]}, {array[i]}.");
                 if (array[i].Timestamp < array[i - 1].Timestamp) throw new Exception($"Error ordering transactions: {array[i - 1]}, {array[i]}.");
+            }
+        }
+
+        private static void CheckTransactionsPortfolios(IEnumerable<TransactionDefinition> transactions)
+        {
+            foreach (var t in transactions)
+            {
+                if (t.PortfolioSrc != "" && !Definitions.Portfolios.Any(x => x.UniqueId == t.PortfolioSrc)) throw new Exception($"Incorrect source portfolio specification: {t}.");
+                if (t.PortfolioDst != "" && !Definitions.Portfolios.Any(x => x.UniqueId == t.PortfolioDst)) throw new Exception($"Incorrect destination portfolio specification: {t}.");
             }
         }
 
@@ -264,32 +291,40 @@ namespace Venture
                 }
                 if (mn is AdditionalPremiumEventDefinition ape)
                 {
-                    if (String.IsNullOrEmpty(ape.CashAccount) || ape.CashAccount.Split(':').Length != 4)
-                    {
-                        throw new Exception($"Incorrect additional premium/charge account definition in Text1 field.");
-                    }
                     if (String.IsNullOrEmpty(ape.Portfolio))
                     {
-                        throw new Exception($"Incorrect additional premium/charge portfolio definition in Text2 field.");
+                        throw new Exception($"Incorrect additional premium/charge portfolio definition in Text1 field: {ape}.");
+                    }
+                    if (!Definitions.Portfolios.Any(x => x.UniqueId == ape.Portfolio))
+                    {
+                        throw new Exception($"Incorrect source portfolio specification in Text1 field: {ape}.");
+                    }
+                    if (String.IsNullOrEmpty(ape.Currency))
+                    {
+                        throw new Exception($"Incorrect additional premium/charge currency in Text2 field: {ape}.");
                     }
                     if (String.IsNullOrEmpty(ape.Description))
                     {
-                        throw new Exception($"Incorrect additional premium/charge description in Text3 field.");
-                    }                    
+                        throw new Exception($"Incorrect additional premium/charge description in Text3 field: {ape}.");
+                    }
                 }
                 if (mn is AdditionalChargeEventDefinition ace)
                 {
-                    if (String.IsNullOrEmpty(ace.CashAccount) || ace.CashAccount.Split(':').Length != 4)
-                    {
-                        throw new Exception($"Incorrect additional premium/charge account definition in Text1 field.");
-                    }
                     if (String.IsNullOrEmpty(ace.Portfolio))
                     {
-                        throw new Exception($"Incorrect additional premium/charge portfolio definition in Text2 field.");
+                        throw new Exception($"Incorrect additional premium/charge portfolio definition in Text1 field: {ace}.");
+                    }
+                    if (!Definitions.Portfolios.Any(x => x.UniqueId == ace.Portfolio))
+                    {
+                        throw new Exception($"Incorrect source portfolio specification in Text1 field: {ace}.");
+                    }
+                    if (String.IsNullOrEmpty(ace.Currency))
+                    {
+                        throw new Exception($"Incorrect additional premium/charge currency in Text2 field: {ace}.");
                     }
                     if (String.IsNullOrEmpty(ace.Description))
                     {
-                        throw new Exception($"Incorrect additional premium/charge description in Text3 field.");
+                        throw new Exception($"Incorrect additional premium/charge description in Text3 field: {ace}.");
                     }
                 }
             }

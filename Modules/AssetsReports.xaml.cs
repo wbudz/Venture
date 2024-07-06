@@ -20,7 +20,7 @@ namespace Venture.Modules
     /// <summary>
     /// Interaction logic for DefinitionsView.xaml
     /// </summary>
-    public partial class AssetsReports : UserControl
+    public partial class AssetsReports : Module
     {
         public ObservableCollection<object[]> ReportEntries { get; set; } = new();
 
@@ -55,8 +55,8 @@ namespace Venture.Modules
             result[2] = asset.GetPurchaseDate().ToString("yyyy-MM-dd") ?? "";
             result[3] = asset.AssetType;
             result[4] = asset.Currency;
-            result[5] = asset.Portfolio;
-            result[6] = asset.FinancialInstitution;
+            result[5] = asset.Portfolio.UniqueId;
+            result[6] = asset.Broker;
 
             for (int i = 0; i < dates.Count; i++)
             {
@@ -91,10 +91,10 @@ namespace Venture.Modules
                 if (asset is Cash) continue;
                 if (!asset.IsActive(new DateTime(startYear, 1, 1), new DateTime(endYear, 12, 31))) continue;
                 if (asset.BoundsStart.Year == asset.BoundsEnd.Year && asset.BoundsStart.Month == asset.BoundsEnd.Month) continue; // omit assets that were owned only during one month
-                if (PortfolioComboBox.SelectedItem.ToString() != "*" && PortfolioComboBox.SelectedItem.ToString() != asset.Portfolio) continue;
-                if (BrokerComboBox.SelectedItem.ToString() != "*" && BrokerComboBox.SelectedItem.ToString() != asset.FinancialInstitution) continue;
 
-                ReportEntries.Add(GenerateReportEntry(asset, OptionComboBox.SelectedIndex, dates));
+                string selectedPortfolio = PortfolioComboBox.SelectedItem.ToString() ?? "*";
+                string selectedBroker = BrokerComboBox.SelectedItem.ToString() ?? "*";
+                if (Filter(asset, selectedPortfolio, selectedBroker)) ReportEntries.Add(GenerateReportEntry(asset, OptionComboBox.SelectedIndex, dates));
             }
 
             gvReport.Columns.Clear();

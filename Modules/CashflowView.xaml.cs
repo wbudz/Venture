@@ -21,7 +21,7 @@ namespace Venture.Modules
     /// <summary>
     /// Interaction logic for DefinitionsView.xaml
     /// </summary>
-    public partial class CashflowView : UserControl
+    public partial class CashflowView : Module
     {
         public ObservableCollection<CashflowViewEntry> CashflowViewEntries { get; set; } = new ObservableCollection<CashflowViewEntry>();
 
@@ -55,21 +55,12 @@ namespace Venture.Modules
             {
                 source.AddRange(asset.Events.OfType<PaymentEvent>().Where(x => x.Timestamp >= startDate && x.Timestamp <= endDate).Select(x => new CashflowViewEntry(x)));
             }
-            foreach (var asset in Common.Assets)
-            {
-                //source.AddRange(asset.Events.OfType<FlowEvent>().Where(x => x.Timestamp >= startDate && x.Timestamp <= endDate).Select(x => new CashflowViewEntry(x)));
-            }
-            foreach (var asset in Common.Assets)
-            {
-                //source.AddRange(asset.Events.OfType<Events.FuturesRecognition>().Where(x => x.Timestamp >= startDate && x.Timestamp <= endDate).Select(x => new CashflowViewEntry(x)));
-                //source.AddRange(asset.Events.OfType<Events.FuturesSettlement>().Where(x => x.Timestamp >= startDate && x.Timestamp <= endDate).Select(x => new CashflowViewEntry(x)));
-            }
 
+            string selectedPortfolio = PortfolioComboBox.SelectedItem.ToString() ?? "*";
+            string selectedBroker = BrokerComboBox.SelectedItem.ToString() ?? "*";
             foreach (var item in source.OrderBy(x => x.Timestamp).ThenBy(x => x.TransactionIndex))
-            {
-                if (PortfolioComboBox.SelectedItem.ToString() != "*" && PortfolioComboBox.SelectedItem.ToString() != item.Portfolio) continue;
-                if (BrokerComboBox.SelectedItem.ToString() != "*" && BrokerComboBox.SelectedItem.ToString() != item.Broker) continue;
-                CashflowViewEntries.Add(item);
+            { 
+                if (Filter(item, selectedPortfolio, selectedBroker)) CashflowViewEntries.Add(item);
             }
 
             TotalValueTextBlock.Text = $"Total value: {CashflowViewEntries.Sum(x => x.Amount):N2} PLN";

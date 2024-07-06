@@ -62,7 +62,7 @@ namespace Venture
                     var dta = Definitions.ManualEvents.OfType<DividendTaxAdjustmentEventDefinition>().SingleOrDefault(x => x.Timestamp == Timestamp && x.AssetUniqueId == ParentAsset.UniqueId);
                     if (dta != null)
                     { Tax = dta.Tax; }
-                    else if (Globals.TaxFreePortfolios.Contains(ParentAsset.Portfolio))
+                    else if (Globals.TaxFreePortfolios.Contains(ParentAsset.Portfolio.UniqueId))
                     { Tax = 0; }
                     else
                     { Tax = TaxCalculations.CalculateFromDividend(Amount); }
@@ -92,7 +92,7 @@ namespace Venture
                     var cta = Definitions.ManualEvents.OfType<CouponTaxAdjustmentEventDefinition>().SingleOrDefault(x => x.Timestamp == Timestamp && x.AssetUniqueId == ParentAsset.UniqueId);
                     if (cta != null)
                     { Tax = cta.Tax; }
-                    else if (Globals.TaxFreePortfolios.Contains(ParentAsset.Portfolio))
+                    else if (Globals.TaxFreePortfolios.Contains(ParentAsset.Portfolio.UniqueId))
                     { Tax = 0; }
                     else
                     { Tax = TaxCalculations.CalculateFromCoupon(Amount); }
@@ -104,7 +104,7 @@ namespace Venture
                     var rta = Definitions.ManualEvents.OfType<RedemptionTaxAdjustmentEventDefinition>().SingleOrDefault(x => x.Timestamp == Timestamp && x.AssetUniqueId == ParentAsset.UniqueId);
                     if (rta != null)
                     { Tax = rta.Tax; }
-                    else if (Globals.TaxFreePortfolios.Contains(ParentAsset.Portfolio))
+                    else if (Globals.TaxFreePortfolios.Contains(ParentAsset.Portfolio.UniqueId))
                     { Tax = 0; }
                     else
                     {

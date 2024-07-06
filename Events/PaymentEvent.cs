@@ -88,7 +88,7 @@ namespace Venture
 
         public PaymentEvent(Cash parentAsset, AdditionalPremiumEventDefinition mn) : base(parentAsset, mn.Timestamp)
         {
-            UniqueId = $"Payment_AdditionalPremium_{mn.CashAccount}_{mn.Timestamp.ToString("yyyyMMdd")}";
+            UniqueId = $"Payment_AdditionalPremium_{mn.Portfolio}_{mn.Timestamp.ToString("yyyyMMdd")}";
             AssociatedEvent = null;
             Direction = PaymentDirection.Inflow;
             Amount = mn.Amount;
@@ -98,7 +98,7 @@ namespace Venture
 
         public PaymentEvent(Cash parentAsset, AdditionalChargeEventDefinition mn, decimal amount) : base(parentAsset, mn.Timestamp)
         {
-            UniqueId = $"Payment_AdditionalCharge_{mn.CashAccount}_{mn.Timestamp.ToString("yyyyMMdd")}";
+            UniqueId = $"Payment_AdditionalCharge_{mn.Portfolio}_{mn.Timestamp.ToString("yyyyMMdd")}";
             AssociatedEvent = null;
             Direction = PaymentDirection.Outflow;
             Amount = amount;

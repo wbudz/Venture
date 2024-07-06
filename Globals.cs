@@ -8,7 +8,7 @@ namespace Venture
 {
     public static class Globals
     {
-        public static HashSet<string> TaxFreePortfolios = new HashSet<string>(){ "EMRT" };
+        public static HashSet<string> TaxFreePortfolios = new HashSet<string>(){ "EMRT_IKZE", "EMRT_IKE" };
 
         public static decimal TaxRate = 0.19m;
 

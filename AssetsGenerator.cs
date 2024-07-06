@@ -116,7 +116,7 @@ namespace Venture
             string portfolio = btd.PortfolioDst;
             if (String.IsNullOrEmpty(portfolio)) throw new Exception("Portfolio not specified for cash deduction.");
 
-            var cash = list.OfType<Cash>().Where(x => x.IsActive(btd.Timestamp) && x.Currency == btd.Currency && x.CashAccount == btd.AccountSrc && x.Portfolio == portfolio);
+            var cash = list.OfType<Cash>().Where(x => x.IsActive(btd.Timestamp) && x.Currency == btd.Currency && x.CashAccount == btd.AccountSrc && x.Portfolio.UniqueId == portfolio);
             foreach (var c in cash)
             {
                 var currentAmount = c.GetNominalAmount(new TimeArg(TimeArgDirection.Start, btd.SettlementDate, btd.Index));
@@ -141,10 +141,10 @@ namespace Venture
             decimal remainingAmount = (std.AssetType != AssetType.Futures ? std.Amount : 0) + std.Fee;
             if (remainingAmount == 0) throw new Exception("Cash deduction attempted with amount equal to 0.");
 
-            string portfolio = std.PortfolioDst;
+            string portfolio = std.PortfolioSrc;
             if (String.IsNullOrEmpty(portfolio)) throw new Exception("Portfolio not specified for cash deduction.");
 
-            var cash = list.OfType<Cash>().Where(x => x.IsActive(std.Timestamp) && x.Currency == std.Currency && x.CashAccount == std.AccountSrc && x.Portfolio == portfolio);
+            var cash = list.OfType<Cash>().Where(x => x.IsActive(std.Timestamp) && x.Currency == std.Currency && x.CashAccount == std.AccountDst && x.Portfolio.UniqueId == portfolio);
             foreach (var c in cash)
             {
                 var currentAmount = c.GetNominalAmount(new TimeArg(TimeArgDirection.Start, std.SettlementDate, std.Index));
@@ -169,7 +169,7 @@ namespace Venture
             string portfolio = ptd.PortfolioSrc;
             if (String.IsNullOrEmpty(portfolio)) throw new Exception("Portfolio not specified for cash deduction.");
 
-            var cash = list.OfType<Cash>().Where(x => x.IsActive(ptd.Timestamp) && x.Currency == ptd.Currency && x.CashAccount == ptd.AccountSrc && x.Portfolio == portfolio);
+            var cash = list.OfType<Cash>().Where(x => x.IsActive(ptd.Timestamp) && x.Currency == ptd.Currency && x.CashAccount == ptd.AccountSrc && x.Portfolio.UniqueId == portfolio);
             foreach (var c in cash)
             {
                 var currentAmount = c.GetNominalAmount(new TimeArg(TimeArgDirection.Start, ptd.SettlementDate, ptd.Index));
@@ -192,11 +192,11 @@ namespace Venture
 
             decimal remainingAmount = Math.Abs(fr.Amount) + fr.Fee;
 
-            string portfolio = fr.ParentAsset.Portfolio;
+            string portfolio = fr.ParentAsset.Portfolio.UniqueId;
             string currency = fr.ParentAsset.Currency;
             string account = fr.ParentAsset.CashAccount;
 
-            var cash = list.OfType<Cash>().Where(x => x.IsActive(fr.Timestamp) && x.Currency == currency && x.CashAccount == account && x.Portfolio == portfolio);
+            var cash = list.OfType<Cash>().Where(x => x.IsActive(fr.Timestamp) && x.Currency == currency && x.CashAccount == account && x.Portfolio.UniqueId == portfolio);
             foreach (var c in cash)
             {
                 var currentAmount = c.GetNominalAmount(new TimeArg(TimeArgDirection.Start, fr.Timestamp, fr.TransactionIndex));
@@ -219,11 +219,11 @@ namespace Venture
 
             decimal remainingAmount = Math.Abs(fs.Amount);
 
-            string portfolio = fs.ParentAsset.Portfolio;
+            string portfolio = fs.ParentAsset.Portfolio.UniqueId;
             string currency = fs.ParentAsset.Currency;
             string account = fs.ParentAsset.CashAccount;
 
-            var cash = list.OfType<Cash>().Where(x => x.IsActive(fs.Timestamp) && x.Currency == currency && x.CashAccount == account && x.Portfolio == portfolio);
+            var cash = list.OfType<Cash>().Where(x => x.IsActive(fs.Timestamp) && x.Currency == currency && x.CashAccount == account && x.Portfolio.UniqueId == portfolio);
             foreach (var c in cash)
             {
                 var currentAmount = c.GetNominalAmount(new TimeArg(TimeArgDirection.End, fs.Timestamp, -1));
@@ -256,7 +256,7 @@ namespace Venture
                 x.SecurityDefinition.UniqueId == std.InstrumentUniqueId &&
                 x.Currency == std.Currency &&
                 x.CustodyAccount == std.AccountSrc &&
-                x.Portfolio == std.PortfolioSrc);
+                x.Portfolio.UniqueId == std.PortfolioSrc);
 
             foreach (var s in src)
             {
@@ -299,7 +299,7 @@ namespace Venture
                 x.SecurityDefinition.UniqueId == ttd.InstrumentUniqueId &&
                 x.Currency == ttd.Currency &&
                 x.CustodyAccount == ttd.AccountSrc &&
-                x.Portfolio == ttd.PortfolioSrc);
+                x.Portfolio.UniqueId == ttd.PortfolioSrc);
 
             foreach (var s in src)
             {
@@ -335,7 +335,7 @@ namespace Venture
                 x.Currency == btd.Currency &&
                 x.CashAccount == btd.AccountSrc &&
                 x.CustodyAccount == btd.AccountDst &&
-                x.Portfolio == btd.PortfolioDst);
+                x.Portfolio.UniqueId == btd.PortfolioDst);
 
             if (futures == null)
             {
@@ -364,14 +364,14 @@ namespace Venture
 
         private static void ProcessFuturesTransaction(List<Asset> list, InstrumentDefinition definition, SellTransactionDefinition std)
         {
-            if (String.IsNullOrEmpty(std.PortfolioDst)) throw new Exception("Portfolio not specified for futures contract.");
+            if (String.IsNullOrEmpty(std.PortfolioSrc)) throw new Exception("Portfolio not specified for futures contract.");
 
             Futures? futures = list.OfType<Futures>().SingleOrDefault(x =>
                 x.SecurityDefinition.UniqueId == std.InstrumentUniqueId &&
                 x.Currency == std.Currency &&
-                x.CashAccount == std.AccountSrc &&
-                x.CustodyAccount == std.AccountDst &&
-                x.Portfolio == std.PortfolioDst);
+                x.CashAccount == std.AccountDst &&
+                x.CustodyAccount == std.AccountSrc &&
+                x.Portfolio.UniqueId == std.PortfolioSrc);
 
             if (futures == null)
             {
@@ -535,12 +535,12 @@ namespace Venture
             decimal remainingAmount = mn.Amount;
             if (remainingAmount == 0) throw new Exception("Additional charge attempted with amount equal to 0.");
 
-            string account = mn.CashAccount;
+            string account = Definitions.Portfolios.Single(x => x.UniqueId == mn.Portfolio).CashAccount;
             if (String.IsNullOrEmpty(account)) throw new Exception("Cash account not specified for additional charge.");
             string portfolio = mn.Portfolio;
             if (String.IsNullOrEmpty(portfolio)) throw new Exception("Portfolio not specified for cash deduction.");
 
-            var cash = output.OfType<Cash>().Where(x => x.IsActive(mn.Timestamp) && x.CashAccount == account && x.Portfolio == portfolio);
+            var cash = output.OfType<Cash>().Where(x => x.IsActive(mn.Timestamp) && x.CashAccount == account && x.Portfolio.UniqueId == portfolio);
             foreach (var c in cash)
             {
                 var currentAmount = c.GetNominalAmount(new TimeArg(TimeArgDirection.End, mn.Timestamp));

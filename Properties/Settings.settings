@@ -20,5 +20,8 @@
     <Setting Name="ManualSource" Type="System.String" Scope="User">
       <Value Profile="(Default)">input\manual.csv</Value>
     </Setting>
+    <Setting Name="PortfoliosSource" Type="System.String" Scope="User">
+      <Value Profile="(Default)">input\portfolios.csv</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

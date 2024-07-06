@@ -7,19 +7,11 @@ using System.Threading.Tasks;
 
 namespace Venture.Modules
 {
-    public class AssetsViewEntry
+    public class AssetsViewEntry: ModuleEntry
     {
-        public string UniqueId { get; set; } = "";
-
         public string AssetType { get; set; } = "";
 
-        public string Portfolio { get; set; } = "";
-
-        public string CashAccount { get; set; } = "";
-
         public string CustodyAccount { get; set; } = "";
-
-        public string Currency { get; set; } = "PLN";
 
         public string ValuationClass { get; set; } = "";
 
@@ -58,7 +50,8 @@ namespace Venture.Modules
 
             UniqueId = asset.UniqueId;
             AssetType = asset.AssetType.ToString();
-            Portfolio = asset.Portfolio;
+            Portfolio = asset.Portfolio.UniqueId;
+            Broker = asset.Portfolio.Broker;
             CashAccount = asset.CashAccount;
             CustodyAccount = asset.CustodyAccount;
             Currency = asset.Currency;

@@ -63,13 +63,13 @@ namespace Venture
 
         public decimal NominalAmount { get; protected set; } = 0.0M;
 
-        public string AccountSrc { get; protected set; } = "";
-
-        public string AccountDst { get; protected set; } = "";
-
         public string PortfolioSrc { get; protected set; } = "";
 
         public string PortfolioDst { get; protected set; } = "";
+
+        public abstract string AccountSrc { get; }
+
+        public abstract string AccountDst { get; }
 
         public ValuationClass ValuationClass { get; protected set; } = ValuationClass.Undefined;
 
@@ -121,9 +121,6 @@ namespace Venture
 
             Currency = data["currency"];
 
-            AccountSrc = data["accountsrc"];
-            AccountDst = data["accountdst"];
-
             FXRate = GetFXRateFromData(data["fxrate"]);
         }
 
@@ -147,6 +144,10 @@ namespace Venture
     {
         public override string UniqueId { get { return $"{Index}_Buy_{AssetType}_{AssetId}"; } }
 
+        public override string AccountSrc { get { return Definitions.Portfolios.SingleOrDefault(x => x.UniqueId == PortfolioDst)?.CashAccount ?? ""; } }
+
+        public override string AccountDst { get { return Definitions.Portfolios.SingleOrDefault(x => x.UniqueId == PortfolioDst)?.CustodyAccount ?? ""; } }
+
         public BuyTransactionDefinition(Dictionary<string, string> data) : base(data)
         {
             AssetType = ConvertToEnum<AssetType>(data["assettype"]);
@@ -166,6 +167,10 @@ namespace Venture
     public class SellTransactionDefinition : TransactionDefinition
     {
         public override string UniqueId { get { return $"{Index}_Sell_{AssetType}_{AssetId}"; } }
+
+        public override string AccountSrc { get { return Definitions.Portfolios.SingleOrDefault(x => x.UniqueId == PortfolioSrc)?.CustodyAccount ?? ""; } }
+
+        public override string AccountDst { get { return Definitions.Portfolios.SingleOrDefault(x => x.UniqueId == PortfolioSrc)?.CashAccount ?? ""; } }
 
         public SellTransactionDefinition(Dictionary<string, string> data) : base(data)
         {
@@ -188,6 +193,10 @@ namespace Venture
     {
         public override string UniqueId { get { return $"{Index}_Pay"; } }
 
+        public override string AccountSrc { get { return Definitions.Portfolios.SingleOrDefault(x => x.UniqueId == PortfolioSrc)?.CashAccount ?? ""; } }
+
+        public override string AccountDst { get { return Definitions.Portfolios.SingleOrDefault(x => x.UniqueId == PortfolioDst)?.CashAccount ?? ""; } }
+
         public PayTransactionDefinition(Dictionary<string, string> data) : base(data)
         {
             AssetType = ConvertToEnum<AssetType>(data["assettype"]);
@@ -204,6 +213,10 @@ namespace Venture
     public class TransferTransactionDefinition : TransactionDefinition
     {
         public override string UniqueId { get { return $"{Index}_Transfer_{AssetType}_{AssetId}"; } }
+
+        public override string AccountSrc { get { return Definitions.Portfolios.SingleOrDefault(x => x.UniqueId == PortfolioSrc)?.CustodyAccount ?? ""; } }
+
+        public override string AccountDst { get { return Definitions.Portfolios.SingleOrDefault(x => x.UniqueId == PortfolioDst)?.CustodyAccount ?? ""; } }
 
         public TransferTransactionDefinition(Dictionary<string, string> data) : base(data)
         {

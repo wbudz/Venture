@@ -17,11 +17,11 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 namespace Venture.Modules
-{
+{    
     /// <summary>
-    /// Interaction logic for DefinitionsView.xaml
+    /// Interaction logic for AssetsView.xaml
     /// </summary>
-    public partial class AssetsView : UserControl
+    public partial class AssetsView : Module
     {
         public ObservableCollection<AssetsViewEntry> AssetEntries { get; set; } = new ObservableCollection<AssetsViewEntry>();
 
@@ -42,9 +42,12 @@ namespace Venture.Modules
             foreach (var asset in Common.Assets)
             {
                 if (!asset.IsActive(new TimeArg(TimeArgDirection.End, Common.CurrentDate))) continue;
-                if (PortfolioComboBox.SelectedItem.ToString() != "*" && PortfolioComboBox.SelectedItem.ToString() != asset.Portfolio) continue;
-                if (BrokerComboBox.SelectedItem.ToString() != "*" && BrokerComboBox.SelectedItem.ToString() != asset.FinancialInstitution) continue;
-                AssetEntries.Add(new AssetsViewEntry(asset, Common.CurrentDate));
+                var ave = new AssetsViewEntry(asset, Common.CurrentDate);
+
+                string selectedPortfolio = PortfolioComboBox.SelectedItem.ToString() ?? "*";
+                string selectedBroker = BrokerComboBox.SelectedItem.ToString() ?? "*";
+
+                if (Filter(ave, selectedPortfolio, selectedBroker)) AssetEntries.Add(ave);
             }
 
             TotalValueTextBlock.Text = $"Total value: {AssetEntries.Sum(x => x.BookValue):N2} PLN, therein cash: {AssetEntries.Where(x => x.AssetType == "Cash").Sum(x => x.BookValue):N2} PLN";

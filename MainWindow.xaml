@@ -26,6 +26,7 @@
         </StatusBar>
         <TreeView DockPanel.Dock="Left" Width="200">
             <TreeViewItem Header="Definitions">
+                <TreeViewItem Header="Portfolios" Selected="TreeViewItem_Selected" />
                 <TreeViewItem Header="Prices" Selected="TreeViewItem_Selected" />
                 <TreeViewItem Header="Instruments" Selected="TreeViewItem_Selected" />
                 <TreeViewItem Header="Transactions" Selected="TreeViewItem_Selected" />

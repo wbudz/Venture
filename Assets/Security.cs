@@ -19,9 +19,8 @@ namespace Venture
             UniqueId = $"{definition.AssetType}_{definition.AssetId}_{btd.Index}";
             AssetType = definition.AssetType;
 
-            Portfolio = btd.PortfolioDst;
-            CashAccount = btd.AccountSrc;
-            CustodyAccount = btd.AccountDst;
+            Portfolio = Definitions.Portfolios.Single(x=>x.UniqueId == btd.PortfolioDst);
+
             Currency = btd.Currency;
             ValuationClass = btd.ValuationClass;
 
@@ -33,9 +32,8 @@ namespace Venture
             UniqueId = $"{originalAsset.SecurityDefinition.AssetType}_{originalAsset.SecurityDefinition.AssetId}_{ttd.Index}";
             AssetType = originalAsset.SecurityDefinition.AssetType;
 
-            Portfolio = ttd.PortfolioDst;
-            CashAccount = originalAsset.CashAccount;
-            CustodyAccount = ttd.AccountDst;
+            Portfolio = Definitions.Portfolios.Single(x => x.UniqueId == ttd.PortfolioDst);
+
             Currency = ttd.Currency;
             ValuationClass = ttd.ValuationClass;
 
@@ -48,8 +46,6 @@ namespace Venture
             AssetType = definition.AssetType;
 
             Portfolio = template.Portfolio;
-            CashAccount = template.CashAccount;
-            CustodyAccount = template.CustodyAccount;
             Currency = template.Currency;
             ValuationClass = template.ValuationClass;
 
