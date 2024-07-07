@@ -38,7 +38,7 @@ namespace Venture.Modules
             UniqueId = p.UniqueId;
             ParentAssetUniqueId = p.ParentAsset.UniqueId;
             AssociatedEvent = p.AssociatedEvent?.UniqueId ?? "";
-            Portfolio = p.ParentAsset.Portfolio.UniqueId;
+            PortfolioId = p.ParentAsset.Portfolio.UniqueId;
             CashAccount = p.ParentAsset.Portfolio.CashAccount;
             Broker = p.ParentAsset.Portfolio.Broker;
             Currency = p.ParentAsset.Currency;

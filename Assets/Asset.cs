@@ -51,6 +51,8 @@ namespace Venture
         /// </summary>
         public PortfolioDefinition Portfolio { get; protected set; }
 
+        public string PortfolioId { get { return Portfolio.UniqueId; } }
+
         /// <summary>
         /// For securities, cash account which receives potential flows; by default cash account from which the purchase was made.
         /// In case of cash instruments (e.g. deposit, cash, receivable), bank account where the cash resides or where it would flow at the maturity.

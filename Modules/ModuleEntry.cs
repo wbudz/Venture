@@ -11,7 +11,7 @@ namespace Venture.Modules
     {
         public string UniqueId { get; set; } = "";
 
-        public string Portfolio { get; set; } = "";
+        public string PortfolioId { get; set; } = "";
 
         public string CashAccount { get; set; } = "";
 

@@ -1,4 +1,4 @@
-﻿<modules:Module x:Class="Venture.Modules.AssetsView"
+﻿<modules:Module x:Class="Venture.Modules.ClassesView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -20,8 +20,6 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="26"/>
             <RowDefinition Height="*" MinHeight="100"/>
-            <RowDefinition Height="5"/>
-            <RowDefinition Height="*" MinHeight="100"/>
         </Grid.RowDefinitions>
         <ToolBar Template="{DynamicResource ToolBarTemplate}" Height="26" VerticalAlignment="Top" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" ItemsSource="{Binding Mode=OneWay}">
             <ToolBar.Items>
@@ -38,41 +36,10 @@
                 <ComboBox x:Name="BrokerComboBox" VerticalAlignment="Center" Width="80" DataContext="{Binding Mode=OneWay, Source={StaticResource Filters}}" ItemsSource="{Binding Brokers}" SelectedItem="{Binding CurrentBroker}" SelectionChanged="ComboBox_SelectionChanged" />
             </ToolBar.Items>
         </ToolBar>
-        <ListView x:Name="lvAssets" 
-                  ItemsSource="{Binding AssetEntries}"
-                  View="{Binding Mode=OneWay, Source={StaticResource AssetsGridView}}"
+        <ListView x:Name="lvClasses" 
+                  ItemsSource="{Binding ClassEntries}"
+                  View="{Binding Mode=OneWay, Source={StaticResource ClassesGridView}}"
                   Grid.Row="1" Margin="0,0,0,25"/>
-        <GridSplitter Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Center" Grid.Row="2" />
-        <TabControl Grid.Row="3">
-            <TabItem Header="Purchase" IsSelected="True">
-                <ListView
-                      ItemsSource="{Binding Purchases, TargetNullValue='', FallbackValue=''}" 
-                      DataContext="{Binding SelectedItem, ElementName=lvAssets}" 
-                      View="{Binding Mode=OneWay, Source={StaticResource PurchasesGridView}}"
-                      VerticalAlignment="Stretch" SelectionChanged="ListView_AutoSizeColumns"/>
-            </TabItem>
-            <TabItem Header="Sales">
-                <ListView
-                      ItemsSource="{Binding Sales, TargetNullValue='', FallbackValue=''}" 
-                      DataContext="{Binding SelectedItem, ElementName=lvAssets}" 
-                      View="{Binding Mode=OneWay, Source={StaticResource SalesGridView}}"
-                      VerticalAlignment="Stretch" SelectionChanged="ListView_AutoSizeColumns"/>
-            </TabItem>
-            <TabItem Header="Flows">
-                <ListView
-                      ItemsSource="{Binding Flows, TargetNullValue='', FallbackValue=''}" 
-                      DataContext="{Binding SelectedItem, ElementName=lvAssets}" 
-                      View="{Binding Mode=OneWay, Source={StaticResource FlowsGridView}}"
-                      VerticalAlignment="Stretch" SelectionChanged="ListView_AutoSizeColumns"/>
-            </TabItem>
-            <TabItem Header="Payments">
-                <ListView
-                      ItemsSource="{Binding Payments, TargetNullValue='', FallbackValue=''}" 
-                      DataContext="{Binding SelectedItem, ElementName=lvAssets}" 
-                      View="{Binding Mode=OneWay, Source={StaticResource PaymentsGridView}}"
-                      VerticalAlignment="Stretch" SelectionChanged="ListView_AutoSizeColumns"/>
-            </TabItem>
-        </TabControl>
         <TextBlock x:Name="TotalValueTextBlock" VerticalAlignment="Bottom" Margin="10,0,0,6" Grid.Row="1" HorizontalAlignment="Left" Visibility="Collapsed"/>
     </Grid>
 </modules:Module>

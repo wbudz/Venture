@@ -50,7 +50,7 @@ namespace Venture.Modules
 
             UniqueId = asset.UniqueId;
             AssetType = asset.AssetType.ToString();
-            Portfolio = asset.Portfolio.UniqueId;
+            PortfolioId = asset.Portfolio.UniqueId;
             Broker = asset.Portfolio.Broker;
             CashAccount = asset.CashAccount;
             CustodyAccount = asset.CustodyAccount;

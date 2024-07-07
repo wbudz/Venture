@@ -36,6 +36,7 @@
             </TreeViewItem>
             <TreeViewItem Header="Assets">
                 <TreeViewItem Header="Assets" Selected="TreeViewItem_Selected" />
+                <TreeViewItem Header="Asset classes" Selected="TreeViewItem_Selected" />
                 <TreeViewItem Header="Reports" Selected="TreeViewItem_Selected" />
                 <TreeViewItem Header="Cashflow" Selected="TreeViewItem_Selected" />
             </TreeViewItem>
