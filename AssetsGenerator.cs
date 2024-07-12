@@ -213,7 +213,7 @@ namespace Venture
             }
         }
 
-        private static void RegisterCashDeduction(List<Asset> list, FuturesSettlementEvent fs)
+        private static void RegisterCashDeduction(List<Asset> list, FuturesRevaluationEvent fs)
         {
             if (fs.Amount >= 0) throw new Exception("Cash deduction can be created only from event with negative amount.");
 
@@ -424,7 +424,7 @@ namespace Venture
                     newAssets.Add(cash);
                 }
                 // Futures settlement happens at the very end of the day (after market closes).
-                foreach (var ev in asset.Events.OfType<FuturesSettlementEvent>().Where(x => x.Timestamp >= startDate && x.Timestamp < endDate))
+                foreach (var ev in asset.Events.OfType<FuturesRevaluationEvent>().Where(x => x.Timestamp >= startDate && x.Timestamp < endDate))
                 {
                     if (ev.Amount >= 0)
                     {

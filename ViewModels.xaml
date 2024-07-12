@@ -1,5 +1,7 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"                    
-                    xmlns:local="clr-namespace:Venture">
+                    xmlns:local="clr-namespace:Venture"
+                    xmlns:modules="clr-namespace:Venture.Modules">
     <local:FiltersViewModel x:Key="Filters"/>
+    <modules:FuturesViewModel x:Key="FuturesVM"/>
 </ResourceDictionary>

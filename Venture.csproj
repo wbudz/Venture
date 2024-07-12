@@ -16,6 +16,9 @@
     <Compile Update="Modules\AssetsReports.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Modules\FuturesView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Modules\CashflowView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -67,6 +70,12 @@
       <Generator>PublicSettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Update="Modules\FuturesView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
   </ItemGroup>
 
 </Project>

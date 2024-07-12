@@ -42,6 +42,10 @@ namespace Venture
 
     public abstract class FuturesEvent: Event
     {
+        public decimal Price { get; protected set; } = 0;
+
+        public bool IsTotalDerecognition { get; set; } = false;
+
         public FuturesEvent(Futures parentAsset, DateTime timestamp) : base(parentAsset, timestamp)
         {
         }

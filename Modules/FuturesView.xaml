@@ -1,0 +1,62 @@
+﻿<modules:Module x:Class="Venture.Modules.FuturesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Venture"
+             xmlns:modules="clr-namespace:Venture.Modules"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800" Loaded="UserControl_Loaded">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="ToolbarTemplate.xaml" />
+                <ResourceDictionary Source="GridViews.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="26"/>
+            <RowDefinition Height="*" MinHeight="100"/>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="*" MinHeight="100"/>
+        </Grid.RowDefinitions>
+        <ToolBar Template="{DynamicResource ToolBarTemplate}" Height="26" VerticalAlignment="Top" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" ItemsSource="{Binding Mode=OneWay}">
+            <ToolBar.Items>
+                <Button x:Name="RefreshButton" Content="Refresh" Click="RefreshButton_Click" />
+                <Button x:Name="CopyButton" Content="Copy" Click="CopyButton_Click" />
+                <Separator />
+                <TextBlock Text="Date" VerticalAlignment="Center" Margin="5,0,5,0"/>
+                <ComboBox x:Name="StartYearComboBox" VerticalAlignment="Center" Width="80" DataContext="{Binding Mode=OneWay, Source={StaticResource Filters}}" ItemsSource="{Binding ReportingYears, Mode=OneWay}" SelectedItem="{Binding CurrentYear, Mode=OneWay}" SelectionChanged="ComboBox_SelectionChanged" />
+                <ComboBox x:Name="StartMonthComboBox" VerticalAlignment="Center" Width="50" DataContext="{Binding Mode=OneWay, Source={StaticResource Filters}}" ItemsSource="{Binding ReportingMonths, Mode=OneWay}" SelectedIndex="0" SelectionChanged="ComboBox_SelectionChanged" />
+                <TextBlock Text="-" VerticalAlignment="Center" Margin="5,0,5,0"/>
+                <ComboBox x:Name="EndYearComboBox" VerticalAlignment="Center" Width="80" DataContext="{Binding Mode=OneWay, Source={StaticResource Filters}}" ItemsSource="{Binding ReportingYears, Mode=OneWay}" SelectedItem="{Binding CurrentYear}" SelectionChanged="ComboBox_SelectionChanged" />
+                <ComboBox x:Name="EndMonthComboBox" VerticalAlignment="Center" Width="50" DataContext="{Binding Mode=OneWay, Source={StaticResource Filters}}" ItemsSource="{Binding ReportingMonths, Mode=OneWay}" SelectedItem="{Binding CurrentMonth}" SelectionChanged="ComboBox_SelectionChanged" />
+                <Separator />
+                <TextBlock Text="Portfolio" VerticalAlignment="Center" Margin="5,0,5,0"/>
+                <ComboBox x:Name="PortfolioComboBox" VerticalAlignment="Center" Width="80" DataContext="{Binding Mode=OneWay, Source={StaticResource Filters}}" ItemsSource="{Binding Portfolios}" SelectedItem="{Binding CurrentPortfolio}" SelectionChanged="ComboBox_SelectionChanged" />
+                <TextBlock Text="Broker" VerticalAlignment="Center" Margin="5,0,5,0"/>
+                <ComboBox x:Name="BrokerComboBox" VerticalAlignment="Center" Width="80" DataContext="{Binding Mode=OneWay, Source={StaticResource Filters}}" ItemsSource="{Binding Brokers}" SelectedItem="{Binding CurrentBroker}" SelectionChanged="ComboBox_SelectionChanged" />
+            </ToolBar.Items>
+        </ToolBar>
+        <ListView x:Name="lvFuturesEvents" 
+                  DataContext="{Binding Source={StaticResource FuturesVM}}"
+                  ItemsSource="{Binding FuturesEntries}"
+                  View="{Binding Source={StaticResource FuturesGridView}}"
+                  Grid.Row="1" Margin="0,0,0,25"
+                  SelectedItem="{Binding Path=CurrentEntry}"
+                  />
+        <GridSplitter Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Center" Grid.Row="2" />
+
+        <ListView
+                DataContext="{Binding Source={StaticResource FuturesVM}}"
+                ItemsSource="{Binding CurrentEntry.Events}" 
+                View="{Binding Source={StaticResource FuturesEventsGridView}}"
+                VerticalAlignment="Stretch" SelectionChanged="ListView_AutoSizeColumns"
+                Grid.Row="3"/>
+
+        <TextBlock x:Name="TotalValueTextBlock" VerticalAlignment="Bottom" Margin="10,0,0,6" Grid.Row="1" HorizontalAlignment="Left" Visibility="Collapsed"/>
+    </Grid>
+</modules:Module>

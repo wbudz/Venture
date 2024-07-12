@@ -53,7 +53,7 @@ namespace Venture
         {
             var index = events.FindIndex(x => x.Timestamp > e.Timestamp || (e.TransactionIndex > -1 && x.TransactionIndex > e.TransactionIndex));
             if (index == -1)
-            { index = events.FindIndex(x => x.Timestamp == e.Timestamp && x is FuturesSettlementEvent fs); }
+            { index = events.FindIndex(x => x.Timestamp == e.Timestamp && x is FuturesRevaluationEvent fs); }
             if (index == -1)
             { index = events.Count; }
             events.Insert(index, e);
@@ -118,7 +118,7 @@ namespace Venture
                 currentPrice = price.Value;
 
                 decimal amount = Common.Round((currentPrice - previousPrice) * count * Multiplier);
-                AddEvent(new FuturesSettlementEvent(this, count, amount, currentEnd));
+                AddEvent(new FuturesRevaluationEvent(this, count, currentPrice, amount, currentEnd));
                 previousPrice = currentPrice;
 
                 previousEnd = currentEnd;
@@ -143,7 +143,7 @@ namespace Venture
                     count += fr.Count;
                     if (fr.IsTotalDerecognition) continue;
                 }
-                if (evt is FuturesSettlementEvent fs)
+                if (evt is FuturesRevaluationEvent fs)
                 {
                     var price = prices.LastOrDefault(x => x.Timestamp <= fs.Timestamp); // if no price is defined, use the last available
                     if (price == null) throw new Exception($"No price defined for {AssociatedTicker} at {fs.Timestamp:yyyy-MM-dd}.");
@@ -180,7 +180,7 @@ namespace Venture
                     else
                         count += fr.Count;
                 }
-                if (e is FuturesSettlementEvent fs)
+                if (e is FuturesRevaluationEvent fs)
                 {
                     if (fs.IsTotalDerecognition)
                         count = 0;

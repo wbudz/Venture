@@ -7,15 +7,11 @@ using System.Windows.Markup;
 
 namespace Venture
 {
-    public class FuturesRecognitionEvent : Event
+    public class FuturesRecognitionEvent : FuturesEvent
     {
         public decimal Count { get; protected set; } = 0;
 
-        public decimal Price { get; protected set; } = 0;
-
         public decimal Fee { get; protected set; } = 0;
-
-        public bool IsTotalDerecognition { get; set; } = false;
 
         public FuturesRecognitionEvent(Futures parentAsset, BuyTransactionDefinition btd) : base(parentAsset, btd.Timestamp)
         {
@@ -26,7 +22,7 @@ namespace Venture
             Price = btd.Price;
             Fee = btd.Fee;
 
-            Amount = -Fee;
+            Amount = 0; // -Fee;?
             FXRate = btd.FXRate;
         }
 
@@ -39,7 +35,7 @@ namespace Venture
             Price = std.Price;
             Fee = std.Fee;
 
-            Amount = -Fee;
+            Amount = 0; // -Fee;?
             FXRate = std.FXRate;
         }
     }

@@ -55,7 +55,7 @@ namespace Venture
             GenerateFlows();
         }
 
-        public Cash(FuturesSettlementEvent fs) : base()
+        public Cash(FuturesRevaluationEvent fs) : base()
         {
             UniqueId = $"Cash_FuturesSettlement_{fs.ParentAsset.UniqueId}_{fs.Timestamp.ToString("yyyyMMdd")}";
             AssetType = AssetType.Cash;
