@@ -21,6 +21,8 @@ namespace Venture
 
         public string Broker { get; private set; } = "";
 
+        public string NumericId { get; private set; } = "";
+
         public PortfolioDefinition(Dictionary<string, string> data) : base(data)
         {
             PortfolioName = data["portfolio"];
@@ -28,6 +30,7 @@ namespace Venture
             CashAccount = data["cashaccount"];
             CustodyAccount = data["custodyaccount"];
             Broker = data["broker"];
+            NumericId = data["numericcode"];
         }
 
         public override string ToString()

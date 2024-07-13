@@ -51,6 +51,8 @@ namespace Venture
             if ((sender as TreeViewItem)?.Header.ToString() == "Reports") CurrentModule.Children.Add(new Modules.AssetsReports());
             if ((sender as TreeViewItem)?.Header.ToString() == "Cashflow") CurrentModule.Children.Add(new Modules.CashflowView());
             if ((sender as TreeViewItem)?.Header.ToString() == "Futures") CurrentModule.Children.Add(new Modules.FuturesView());
+
+            if ((sender as TreeViewItem)?.Header.ToString() == "Accounts") CurrentModule.Children.Add(new Modules.AccountsView());
         }
 
         #region Commands

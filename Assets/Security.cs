@@ -83,7 +83,7 @@ namespace Venture
                     }
                 }
             }
-            bounds.endDate = Common.FinalDate.AddDays(1);
+            bounds.endDate = Common.EndDate.AddDays(1);
             bounds.endIndex = -1;
         }
 

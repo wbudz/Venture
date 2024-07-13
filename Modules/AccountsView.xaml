@@ -1,4 +1,4 @@
-﻿<modules:Module x:Class="Venture.Modules.AssetsView"
+﻿<modules:Module x:Class="Venture.Modules.AccountsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -38,43 +38,19 @@
                 <ComboBox x:Name="BrokerComboBox" VerticalAlignment="Center" Width="80" DataContext="{Binding Mode=OneWay, Source={StaticResource Filters}}" ItemsSource="{Binding Brokers}" SelectedItem="{Binding CurrentBroker}" SelectionChanged="ComboBox_SelectionChanged" />
             </ToolBar.Items>
         </ToolBar>
-        <ListView x:Name="lvAssets" 
-                  DataContext="{Binding Source={StaticResource AssetsVM}}"
-                  ItemsSource="{Binding AssetEntries}"
-                  View="{Binding Source={StaticResource AssetsGridView}}"
-                  Grid.Row="1" Margin="0,0,0,25"
-                  SelectedItem="{Binding Path=CurrentEntry}"/>
+        <ListView x:Name="lvAccounts" 
+            DataContext="{Binding Source={StaticResource AccountsVM}}"
+            ItemsSource="{Binding AccountEntries}"
+            View="{Binding Source={StaticResource AccountsGridView}}"
+            Grid.Row="1" Margin="0,0,0,25"
+            SelectedItem="{Binding Path=CurrentEntry}"/>
         <GridSplitter Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Center" Grid.Row="2" />
-        <TabControl Grid.Row="3">
-            <TabItem Header="Purchase" IsSelected="True">
-                <ListView
-                    DataContext="{Binding Source={StaticResource AssetsVM}}"
-                    ItemsSource="{Binding CurrentEntry.Purchases}" 
-                    View="{Binding Source={StaticResource PurchasesGridView}}"
-                    VerticalAlignment="Stretch" SelectionChanged="ListView_AutoSizeColumns"/>
-            </TabItem>
-            <TabItem Header="Sales">
-                <ListView
-                    DataContext="{Binding Source={StaticResource AssetsVM}}"
-                    ItemsSource="{Binding CurrentEntry.Sales}" 
-                    View="{Binding Source={StaticResource SalesGridView}}"
-                    VerticalAlignment="Stretch" SelectionChanged="ListView_AutoSizeColumns"/>
-            </TabItem>
-            <TabItem Header="Flows">
-                <ListView
-                    DataContext="{Binding Source={StaticResource AssetsVM}}"
-                    ItemsSource="{Binding CurrentEntry.Flows}" 
-                    View="{Binding Source={StaticResource FlowsGridView}}"
-                    VerticalAlignment="Stretch" SelectionChanged="ListView_AutoSizeColumns"/>
-            </TabItem>
-            <TabItem Header="Payments">
-                <ListView
-                    DataContext="{Binding Source={StaticResource AssetsVM}}"
-                    ItemsSource="{Binding CurrentEntry.Payments}" 
-                    View="{Binding Source={StaticResource PaymentsGridView}}"
-                    VerticalAlignment="Stretch" SelectionChanged="ListView_AutoSizeColumns"/>
-            </TabItem>
-        </TabControl>
+        <ListView
+            DataContext="{Binding Source={StaticResource AccountsVM}}"
+            ItemsSource="{Binding CurrentEntry.Entries}" 
+            View="{Binding Source={StaticResource AccountEntriesGridView}}"
+            VerticalAlignment="Stretch" SelectionChanged="ListView_AutoSizeColumns"
+            Grid.Row="3"/>
         <TextBlock x:Name="TotalValueTextBlock" VerticalAlignment="Bottom" Margin="10,0,0,6" Grid.Row="1" HorizontalAlignment="Left" Visibility="Collapsed"/>
     </Grid>
 </modules:Module>

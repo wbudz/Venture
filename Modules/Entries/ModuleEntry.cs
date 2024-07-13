@@ -13,8 +13,6 @@ namespace Venture.Modules
 
         public string PortfolioId { get; set; } = "";
 
-        public string CashAccount { get; set; } = "";
-
         public string Broker { get; set; } = "";
 
         public string Currency { get; set; } = "PLN";

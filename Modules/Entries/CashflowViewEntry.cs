@@ -9,6 +9,8 @@ namespace Venture.Modules
 {
     public class CashflowViewEntry : ModuleEntry
     {
+        public string CashAccount { get; set; } = "";
+
         public string ParentAssetUniqueId { get; set; } = "";
 
         public string AssociatedEvent { get; set; } = "";

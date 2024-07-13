@@ -41,6 +41,9 @@
                 <TreeViewItem Header="Cashflow" Selected="TreeViewItem_Selected" />
                 <TreeViewItem Header="Futures" Selected="TreeViewItem_Selected" />
             </TreeViewItem>
+            <TreeViewItem Header="Accounting">
+                <TreeViewItem Header="Accounts" Selected="TreeViewItem_Selected" />
+            </TreeViewItem>
         </TreeView>
         <Grid x:Name="CurrentModule" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" />
     </DockPanel>

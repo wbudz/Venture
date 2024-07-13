@@ -34,13 +34,17 @@ namespace Venture
     {
         public static List<Asset> Assets = new List<Asset>();
 
-        public static DateTime CurrentDate { get { return new DateTime(FVM.CurrentYear, FVM.CurrentMonth, DateTime.DaysInMonth(FVM.CurrentYear, FVM.CurrentMonth)); } }
+        public static Book MainBook = new Book(false);
 
-        public static DateTime FinalDate { get; set; } = Financial.Calendar.GetEndDate(DateTime.Now, Financial.Calendar.TimeStep.Yearly);
+        public static DateTime CurrentDate { get { return new DateTime(FiltersVM.CurrentYear, FiltersVM.CurrentMonth, DateTime.DaysInMonth(FiltersVM.CurrentYear, FiltersVM.CurrentMonth)); } }
+
+        public static DateTime StartDate { get; set; } = new DateTime(DateTime.Now.Year, 1, 1);
+
+        public static DateTime EndDate { get; set; } = Financial.Calendar.GetEndDate(DateTime.Now, Financial.Calendar.TimeStep.Yearly);
 
         public static List<string> CashAccounts { get { return Assets.Select(x => x.CashAccount).Distinct().ToList(); } }
 
-        static FiltersViewModel FVM { get { return (FiltersViewModel)Application.Current.Resources["Filters"]; } }
+        static FiltersViewModel FiltersVM { get { return (FiltersViewModel)Application.Current.Resources["Filters"]; } }
 
         public static void RefreshCommonData()
         {
@@ -53,23 +57,21 @@ namespace Venture
                 if (asset.BoundsEnd > end) end = asset.BoundsEnd;
             }
 
-            start = Financial.Calendar.GetEndDate(start.AddMonths(-1), Financial.Calendar.TimeStep.Monthly);
-            end = Financial.Calendar.GetEndDate(end, Financial.Calendar.TimeStep.Yearly);
+            StartDate = Financial.Calendar.GetEndDate(start.AddMonths(-1), Financial.Calendar.TimeStep.Monthly);
+            EndDate = Financial.Calendar.GetEndDate(end, Financial.Calendar.TimeStep.Yearly);
 
-            FinalDate = end;
+            FiltersVM.ReportingDates = new ObservableCollection<DateTime>(Financial.Calendar.GenerateReportingDates(start, end, Financial.Calendar.TimeStep.Monthly));
 
-            FVM.ReportingDates = new ObservableCollection<DateTime>(Financial.Calendar.GenerateReportingDates(start, end, Financial.Calendar.TimeStep.Monthly));
-
-            FVM.ReportingYears = new ObservableCollection<int>(FVM.ReportingDates.Select(x => x.Year).Distinct().Order());
+            FiltersVM.ReportingYears = new ObservableCollection<int>(FiltersVM.ReportingDates.Select(x => x.Year).Distinct().Order());
 
             List<string> portfolios = new List<string>() { "*" };
             portfolios.AddRange(Definitions.Portfolios.Select(x => x.UniqueId).Distinct());
             portfolios.AddRange(Definitions.Portfolios.Select(x => x.PortfolioName + "_*").Distinct());
-            FVM.Portfolios = new ObservableCollection<string>(portfolios.Order());
+            FiltersVM.Portfolios = new ObservableCollection<string>(portfolios.Order());
 
             List<string> brokers = new List<string>() { "*" };
             brokers.AddRange(Definitions.Portfolios.Select(x => x.Broker).Distinct().Order());
-            FVM.Brokers = new ObservableCollection<string>(brokers);
+            FiltersVM.Brokers = new ObservableCollection<string>(brokers);
         }
 
         public static string ValuationClassToString(ValuationClass input)

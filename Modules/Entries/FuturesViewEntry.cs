@@ -9,6 +9,8 @@ namespace Venture.Modules
 {
     public class FuturesViewEntry : ModuleEntry
     {
+        public string CashAccount { get; set; } = "";
+
         public string CustodyAccount { get; set; } = "";
 
         public string InstrumentId { get; set; } = "";

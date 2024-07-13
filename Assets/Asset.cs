@@ -390,6 +390,17 @@ namespace Venture
             }
         }
 
+        public IEnumerable<T> GetEvents<T>(DateTime start, DateTime end) where T : Event
+        {
+            if (start > end) throw new Exception("Start date is later than end date in GetEvents method.");
+
+            foreach (var evt in events.OfType<T>())
+            {
+                if (evt.Timestamp >= start && evt.Timestamp <= end) yield return evt;
+                if (evt.Timestamp > end) yield break;
+            }
+        }
+
 
         /// <summary>
         /// Returns purchase transaction date. In case of multiple purchases, it returns the date referring to the first transactions.

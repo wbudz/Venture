@@ -16,6 +16,8 @@ namespace Venture
 
         public string Description { get; protected set; } = "";
 
+        public PaymentType PaymentType { get; protected set; } = PaymentType.Undefined;
+
         public PaymentEvent(Cash parentAsset, PayTransactionDefinition ptd, decimal amount, PaymentDirection direction) : base(parentAsset, ptd.Timestamp)
         {
             UniqueId = $"Payment_{direction}_{ptd.Index}_{ptd.Timestamp.ToString("yyyyMMdd")}";
@@ -24,6 +26,7 @@ namespace Venture
             TransactionIndex = ptd.Index;
             Amount = amount;
             FXRate = ptd.FXRate;
+            PaymentType = ptd.PaymentType;
         }
 
         public PaymentEvent(Cash parentAsset, BuyTransactionDefinition btd, decimal amount) : base(parentAsset, btd.Timestamp)

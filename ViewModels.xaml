@@ -4,4 +4,6 @@
                     xmlns:modules="clr-namespace:Venture.Modules">
     <local:FiltersViewModel x:Key="Filters"/>
     <modules:FuturesViewModel x:Key="FuturesVM"/>
+    <modules:AssetsViewModel x:Key="AssetsVM"/>
+    <modules:AccountsViewModel x:Key="AccountsVM"/>
 </ResourceDictionary>

@@ -11,6 +11,8 @@ namespace Venture.Modules
     {
         public string AssetType { get; set; } = "";
 
+        public string CashAccount { get; set; } = "";
+
         public string CustodyAccount { get; set; } = "";
 
         public string ValuationClass { get; set; } = "";

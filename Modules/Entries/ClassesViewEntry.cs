@@ -44,7 +44,6 @@ namespace Venture.Modules
 
             PortfolioDefinition portfolio = Definitions.Portfolios.Single(x => x.UniqueId == portfolioId);
             PortfolioId = portfolio.UniqueId;
-            CashAccount = portfolio.CashAccount;
             Broker = portfolio.Broker;
 
             Currency = currency;

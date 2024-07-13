@@ -31,13 +31,15 @@ namespace Venture
                     // Register cash addition
                     if (!String.IsNullOrEmpty(ptd.AccountDst))
                     {
-                        AddAsset(output, new Cash(ptd), tr.Timestamp);
+                        var cash = new Cash(ptd);
+                        AddAsset(output, cash, tr.Timestamp);
                     }
                     // Register cash deduction
                     if (!String.IsNullOrEmpty(ptd.AccountSrc))
                     {
                         RegisterCashDeduction(output, ptd);
                     }
+                    PaymentBooking.Process(ptd);
                 }
                 else
                 {
@@ -80,6 +82,7 @@ namespace Venture
                             AddAsset(output, asset, btd.Timestamp);
                             // Subtract cash used for purchase
                             RegisterCashDeduction(output, btd);
+                            RecognitionBooking.Process(btd);
                         }
                     }
                     if (tr is SellTransactionDefinition std)
@@ -97,6 +100,7 @@ namespace Venture
                             }
                             // Add cash gained from sale(s)
                             AddAsset(output, new Cash(std, sales), std.Timestamp);
+                            DerecognitionBooking.Process(std, sales);
                         }
                     }
                 }
@@ -411,7 +415,7 @@ namespace Venture
 
         private static void ProcessPrecedingEvents(List<Asset> output, HashSet<ManualEventDefinition> manual, TransactionDefinition? tr, DateTime startDate)
         {
-            DateTime endDate = tr?.Timestamp ?? Common.FinalDate;
+            DateTime endDate = tr?.Timestamp ?? Common.EndDate;
 
             List<Asset> newAssets = new List<Asset>();
 

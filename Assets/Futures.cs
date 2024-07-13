@@ -87,7 +87,7 @@ namespace Venture
                     return;
                 }
             }
-            bounds.endDate = MaturityDate < Common.FinalDate ? MaturityDate : Common.FinalDate.AddDays(1);
+            bounds.endDate = MaturityDate < Common.EndDate ? MaturityDate : Common.EndDate.AddDays(1);
             bounds.endIndex = -1;
         }
 

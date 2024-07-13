@@ -20,8 +20,6 @@ namespace Venture.Modules
             set { currentEntry = value; OnPropertyChanged(); }
         }
 
-        public ObservableCollection<FuturesEventViewEntry> FuturesEventEntries { get; set; } = new ObservableCollection<FuturesEventViewEntry>();
-
         public event PropertyChangedEventHandler? PropertyChanged;
 
         protected void OnPropertyChanged([CallerMemberName] string? name = null)

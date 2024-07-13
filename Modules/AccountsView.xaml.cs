@@ -15,17 +15,19 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Xml;
 
 namespace Venture.Modules
-{    
+{
     /// <summary>
     /// Interaction logic for AssetsView.xaml
     /// </summary>
-    public partial class AssetsView : Module
+    public partial class AccountsView : Module
     {
-        private AssetsViewModel VM = (AssetsViewModel)Application.Current.Resources["AssetsVM"];
+        private AccountsViewModel VM = (AccountsViewModel)Application.Current.Resources["AccountsVM"];
 
-        public AssetsView()
+        public AccountsView()
         {
             InitializeComponent();
             DataContext = this;
@@ -33,24 +35,21 @@ namespace Venture.Modules
 
         public void Refresh()
         {
-            if (lvAssets == null) return;
+            if (lvAccounts == null) return;
 
             Stopwatch sw = new Stopwatch();
             sw.Start();
 
-            VM.AssetEntries.Clear();
-            foreach (var asset in Common.Assets)
+            VM.AccountEntries.Clear();
+            foreach (var ave in Common.MainBook.GetAccountsAsViewEntries(Common.CurrentDate))
             {
-                if (!asset.IsActive(new TimeArg(TimeArgDirection.End, Common.CurrentDate))) continue;
-                var ave = new AssetsViewEntry(asset, Common.CurrentDate);
-
                 string selectedPortfolio = PortfolioComboBox.SelectedItem.ToString() ?? "*";
                 string selectedBroker = BrokerComboBox.SelectedItem.ToString() ?? "*";
 
-                if (Filter(ave, selectedPortfolio, selectedBroker)) VM.AssetEntries.Add(ave);
+                if (Filter(ave, selectedPortfolio, selectedBroker)) VM.AccountEntries.Add(ave);
             }
 
-            TotalValueTextBlock.Text = $"Total value: {VM.AssetEntries.Sum(x => x.BookValue):N2} PLN, therein cash: {VM.AssetEntries.Where(x => x.AssetType == "Cash").Sum(x => x.BookValue):N2} PLN";
+            TotalValueTextBlock.Text = $"...";
             TotalValueTextBlock.Visibility = Visibility.Visible;
 
             sw.Stop();
@@ -61,22 +60,15 @@ namespace Venture.Modules
         {
             List<(string property, string header)> columns = new List<(string property, string header)>();
             columns.Add(("UniqueId", "Unique id"));
-            columns.Add(("Type", "Type"));
-            columns.Add(("Portfolio", "Portfolio"));
-            columns.Add(("CustodyAccount", "Custody account"));
-            columns.Add(("CashAccount", "Cash account"));
+            columns.Add(("AccountType", "Account type"));
+            columns.Add(("AssetType", "Asset type"));
+            columns.Add(("PortfolioId", "Portfolio"));
+            columns.Add(("Broker", "Broker"));
             columns.Add(("Currency", "Currency"));
-            columns.Add(("ValuationClass", "Valuation class"));
-            columns.Add(("InstrumentId", "Instrument"));
-            columns.Add(("RecognitionDate", "Recognition date"));
-            columns.Add(("Count", "Count"));
-            columns.Add(("NominalAmount", "Nominal amount"));
-            columns.Add(("PurchaseAmount", "Purchase amount"));
-            columns.Add(("AmortizedCostValue", "Amortized cost value"));
-            columns.Add(("MarketValue", "Market value"));
-            columns.Add(("AccruedInterest", "Accrued interest"));
-            columns.Add(("BookValue", "Value"));
-            Clipboard.SetText(CSV.Export<AssetsViewEntry>(VM.AssetEntries, columns));
+            columns.Add(("DebitAmount", "Debit amount"));
+            columns.Add(("CreditAmount", "Credit amount"));
+            columns.Add(("NetAmount", "Net amount"));
+            Clipboard.SetText(CSV.Export<AccountsViewEntry>(VM.AccountEntries, columns));
         }
 
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
