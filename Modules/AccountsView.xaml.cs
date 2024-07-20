@@ -49,7 +49,7 @@ namespace Venture.Modules
                 if (Filter(ave, selectedPortfolio, selectedBroker)) VM.AccountEntries.Add(ave);
             }
 
-            TotalValueTextBlock.Text = $"...";
+            TotalValueTextBlock.Text = $"Total assets: {VM.AccountEntries.Where(x => x.AccountCategory == "Assets").Sum(x => x.NetAmount)} PLN. Total result: {-VM.AccountEntries.Where(x => x.AccountCategory == "ProfitAndLoss").Sum(x => x.NetAmount)} PLN.";
             TotalValueTextBlock.Visibility = Visibility.Visible;
 
             sw.Stop();

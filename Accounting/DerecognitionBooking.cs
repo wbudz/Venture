@@ -21,11 +21,6 @@ namespace Venture
                 var accountAssetDerecognition = book.GetAccount(AccountType.Assets, std.AssetType, portfolio, std.Currency);
 
                 /// <summary>
-                /// Account from which unrealized gains/losses from market valuation will be derecognized
-                /// </summary>
-                var accountUnrealizedResultDerecognition = book.GetAccount(AccountType.OtherComprehensiveIncome, std.AssetType, portfolio, std.Currency);
-
-                /// <summary>
                 /// Cash account to which payment would be made
                 /// </summary>
                 var accountCashSettlement = book.GetAccount(AccountType.Assets, AssetType.Cash, portfolio, std.Currency);
@@ -43,7 +38,8 @@ namespace Venture
                 /// <summary>
                 /// Account where realized gains/losses from sale (market valuation) will be booked
                 /// </summary>
-                var accountRealizedResultRecognition = book.GetAccount(AccountType.RealizedResult, std.AssetType, portfolio, std.Currency);
+                var accountRealizedProfitRecognition = book.GetAccount(AccountType.RealizedProfit, std.AssetType, portfolio, std.Currency);
+                var accountRealizedLossRecognition = book.GetAccount(AccountType.RealizedLoss, std.AssetType, portfolio, std.Currency);
 
                 /// <summary>
                 /// Accounts from where unrealized FX result will be derecognized.
@@ -66,7 +62,14 @@ namespace Venture
                 realizedResult = std.Amount - assetDerecognitionAmount;
 
                 book.Enqueue(accountAssetDerecognition, std.Timestamp, std.Index, "Asset sale (asset derecognition)", -assetDerecognitionAmount);
-                book.Enqueue(accountRealizedResultRecognition, std.Timestamp, std.Index, "Asset sale (result)", -realizedResult);
+                if (realizedResult > 0)
+                {
+                    book.Enqueue(accountRealizedProfitRecognition, std.Timestamp, std.Index, "Asset sale (profit)", -realizedResult);
+                }
+                else if (realizedResult < 0)
+                {
+                    book.Enqueue(accountRealizedLossRecognition, std.Timestamp, std.Index, "Asset sale (loss)", -realizedResult);
+                }
                 book.Enqueue(accountCashSettlement, std.Timestamp, std.Index, "Asset sale (sale amount payment)", std.Amount);
                 book.Enqueue(accountCashSettlement, std.Timestamp, std.Index, "Asset purchase (fee payment)", -std.Fee);
                 book.Enqueue(accountFeeCost, std.Timestamp, std.Index, "Asset purchase (fee cost recognition)", std.Fee);

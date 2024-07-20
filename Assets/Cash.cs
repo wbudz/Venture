@@ -142,6 +142,11 @@ namespace Venture
             bounds.endIndex = -1;
         }
 
+        public override ValuationEvent? GenerateValuation(DateTime date)
+        {
+            return null;
+        }
+
         public override string ToString()
         {
             return $"Asset:Cash {UniqueId}";

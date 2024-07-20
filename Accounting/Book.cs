@@ -55,7 +55,7 @@ namespace Venture
             }
         }
 
-        public Account GetAccount(AccountType type, AssetType? assetType, PortfolioDefinition portfolio, string currency)
+        public Account GetAccount(AccountType type, AssetType? assetType, PortfolioDefinition? portfolio, string currency)
         {
             var account = accounts.SingleOrDefault(x=>x.AccountType == type 
                 && (assetType == null || x.AssetType == assetType) 
@@ -88,7 +88,6 @@ namespace Venture
         public void Commit()
         {
             if (pendingEntries.Count == 0) return;
-            if (pendingEntries.First().Date >= new DateTime(2015, 1, 31)) return;// TODO: remove
             var sum = pendingEntries.Sum(x => x.Amount);
              if (sum != 0) throw new Exception("Non-zero sum of bookings."); 
 

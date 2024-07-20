@@ -156,6 +156,11 @@ namespace Venture
             }
         }
 
+        public override ValuationEvent? GenerateValuation(DateTime date)
+        {
+            return null;
+        }
+
         public override string ToString()
         {
             return $"Asset:Futures {UniqueId}";

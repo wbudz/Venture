@@ -63,11 +63,11 @@ namespace Venture.Modules
             else if (portfolio.EndsWith("_*"))
             {
                 string portfolioName = portfolio.Substring(0, portfolio.IndexOf("_*"));
-                if (!asset.Portfolio.UniqueId.StartsWith(portfolioName)) return false;
+                if (!asset.PortfolioId.StartsWith(portfolioName)) return false;
             }
             else
             {
-                if (asset.Portfolio.UniqueId != portfolio) return false;
+                if (asset.PortfolioId != portfolio) return false;
             }
 
             if (broker == "*")

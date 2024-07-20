@@ -49,25 +49,25 @@ namespace Venture
         /// <summary>
         /// Portfolio which the investment belongs to.
         /// </summary>
-        public PortfolioDefinition Portfolio { get; protected set; }
+        public PortfolioDefinition? Portfolio { get; protected set; }
 
-        public string PortfolioId { get { return Portfolio.UniqueId; } }
+        public string PortfolioId { get { return Portfolio?.UniqueId ?? ""; } }
 
         /// <summary>
         /// For securities, cash account which receives potential flows; by default cash account from which the purchase was made.
         /// In case of cash instruments (e.g. deposit, cash, receivable), bank account where the cash resides or where it would flow at the maturity.
         /// </summary>
-        public string CashAccount { get { return Portfolio.CashAccount; } }
+        public string CashAccount { get { return Portfolio?.CashAccount ?? ""; } }
 
         /// <summary>
         /// In case of securities, custody account where the instrument is kept; otherwise empty.
         /// </summary>
-        public string CustodyAccount { get { return Portfolio.CustodyAccount; } }
+        public string CustodyAccount { get { return Portfolio?.CustodyAccount ?? ""; } }
 
         /// <summary>
         /// Denotes financial institution where asset is held.
         /// </summary>
-        public string Broker { get { return Portfolio.Broker; } }
+        public string Broker { get { return Portfolio?.Broker ?? ""; } }
 
         /// <summary>
         /// Currency in which the investment is denominated.
@@ -234,6 +234,8 @@ namespace Venture
 
         protected abstract void RecalculateBounds();
 
+        public abstract ValuationEvent? GenerateValuation(DateTime date);
+
         public virtual void AddEvent(Event e)
         {
             var index = events.FindIndex(x => x.Timestamp > e.Timestamp || (e.TransactionIndex > -1 && x.TransactionIndex > e.TransactionIndex));
@@ -289,14 +291,17 @@ namespace Venture
                 if (time.TransactionIndex == -1)
                 {
                     if (time.Direction == TimeArgDirection.Start) afterStart = false;
+                    if (time.Direction == TimeArgDirection.StartIncludingRedemptions) afterStart = false;
                     if (time.Direction == TimeArgDirection.End) afterStart = true;
                 }
                 else
                 {
+                    // Investment origination from redemption or similar.
                     if (bounds.startIndex == -1)
                     {
-                        // This will include redemptions happening on this day.
-                        afterStart = true;
+                        if (time.Direction == TimeArgDirection.Start) afterStart = true;
+                        if (time.Direction == TimeArgDirection.StartIncludingRedemptions) afterStart = true;
+                        if (time.Direction == TimeArgDirection.End) afterStart = false;
                     }
                     else
                     {
@@ -316,14 +321,17 @@ namespace Venture
                 if (time.TransactionIndex == -1)
                 {
                     if (time.Direction == TimeArgDirection.Start) beforeEnd = true;
+                    if (time.Direction == TimeArgDirection.StartIncludingRedemptions) beforeEnd = true;
                     if (time.Direction == TimeArgDirection.End) beforeEnd = false;
                 }
                 else
                 {
+                    // Investment ending with redemption.
                     if (bounds.endIndex == -1)
                     {
-                        // This will include redemptions happening on this day.
-                        beforeEnd = true;
+                        if (time.Direction == TimeArgDirection.Start) beforeEnd = true;
+                        if (time.Direction == TimeArgDirection.StartIncludingRedemptions) beforeEnd = true;
+                        if (time.Direction == TimeArgDirection.End) beforeEnd = false;
                     }
                     else
                     {
@@ -370,11 +378,20 @@ namespace Venture
                 {
                     if (time.Direction == TimeArgDirection.Start && time.TransactionIndex < 0)
                     {
-                        yield return evt; // This will include redemptions happening on this day.
+                        continue;
                     }
                     if (time.Direction == TimeArgDirection.Start && time.TransactionIndex >= 0)
                     {
-                        if (evt.TransactionIndex < 0 || evt.TransactionIndex < time.TransactionIndex) yield return evt; // This will include redemptions happening on this day.
+                        if (evt.TransactionIndex >= 0 && evt.TransactionIndex < time.TransactionIndex) yield return evt;
+                    }
+                    if (time.Direction == TimeArgDirection.StartIncludingRedemptions && time.TransactionIndex < 0)
+                    {
+                        yield return evt; // This will include redemptions happening on this day.
+                    }
+                    if (time.Direction == TimeArgDirection.StartIncludingRedemptions && time.TransactionIndex >= 0)
+                    {
+                        if (evt.TransactionIndex < 0) yield return evt; // This will include redemptions happening on this day.
+                        if (evt.TransactionIndex >= 0 && evt.TransactionIndex < time.TransactionIndex) yield return evt;
                     }
                     if (time.Direction == TimeArgDirection.End && time.TransactionIndex >= 0)
                     {

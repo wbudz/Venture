@@ -55,7 +55,7 @@ namespace Venture.Modules
             result[2] = asset.GetPurchaseDate().ToString("yyyy-MM-dd") ?? "";
             result[3] = asset.AssetType;
             result[4] = asset.Currency;
-            result[5] = asset.Portfolio.UniqueId;
+            result[5] = asset.PortfolioId;
             result[6] = asset.Broker;
 
             for (int i = 0; i < dates.Count; i++)

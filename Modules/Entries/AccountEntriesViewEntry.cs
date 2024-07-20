@@ -22,8 +22,8 @@ namespace Venture.Modules
         public AccountEntriesViewEntry(AccountEntry entry)
         {
             UniqueId = entry.UniqueId;
-            PortfolioId = entry.Account.Portfolio.UniqueId;
-            Broker = entry.Account.Portfolio.Broker;
+            PortfolioId = entry.Account.Portfolio?.UniqueId ?? "";
+            Broker = entry.Account.Portfolio?.Broker ?? "";
             Currency = entry.Account.Currency;
             Date = entry.Date;
             OperationIndex = entry.OperationIndex;

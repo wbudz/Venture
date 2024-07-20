@@ -11,7 +11,8 @@ namespace Venture
         public static PortfolioDefinition GetPortfolio(IEnumerable<Event> events)
         {
             if (events.Count() == 0) throw new Exception("No source events when trying to create account entries.");
-            PortfolioDefinition output = events.First().ParentAsset.Portfolio;
+            PortfolioDefinition? output = events.First().ParentAsset.Portfolio;
+            if (output == null) throw new Exception("Null portfolio definition.");
             if (!(events.All(x => x.ParentAsset.Portfolio == output))) throw new Exception("Tried to create account entries with different portfolio values.");
             return output;
         }

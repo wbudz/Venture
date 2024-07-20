@@ -87,6 +87,13 @@ namespace Venture
             bounds.endIndex = -1;
         }
 
+        public override ValuationEvent? GenerateValuation(DateTime date)
+        {
+            ValuationEvent e = new ValuationEvent(this, date);
+            AddEvent(e);
+            return e;
+        }
+
         public override decimal GetCount()
         {
             if (Events.FirstOrDefault() is RecognitionEvent p) return p.Count;

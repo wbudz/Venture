@@ -52,15 +52,19 @@ namespace Venture
         {
             if (!IsActive(time)) return 0;
 
-            PriceDefinition? price = Definitions.Prices.LastOrDefault(x => x.InstrumentUniqueId == this.InstrumentUniqueId && x.Timestamp <= time.Date);
-            if (price == null)
-            {
-                throw new Exception($"No price for: {UniqueId} at date: {time.Date:yyyy-MM-dd}.");
-            }
-            else
-            {
-                return price.Value;
-            }
+            decimal price = Definitions.GetPrice(this.SecurityDefinition, time.Date);
+
+            //PriceDefinition? price = Definitions.Prices.LastOrDefault(x => x.InstrumentUniqueId == this.InstrumentUniqueId && x.Timestamp <= time.Date);
+            //if (price == null)
+            //{
+            //    throw new Exception($"No price for: {UniqueId} at date: {time.Date:yyyy-MM-dd}.");
+            //}
+            //else
+            //{
+            //    return price.Value;
+            //}
+
+            return price;
         }
 
         public override decimal GetAmortizedCostPrice(TimeArg time, bool dirty)
@@ -161,6 +165,8 @@ namespace Venture
 
         public override decimal GetUnrealizedGainsLossesFromValuation(TimeArg time)
         {
+            if (!IsActive(time)) return 0;
+
             decimal result = 0;
             decimal count = 0;
             (decimal marketPrice, decimal amortizedPrice) previous = (0, 0);

@@ -30,8 +30,8 @@ namespace Venture.Modules
             var events = futures.Events.OfType<FuturesEvent>().Where(x => x.Timestamp >= start && x.Timestamp <= end);
 
             UniqueId = futures.UniqueId;
-            PortfolioId = futures.Portfolio.UniqueId;
-            Broker = futures.Portfolio.Broker;
+            PortfolioId = futures.PortfolioId;
+            Broker = futures.Portfolio?.Broker ?? "";
             CashAccount = futures.CashAccount;
             CustodyAccount = futures.CustodyAccount;
             Currency = futures.Currency;

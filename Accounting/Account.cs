@@ -10,8 +10,10 @@ namespace Venture
     {
         Unspecified,
         Assets,
-        ShareCapital, OtherComprehensiveIncome,
-        RealizedResult, Fees
+        ShareCapital,
+        OtherComprehensiveIncomeProfit, OtherComprehensiveIncomeLoss,
+        RealizedProfit, RealizedLoss,
+        Fees
     }
 
     public class Account
@@ -22,7 +24,7 @@ namespace Venture
             {
                 var id = AccountType.ToString();
                 if (AssetType != null) id += "_" + AssetType.ToString();
-                id += "_" + Portfolio.UniqueId + "_" + Currency;
+                id += "_" + (Portfolio?.UniqueId ?? "") + "_" + Currency;
                 return id;
             }
         }
@@ -43,11 +45,17 @@ namespace Venture
                     case AccountType.ShareCapital:
                         id += "2000";
                         break;
-                    case AccountType.OtherComprehensiveIncome:
-                        id += "30" + GetAssetTypeNumericId(AssetType.GetValueOrDefault(Venture.AssetType.Undefined));
+                    case AccountType.OtherComprehensiveIncomeProfit:
+                        id += "31" + GetAssetTypeNumericId(AssetType.GetValueOrDefault(Venture.AssetType.Undefined));
                         break;
-                    case AccountType.RealizedResult:
-                        id += "60" + GetAssetTypeNumericId(AssetType.GetValueOrDefault(Venture.AssetType.Undefined));
+                    case AccountType.OtherComprehensiveIncomeLoss:
+                        id += "32" + GetAssetTypeNumericId(AssetType.GetValueOrDefault(Venture.AssetType.Undefined));
+                        break;
+                    case AccountType.RealizedProfit:
+                        id += "61" + GetAssetTypeNumericId(AssetType.GetValueOrDefault(Venture.AssetType.Undefined));
+                        break;
+                    case AccountType.RealizedLoss:
+                        id += "62" + GetAssetTypeNumericId(AssetType.GetValueOrDefault(Venture.AssetType.Undefined));
                         break;
                     case AccountType.Fees:
                         id += "80" + GetAssetTypeNumericId(AssetType.GetValueOrDefault(Venture.AssetType.Undefined));
@@ -55,31 +63,51 @@ namespace Venture
                     default:
                         break;
                 }
-                id += Portfolio.NumericId;
+                id += Portfolio?.NumericId ?? "00";
                 return id;
             }
         }
+
+        public string AccountCategory
+        {
+            get
+            {
+                switch (AccountType)
+                {
+                    case AccountType.Assets:
+                        return "Assets";
+                    case AccountType.ShareCapital:
+                    case AccountType.OtherComprehensiveIncomeProfit:
+                    case AccountType.OtherComprehensiveIncomeLoss:
+                        return "Equity";
+                    case AccountType.RealizedProfit:
+                    case AccountType.RealizedLoss:
+                    case AccountType.Fees:
+                        return "ProfitAndLoss";
+                    default:
+                        return "Unspecified";
+                }
+            }
+        }
+
+        public bool IsResultAccount { get { return AccountCategory == "ProfitAndLoss"; } }
 
         public AccountType AccountType { get; private set; }
 
         public AssetType? AssetType { get; private set; }
 
-        public PortfolioDefinition Portfolio { get; private set; }
+        public PortfolioDefinition? Portfolio { get; private set; }
 
         public string Currency { get; private set; }
 
-        public bool IsResultAccount { get; private set; }
-
         private List<AccountEntry> entries = new List<AccountEntry>();
 
-        public Account(AccountType type, AssetType? assetType, PortfolioDefinition portfolio, string currency)
+        public Account(AccountType type, AssetType? assetType, PortfolioDefinition? portfolio, string currency)
         {
             AccountType = type;
             AssetType = assetType;
             Portfolio = portfolio;
             Currency = currency;
-
-            IsResultAccount = AccountType == AccountType.Fees;
         }
 
         private static string GetAssetTypeNumericId(AssetType assetType)

@@ -20,6 +20,8 @@ namespace Venture
         public static ObservableCollection<CouponDefinition> Coupons = new ObservableCollection<CouponDefinition>();
         public static ObservableCollection<ManualEventDefinition> ManualEvents = new ObservableCollection<ManualEventDefinition>();
 
+        private static Dictionary<string, decimal> pricesLookup = new Dictionary<string, decimal>();
+
         public static void Load()
         {
             Portfolios.Clear();
@@ -58,7 +60,11 @@ namespace Venture
                 }
             }
             prices = prices.OrderBy(x => x.InstrumentUniqueId).ThenBy(x => x.Timestamp).ToList();
-            prices.ForEach(x => Prices.Add(x));
+            prices.ForEach(x =>
+            {
+                pricesLookup.Add(x.UniqueId, x.Value);
+                Prices.Add(x);
+            });
 
             // InstrumentDefinitions
             var instruments = new List<InstrumentDefinition>();
@@ -163,6 +169,19 @@ namespace Venture
             CheckManualReferences(manuals, Transactions, Instruments);
             manuals.ForEach(x => ManualEvents.Add(x));
         }
+
+        public static decimal GetPrice(InstrumentDefinition instrument, DateTime date)
+        {
+            string key = instrument.UniqueId + "_" + date.ToString("yyyyMMdd");
+            decimal output;
+            if (pricesLookup.TryGetValue(key, out output))
+            {
+                return output;
+            }
+            throw new Exception($"Price not found for instrument {instrument} at date {date:yyyy-MM-dd}.");
+        }
+
+        #region Validations
 
         private static void CheckTransactionsOrder(IEnumerable<TransactionDefinition> transactions)
         {
@@ -329,5 +348,7 @@ namespace Venture
                 }
             }
         }
+
+        #endregion
     }
 }

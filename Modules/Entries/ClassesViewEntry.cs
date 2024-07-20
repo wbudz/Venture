@@ -29,7 +29,7 @@ namespace Venture.Modules
         {
             TimeArg time = new TimeArg(TimeArgDirection.End, date);
 
-            foreach (var a in assets.Where(x => x.Portfolio.UniqueId == portfolioId && x.AssetType.ToString() == assetType && x.Currency == currency))
+            foreach (var a in assets.Where(x => x.PortfolioId == portfolioId && x.AssetType.ToString() == assetType && x.Currency == currency))
             {
                 if (!a.IsActive(new TimeArg(TimeArgDirection.End, Common.CurrentDate))) continue;
 

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Venture
 {
-    public enum TimeArgDirection { Unspecified, Start, End }
+    public enum TimeArgDirection { Unspecified, Start, StartIncludingRedemptions, End }
 
     public class TimeArg
     {

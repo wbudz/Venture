@@ -40,9 +40,9 @@ namespace Venture.Modules
             UniqueId = p.UniqueId;
             ParentAssetUniqueId = p.ParentAsset.UniqueId;
             AssociatedEvent = p.AssociatedEvent?.UniqueId ?? "";
-            PortfolioId = p.ParentAsset.Portfolio.UniqueId;
-            CashAccount = p.ParentAsset.Portfolio.CashAccount;
-            Broker = p.ParentAsset.Portfolio.Broker;
+            PortfolioId = p.ParentAsset.PortfolioId;
+            CashAccount = p.ParentAsset.CashAccount;
+            Broker = p.ParentAsset.Broker;
             Currency = p.ParentAsset.Currency;
             Timestamp = p.Timestamp;
             RecordDate = p.Timestamp;
