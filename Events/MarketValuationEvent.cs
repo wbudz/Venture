@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Venture
 {
-    public class ValuationEvent : StandardAssetEvent
+    public class MarketValuationEvent : StandardAssetEvent
     {
         public decimal Count { get; protected set; } = 0;
 
@@ -29,7 +29,7 @@ namespace Venture
 
         public decimal AmortizedCostCleanAmount { get; protected set; } = 0;
 
-        public ValuationEvent(StandardAsset parentAsset, DateTime date) : base(parentAsset, date)
+        public MarketValuationEvent(StandardAsset parentAsset, DateTime date) : base(parentAsset, date)
         {
             UniqueId = $"ValuationEvent_{parentAsset.UniqueId}_{date.ToString("yyyyMMdd")}";
             TransactionIndex = -1;

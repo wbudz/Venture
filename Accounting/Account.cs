@@ -12,8 +12,9 @@ namespace Venture
         Assets,
         ShareCapital,
         OtherComprehensiveIncomeProfit, OtherComprehensiveIncomeLoss,
+        OrdinaryIncomeValuation, OrdinaryIncomeInflows,
         RealizedProfit, RealizedLoss,
-        Fees
+        Fees, Tax
     }
 
     public class Account
@@ -51,6 +52,12 @@ namespace Venture
                     case AccountType.OtherComprehensiveIncomeLoss:
                         id += "32" + GetAssetTypeNumericId(AssetType.GetValueOrDefault(Venture.AssetType.Undefined));
                         break;
+                    case AccountType.OrdinaryIncomeValuation:
+                        id += "50" + GetAssetTypeNumericId(AssetType.GetValueOrDefault(Venture.AssetType.Undefined));
+                        break;
+                    case AccountType.OrdinaryIncomeInflows:
+                        id += "51" + GetAssetTypeNumericId(AssetType.GetValueOrDefault(Venture.AssetType.Undefined));
+                        break;
                     case AccountType.RealizedProfit:
                         id += "61" + GetAssetTypeNumericId(AssetType.GetValueOrDefault(Venture.AssetType.Undefined));
                         break;
@@ -59,6 +66,9 @@ namespace Venture
                         break;
                     case AccountType.Fees:
                         id += "80" + GetAssetTypeNumericId(AssetType.GetValueOrDefault(Venture.AssetType.Undefined));
+                        break;
+                    case AccountType.Tax:
+                        id += "90" + GetAssetTypeNumericId(AssetType.GetValueOrDefault(Venture.AssetType.Undefined));
                         break;
                     default:
                         break;
@@ -80,9 +90,12 @@ namespace Venture
                     case AccountType.OtherComprehensiveIncomeProfit:
                     case AccountType.OtherComprehensiveIncomeLoss:
                         return "Equity";
+                    case AccountType.OrdinaryIncomeValuation:
+                    case AccountType.OrdinaryIncomeInflows:
                     case AccountType.RealizedProfit:
                     case AccountType.RealizedLoss:
                     case AccountType.Fees:
+                    case AccountType.Tax:
                         return "ProfitAndLoss";
                     default:
                         return "Unspecified";

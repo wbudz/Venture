@@ -234,7 +234,7 @@ namespace Venture
 
         protected abstract void RecalculateBounds();
 
-        public abstract ValuationEvent? GenerateValuation(DateTime date);
+        public abstract MarketValuationEvent? GenerateValuation(DateTime date);
 
         public virtual void AddEvent(Event e)
         {

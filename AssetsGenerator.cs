@@ -434,6 +434,7 @@ namespace Venture
                 {
                     var cash = new Cash(ev);
                     newAssets.Add(cash);
+                    InflowBooking.Process(ev);
                 }
                 // Futures settlement happens at the very end of the day (after market closes).
                 foreach (var ev in asset.Events.OfType<FuturesRevaluationEvent>().Where(x => x.Timestamp >= startDate && x.Timestamp < endDate))

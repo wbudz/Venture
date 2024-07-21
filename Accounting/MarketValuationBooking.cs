@@ -32,8 +32,8 @@ namespace Venture
 
                 foreach (var a in assets.Where(x => x.Portfolio == portfolio && x.AssetType == assetType && x.Currency == currency))
                 {
-                    ValuationEvent? previousValuationEvent = a.Events.OfType<ValuationEvent>().LastOrDefault(x => x.Timestamp < date);
-                    ValuationEvent? currentValuationEvent = a.Events.OfType<ValuationEvent>().LastOrDefault(x => x.Timestamp == date);
+                    MarketValuationEvent? previousValuationEvent = a.Events.OfType<MarketValuationEvent>().LastOrDefault(x => x.Timestamp < date);
+                    MarketValuationEvent? currentValuationEvent = a.Events.OfType<MarketValuationEvent>().LastOrDefault(x => x.Timestamp == date);
 
                     decimal assetValuationIncomePrevious = previousValuationEvent?.Amount ?? 0;
                     decimal assetValuationIncomeCurrent = currentValuationEvent?.Amount ?? 0;

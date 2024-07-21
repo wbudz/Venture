@@ -142,7 +142,7 @@ namespace Venture
             bounds.endIndex = -1;
         }
 
-        public override ValuationEvent? GenerateValuation(DateTime date)
+        public override MarketValuationEvent? GenerateValuation(DateTime date)
         {
             return null;
         }

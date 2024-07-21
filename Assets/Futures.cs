@@ -156,7 +156,7 @@ namespace Venture
             }
         }
 
-        public override ValuationEvent? GenerateValuation(DateTime date)
+        public override MarketValuationEvent? GenerateValuation(DateTime date)
         {
             return null;
         }
