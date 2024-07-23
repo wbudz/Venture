@@ -109,6 +109,7 @@ namespace Venture
                 if (currentDate.Year != previousDate.Year || currentDate.Month != previousDate.Month)
                 {
                     ProcessEndOfMonth(output, previousDate, currentDate);
+                    if (currentDate.Year != previousDate.Year) ProcessEndOfYear(output, previousDate, currentDate);
                     previousDate = currentDate;
                 }
             }
@@ -478,6 +479,27 @@ namespace Venture
 
         }
 
+        private static void ProcessEndOfYear(List<Asset> output, DateTime startDate, DateTime endDate)
+        {
+            var dates = Financial.Calendar.GenerateReportingDates(startDate, endDate, Financial.Calendar.TimeStep.Yearly).ToList();
+            if (dates.Count > 0)
+            {
+                dates.Insert(0, dates[0].AddYears(-1));
+            }
+
+            for (int i = 1; i < dates.Count; i++)
+            {
+                var assets = output.Where(x => x.IsActive(dates[i - 1], dates[i]));
+                foreach (var portfolio in assets.Select(x => x.Portfolio).Distinct())
+                {
+                    foreach (var currency in assets.Select(x => x.Currency).Distinct())
+                    {
+                        EndOfYearBooking.Process(portfolio, currency, dates[i].AddDays(1));
+                    }
+                }
+            }
+        }
+
         private static void ProcessEndOfMonth(List<Asset> output, DateTime startDate, DateTime endDate)
         {
             var dates = Financial.Calendar.GenerateReportingDates(startDate, endDate, Financial.Calendar.TimeStep.Monthly).ToList();
@@ -501,6 +523,7 @@ namespace Venture
                         foreach (var assetType in assets.Select(x => x.AssetType).Distinct())
                         {
                             if (assetType == AssetType.Cash) continue;
+                            AmortizedValuationBooking.Process(assets, assetType, portfolio, currency, dates[i]);
                             MarketValuationBooking.Process(assets, assetType, portfolio, currency, dates[i]);
                         }
                     }

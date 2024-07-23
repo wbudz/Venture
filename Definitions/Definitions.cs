@@ -60,6 +60,7 @@ namespace Venture
                 }
             }
             prices = prices.OrderBy(x => x.InstrumentUniqueId).ThenBy(x => x.Timestamp).ToList();
+            pricesLookup.Clear();
             prices.ForEach(x =>
             {
                 pricesLookup.Add(x.UniqueId, x.Value);

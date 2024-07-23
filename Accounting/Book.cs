@@ -10,6 +10,8 @@ namespace Venture
 
     public class Book
     {
+        public string Name { get; private set; } = "Main";
+
         public bool ApplyTaxRules { get; private set; } = false;
 
         private List<Account> accounts = new List<Account>();
@@ -18,8 +20,9 @@ namespace Venture
 
         private Queue<AccountEntry> pendingEntries = new Queue<AccountEntry>();
 
-        public Book(bool tax)
+        public Book(string name, bool tax)
         {
+            Name = name;
             ApplyTaxRules = tax;
         }
 
@@ -28,38 +31,11 @@ namespace Venture
             accounts.Clear();
         }
 
-        public void Process()
-        {
-            Clear();
-
-            var dates = Financial.Calendar.GenerateReportingDates(Common.StartDate, Common.EndDate, Financial.Calendar.TimeStep.Monthly).ToArray();
-
-            for (int i = 1; i < dates.Length; i++)
-            {
-                // Process accounting schemes
-                foreach (var asset in Common.Assets)
-                {
-                    if (!asset.IsActive(dates[i - 1], dates[i])) continue;
-
-                    //foreach (var a in assetSpecificSchemes)
-                    //{
-                    //    a.Process(inv, dates[i - 1], dates[i]);
-                    //}
-                }
-
-                //foreach (var a in generalLedgerSchemes)
-                //{
-                //    a.Process(dates[i - 1], dates[i]);
-                //}
-
-            }
-        }
-
         public Account GetAccount(AccountType type, AssetType? assetType, PortfolioDefinition? portfolio, string currency)
         {
-            var account = accounts.SingleOrDefault(x=>x.AccountType == type 
-                && (assetType == null || x.AssetType == assetType) 
-                && x.Portfolio == portfolio 
+            var account = accounts.SingleOrDefault(x => x.AccountType == type
+                && (assetType == null || x.AssetType == assetType)
+                && x.Portfolio == portfolio
                 && x.Currency == currency);
             if (account == null)
             {
@@ -69,13 +45,38 @@ namespace Venture
             return account;
         }
 
-        public IEnumerable<Modules.AccountsViewEntry> GetAccountsAsViewEntries(DateTime date)
+        public IEnumerable<Account> GetResultAccounts(PortfolioDefinition? portfolio, string currency)
         {
-            foreach (var a in accounts.OrderBy(x=>x.NumericId))
+            return accounts.Where(x => x.IsResultAccount && x.Portfolio == portfolio && x.Currency == currency);
+        }
+
+        public List<Modules.AccountsViewEntry> GetAccountsAsViewEntries(DateTime date, bool aggregateAssetTypes, bool aggregateCurrencies, bool aggregatePortfolios, bool aggregateBrokers)
+        {
+            List<Modules.AccountsViewEntry> output = new List<Modules.AccountsViewEntry>();
+
+            foreach (var a in accounts.OrderBy(x => x.NumericId))
             {
                 if (a.GetEntriesCount(date) == 0) continue;
-                yield return new Modules.AccountsViewEntry(a, date);
+
+                string numericId = Modules.AccountsViewEntry.GenerateNumericIdForAggregations(a.NumericId, aggregateAssetTypes, aggregateCurrencies, aggregatePortfolios, aggregateBrokers);
+                Modules.AccountsViewEntry? entry = null;
+
+                entry = output.SingleOrDefault(x => x.NumericId == numericId);
+
+                if (entry == null)
+                {
+                    entry = new Modules.AccountsViewEntry(a, date, aggregateAssetTypes, aggregateCurrencies, aggregatePortfolios, aggregateBrokers);
+                    output.Add(entry);
+                }
+                else
+                {
+                    entry.DebitAmount += a.GetDebitAmount(date);
+                    entry.CreditAmount += a.GetCreditAmount(date);
+                    entry.NetAmount += a.GetNetAmount(date);
+                }
             }
+
+            return output;
         }
 
         public void Enqueue(Account account, DateTime date, long transactionIndex, string description, decimal amount)
@@ -89,7 +90,7 @@ namespace Venture
         {
             if (pendingEntries.Count == 0) return;
             var sum = pendingEntries.Sum(x => x.Amount);
-             if (sum != 0) throw new Exception("Non-zero sum of bookings."); 
+            if (sum != 0) throw new Exception("Non-zero sum of bookings.");
 
             var operationIndex = globalOperationIndex++;
             foreach (var entry in pendingEntries)
@@ -97,7 +98,7 @@ namespace Venture
                 entry.OperationIndex = operationIndex;
             }
 
-            while (pendingEntries.Count>0)
+            while (pendingEntries.Count > 0)
             {
                 AccountEntry accountEntry = pendingEntries.Dequeue();
                 accountEntry.Account.Enter(accountEntry);

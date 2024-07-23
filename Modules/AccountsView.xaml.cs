@@ -26,6 +26,7 @@ namespace Venture.Modules
     public partial class AccountsView : Module
     {
         private AccountsViewModel VM = (AccountsViewModel)Application.Current.Resources["AccountsVM"];
+        private FiltersViewModel FVM = (FiltersViewModel)Application.Current.Resources["FiltersVM"];
 
         public AccountsView()
         {
@@ -41,7 +42,7 @@ namespace Venture.Modules
             sw.Start();
 
             VM.AccountEntries.Clear();
-            foreach (var ave in Common.MainBook.GetAccountsAsViewEntries(Common.CurrentDate))
+            foreach (var ave in FVM.SelectedBook.GetAccountsAsViewEntries(Common.CurrentDate, FVM.AggregateAssetTypes, FVM.AggregateCurrencies, FVM.AggregatePortfolios, FVM.AggregateBrokers))
             {
                 string selectedPortfolio = PortfolioComboBox.SelectedItem.ToString() ?? "*";
                 string selectedBroker = BrokerComboBox.SelectedItem.ToString() ?? "*";
@@ -49,7 +50,7 @@ namespace Venture.Modules
                 if (Filter(ave, selectedPortfolio, selectedBroker)) VM.AccountEntries.Add(ave);
             }
 
-            TotalValueTextBlock.Text = $"Total assets: {VM.AccountEntries.Where(x => x.AccountCategory == "Assets").Sum(x => x.NetAmount)} PLN. Total result: {-VM.AccountEntries.Where(x => x.AccountCategory == "ProfitAndLoss").Sum(x => x.NetAmount)} PLN.";
+            TotalValueTextBlock.Text = $"Total assets: {VM.AccountEntries.Where(x => x.AccountCategory == "Assets").Sum(x => x.NetAmount):N2} PLN. Total result: {-VM.AccountEntries.Where(x => x.AccountCategory == "ProfitAndLoss").Sum(x => x.NetAmount):N2} PLN.";
             TotalValueTextBlock.Visibility = Visibility.Visible;
 
             sw.Stop();
@@ -82,6 +83,11 @@ namespace Venture.Modules
         }
 
         private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            Refresh();
+        }
+
+        private void Checkbox_Checked(object sender, RoutedEventArgs e)
         {
             Refresh();
         }

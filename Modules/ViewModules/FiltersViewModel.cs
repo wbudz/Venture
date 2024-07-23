@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using Venture.Modules;
 
 namespace Venture
 {
@@ -13,6 +14,55 @@ namespace Venture
     {
         public FiltersViewModel()
         {
+        }
+
+        private Book selectedBook = Common.MainBook;
+        public Book SelectedBook
+        {
+            get { return selectedBook; }
+            set { selectedBook = value; OnPropertyChanged(); }
+        }
+
+        private ObservableCollection<Book> books = new() { Common.MainBook, Common.TaxBook };
+        public ObservableCollection<Book> Books
+        {
+            get { return books; }
+            set { books = value; OnPropertyChanged(); }
+        }
+
+        private string currentAccountsViewMode = "No aggregation";
+        public string CurrentAccountsViewMode
+        {
+            get { return currentAccountsViewMode; }
+            set { currentAccountsViewMode = value; OnPropertyChanged(); }
+        }
+
+        private bool aggregateAssetTypes = false;
+        public bool AggregateAssetTypes
+        {
+            get { return aggregateAssetTypes; }
+            set { aggregateAssetTypes = value; OnPropertyChanged(); }
+        }
+
+        private bool aggregateCurrencies = false;
+        public bool AggregateCurrencies
+        {
+            get { return aggregateCurrencies; }
+            set { aggregateCurrencies = value; OnPropertyChanged(); }
+        }
+
+        private bool aggregatePortfolios = false;
+        public bool AggregatePortfolios
+        {
+            get { return aggregatePortfolios; }
+            set { aggregatePortfolios = value; OnPropertyChanged(); }
+        }
+
+        private bool aggregateBrokers = false;
+        public bool AggregateBrokers
+        {
+            get { return aggregateBrokers; }
+            set { aggregateBrokers = value; OnPropertyChanged(); }
         }
 
         private int currentYear = DateTime.Now.Year;

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -39,11 +40,7 @@ namespace Venture
                     default: break;
                 }
 
-                if (e.ParentAsset is Security s)
-                {
-                    string assetId = s.SecurityDefinition.AssetId;
-                    description += $"from {assetId} ";
-                }
+                description += $"from {e.ParentAsset.InstrumentId} ";
 
                 book.Enqueue(accountCashInflow, e.Timestamp, -1, description + "(cash inflow)", e.Amount);
                 book.Enqueue(accountOrdinaryIncome, e.Timestamp, -1, description + "(ordinary income)", -e.GrossAmount);

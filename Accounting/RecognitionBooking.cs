@@ -30,10 +30,12 @@ namespace Venture
                 /// </summary>
                 var accountFeeCost = book.GetAccount(AccountType.Fees, btd.AssetType, portfolio, btd.Currency);
 
-                book.Enqueue(accountAssetRecognition, btd.Timestamp, btd.Index, "Asset purchase (asset recognition)", btd.Amount);
-                book.Enqueue(accountCashSettlement, btd.Timestamp, btd.Index, "Asset purchase (purchase amount payment)", -btd.Amount);
-                book.Enqueue(accountCashSettlement, btd.Timestamp, btd.Index, "Asset purchase (fee payment)", -btd.Fee);
-                book.Enqueue(accountFeeCost, btd.Timestamp, btd.Index, "Asset purchase (fee cost recognition)", btd.Fee);
+                string description = $"Asset purchase of {btd.AssetId} ";
+
+                book.Enqueue(accountAssetRecognition, btd.Timestamp, btd.Index, description + "(asset recognition)", btd.Amount);
+                book.Enqueue(accountCashSettlement, btd.Timestamp, btd.Index, description + "(purchase amount payment)", -btd.Amount);
+                book.Enqueue(accountCashSettlement, btd.Timestamp, btd.Index, description + "(fee payment)", -btd.Fee);
+                book.Enqueue(accountFeeCost, btd.Timestamp, btd.Index, description + "(fee cost recognition)", btd.Fee);
 
                 book.Commit();
             }

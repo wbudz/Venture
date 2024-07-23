@@ -29,13 +29,13 @@
                 <Button x:Name="CopyButton" Content="Copy" Click="CopyButton_Click" />
                 <Separator />
                 <TextBlock Text="Date" VerticalAlignment="Center" Margin="5,0,5,0"/>
-                <ComboBox x:Name="YearComboBox" VerticalAlignment="Center" Width="80" DataContext="{Binding Mode=OneWay, Source={StaticResource Filters}}" ItemsSource="{Binding ReportingYears}" SelectedItem="{Binding CurrentYear}" SelectionChanged="ComboBox_SelectionChanged" />
-                <ComboBox x:Name="MonthComboBox" VerticalAlignment="Center" Width="50" DataContext="{Binding Mode=OneWay, Source={StaticResource Filters}}" ItemsSource="{Binding ReportingMonths}" SelectedItem="{Binding CurrentMonth}" SelectionChanged="ComboBox_SelectionChanged" />
+                <ComboBox x:Name="YearComboBox" VerticalAlignment="Center" Width="80" DataContext="{Binding Mode=OneWay, Source={StaticResource FiltersVM}}" ItemsSource="{Binding ReportingYears}" SelectedItem="{Binding CurrentYear}" SelectionChanged="ComboBox_SelectionChanged" />
+                <ComboBox x:Name="MonthComboBox" VerticalAlignment="Center" Width="50" DataContext="{Binding Mode=OneWay, Source={StaticResource FiltersVM}}" ItemsSource="{Binding ReportingMonths}" SelectedItem="{Binding CurrentMonth}" SelectionChanged="ComboBox_SelectionChanged" />
                 <Separator />
                 <TextBlock Text="Portfolio" VerticalAlignment="Center" Margin="5,0,5,0"/>
-                <ComboBox x:Name="PortfolioComboBox" VerticalAlignment="Center" Width="80" DataContext="{Binding Mode=OneWay, Source={StaticResource Filters}}" ItemsSource="{Binding Portfolios}" SelectedItem="{Binding CurrentPortfolio}" SelectionChanged="ComboBox_SelectionChanged" />
+                <ComboBox x:Name="PortfolioComboBox" VerticalAlignment="Center" Width="80" DataContext="{Binding Mode=OneWay, Source={StaticResource FiltersVM}}" ItemsSource="{Binding Portfolios}" SelectedItem="{Binding CurrentPortfolio}" SelectionChanged="ComboBox_SelectionChanged" />
                 <TextBlock Text="Broker" VerticalAlignment="Center" Margin="5,0,5,0"/>
-                <ComboBox x:Name="BrokerComboBox" VerticalAlignment="Center" Width="80" DataContext="{Binding Mode=OneWay, Source={StaticResource Filters}}" ItemsSource="{Binding Brokers}" SelectedItem="{Binding CurrentBroker}" SelectionChanged="ComboBox_SelectionChanged" />
+                <ComboBox x:Name="BrokerComboBox" VerticalAlignment="Center" Width="80" DataContext="{Binding Mode=OneWay, Source={StaticResource FiltersVM}}" ItemsSource="{Binding Brokers}" SelectedItem="{Binding CurrentBroker}" SelectionChanged="ComboBox_SelectionChanged" />
             </ToolBar.Items>
         </ToolBar>
         <ListView x:Name="lvAssets" 

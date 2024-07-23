@@ -61,18 +61,20 @@ namespace Venture
 
                 realizedResult = std.Amount - assetDerecognitionAmount;
 
-                book.Enqueue(accountAssetDerecognition, std.Timestamp, std.Index, "Asset sale (asset derecognition)", -assetDerecognitionAmount);
+                string description = $"Asset sale of {std.AssetId} ";
+
+                book.Enqueue(accountAssetDerecognition, std.Timestamp, std.Index, description + "(asset derecognition)", -assetDerecognitionAmount);
                 if (realizedResult > 0)
                 {
-                    book.Enqueue(accountRealizedProfitRecognition, std.Timestamp, std.Index, "Asset sale (profit)", -realizedResult);
+                    book.Enqueue(accountRealizedProfitRecognition, std.Timestamp, std.Index, description + "(profit)", -realizedResult);
                 }
                 else if (realizedResult < 0)
                 {
-                    book.Enqueue(accountRealizedLossRecognition, std.Timestamp, std.Index, "Asset sale (loss)", -realizedResult);
+                    book.Enqueue(accountRealizedLossRecognition, std.Timestamp, std.Index, description + "(loss)", -realizedResult);
                 }
-                book.Enqueue(accountCashSettlement, std.Timestamp, std.Index, "Asset sale (sale amount payment)", std.Amount);
-                book.Enqueue(accountCashSettlement, std.Timestamp, std.Index, "Asset purchase (fee payment)", -std.Fee);
-                book.Enqueue(accountFeeCost, std.Timestamp, std.Index, "Asset purchase (fee cost recognition)", std.Fee);
+                book.Enqueue(accountCashSettlement, std.Timestamp, std.Index, description + "(sale amount payment)", std.Amount);
+                book.Enqueue(accountCashSettlement, std.Timestamp, std.Index, description + "(fee payment)", -std.Fee);
+                book.Enqueue(accountFeeCost, std.Timestamp, std.Index, description + "(fee cost recognition)", std.Fee);
 
                 book.Commit();
             }

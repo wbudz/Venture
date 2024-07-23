@@ -41,6 +41,16 @@ namespace Venture
             }
         }
 
+        public string InstrumentId
+        {
+            get
+            {
+                if (this is Security s) return s.SecurityDefinition.AssetId;
+                if (this is Futures f) return f.SecurityDefinition.AssetId;
+                return "";
+            }
+        }
+
         /// <summary>
         /// Detailed asset type
         /// </summary>
@@ -234,7 +244,7 @@ namespace Venture
 
         protected abstract void RecalculateBounds();
 
-        public abstract MarketValuationEvent? GenerateValuation(DateTime date);
+        public abstract ValuationEvent? GenerateValuation(DateTime date);
 
         public virtual void AddEvent(Event e)
         {

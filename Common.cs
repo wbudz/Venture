@@ -34,9 +34,11 @@ namespace Venture
     {
         public static List<Asset> Assets = new List<Asset>();
 
-        public static Book MainBook = new Book(false);
+        public static Book MainBook = new Book("Main", false);
 
-        public static DateTime CurrentDate { get { return new DateTime(FiltersVM.CurrentYear, FiltersVM.CurrentMonth, DateTime.DaysInMonth(FiltersVM.CurrentYear, FiltersVM.CurrentMonth)); } }
+        public static Book TaxBook = new Book("Tax", true);
+
+        public static DateTime CurrentDate { get { return new DateTime(FVM.CurrentYear, FVM.CurrentMonth, DateTime.DaysInMonth(FVM.CurrentYear, FVM.CurrentMonth)); } }
 
         public static DateTime StartDate { get; set; } = new DateTime(DateTime.Now.Year, 1, 1);
 
@@ -44,7 +46,7 @@ namespace Venture
 
         public static List<string> CashAccounts { get { return Assets.Select(x => x.CashAccount).Distinct().ToList(); } }
 
-        static FiltersViewModel FiltersVM { get { return (FiltersViewModel)Application.Current.Resources["Filters"]; } }
+        static FiltersViewModel FVM { get { return (FiltersViewModel)Application.Current.Resources["FiltersVM"]; } }
 
         public static void RefreshCommonData()
         {
@@ -60,18 +62,18 @@ namespace Venture
             StartDate = Financial.Calendar.GetEndDate(start.AddMonths(-1), Financial.Calendar.TimeStep.Monthly);
             EndDate = Financial.Calendar.GetEndDate(end, Financial.Calendar.TimeStep.Yearly);
 
-            FiltersVM.ReportingDates = new ObservableCollection<DateTime>(Financial.Calendar.GenerateReportingDates(start, end, Financial.Calendar.TimeStep.Monthly));
+            FVM.ReportingDates = new ObservableCollection<DateTime>(Financial.Calendar.GenerateReportingDates(start, end, Financial.Calendar.TimeStep.Monthly));
 
-            FiltersVM.ReportingYears = new ObservableCollection<int>(FiltersVM.ReportingDates.Select(x => x.Year).Distinct().Order());
+            FVM.ReportingYears = new ObservableCollection<int>(FVM.ReportingDates.Select(x => x.Year).Distinct().Order());
 
             List<string> portfolios = new List<string>() { "*" };
             portfolios.AddRange(Definitions.Portfolios.Select(x => x.UniqueId).Distinct());
             portfolios.AddRange(Definitions.Portfolios.Select(x => x.PortfolioName + "_*").Distinct());
-            FiltersVM.Portfolios = new ObservableCollection<string>(portfolios.Order());
+            FVM.Portfolios = new ObservableCollection<string>(portfolios.Order());
 
             List<string> brokers = new List<string>() { "*" };
             brokers.AddRange(Definitions.Portfolios.Select(x => x.Broker).Distinct().Order());
-            FiltersVM.Brokers = new ObservableCollection<string>(brokers);
+            FVM.Brokers = new ObservableCollection<string>(brokers);
         }
 
         public static string ValuationClassToString(ValuationClass input)

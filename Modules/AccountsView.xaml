@@ -19,38 +19,59 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="26"/>
+            <RowDefinition Height="26"/>
             <RowDefinition Height="*" MinHeight="100"/>
             <RowDefinition Height="5"/>
             <RowDefinition Height="*" MinHeight="100"/>
         </Grid.RowDefinitions>
-        <ToolBar Template="{DynamicResource ToolBarTemplate}" Height="26" VerticalAlignment="Top" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" ItemsSource="{Binding Mode=OneWay}">
+        <ToolBar Grid.Row="0" Template="{DynamicResource ToolBarTemplate}" Height="26" VerticalAlignment="Top" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" ItemsSource="{Binding Mode=OneWay}">
             <ToolBar.Items>
                 <Button x:Name="RefreshButton" Content="Refresh" Click="RefreshButton_Click" />
                 <Button x:Name="CopyButton" Content="Copy" Click="CopyButton_Click" />
                 <Separator />
+                <TextBlock Text="Book" VerticalAlignment="Center" Margin="5,0,5,0"/>
+                <ComboBox x:Name="BookComboBox" VerticalAlignment="Center" Width="50" DataContext="{Binding Mode=OneWay, Source={StaticResource FiltersVM}}" ItemsSource="{Binding Books}" DisplayMemberPath="Name" SelectedItem="{Binding SelectedBook}" SelectionChanged="ComboBox_SelectionChanged" />
+                <Separator />
                 <TextBlock Text="Date" VerticalAlignment="Center" Margin="5,0,5,0"/>
-                <ComboBox x:Name="YearComboBox" VerticalAlignment="Center" Width="80" DataContext="{Binding Mode=OneWay, Source={StaticResource Filters}}" ItemsSource="{Binding ReportingYears}" SelectedItem="{Binding CurrentYear}" SelectionChanged="ComboBox_SelectionChanged" />
-                <ComboBox x:Name="MonthComboBox" VerticalAlignment="Center" Width="50" DataContext="{Binding Mode=OneWay, Source={StaticResource Filters}}" ItemsSource="{Binding ReportingMonths}" SelectedItem="{Binding CurrentMonth}" SelectionChanged="ComboBox_SelectionChanged" />
+                <ComboBox x:Name="YearComboBox" VerticalAlignment="Center" Width="80" DataContext="{Binding Mode=OneWay, Source={StaticResource FiltersVM}}" ItemsSource="{Binding ReportingYears}" SelectedItem="{Binding CurrentYear}" SelectionChanged="ComboBox_SelectionChanged" />
+                <ComboBox x:Name="MonthComboBox" VerticalAlignment="Center" Width="50" DataContext="{Binding Mode=OneWay, Source={StaticResource FiltersVM}}" ItemsSource="{Binding ReportingMonths}" SelectedItem="{Binding CurrentMonth}" SelectionChanged="ComboBox_SelectionChanged" />
                 <Separator />
                 <TextBlock Text="Portfolio" VerticalAlignment="Center" Margin="5,0,5,0"/>
-                <ComboBox x:Name="PortfolioComboBox" VerticalAlignment="Center" Width="80" DataContext="{Binding Mode=OneWay, Source={StaticResource Filters}}" ItemsSource="{Binding Portfolios}" SelectedItem="{Binding CurrentPortfolio}" SelectionChanged="ComboBox_SelectionChanged" />
+                <ComboBox x:Name="PortfolioComboBox" VerticalAlignment="Center" Width="80" DataContext="{Binding Mode=OneWay, Source={StaticResource FiltersVM}}" ItemsSource="{Binding Portfolios}" SelectedItem="{Binding CurrentPortfolio}" SelectionChanged="ComboBox_SelectionChanged" />
                 <TextBlock Text="Broker" VerticalAlignment="Center" Margin="5,0,5,0"/>
-                <ComboBox x:Name="BrokerComboBox" VerticalAlignment="Center" Width="80" DataContext="{Binding Mode=OneWay, Source={StaticResource Filters}}" ItemsSource="{Binding Brokers}" SelectedItem="{Binding CurrentBroker}" SelectionChanged="ComboBox_SelectionChanged" />
+                <ComboBox x:Name="BrokerComboBox" VerticalAlignment="Center" Width="80" DataContext="{Binding Mode=OneWay, Source={StaticResource FiltersVM}}" ItemsSource="{Binding Brokers}" SelectedItem="{Binding CurrentBroker}" SelectionChanged="ComboBox_SelectionChanged" />
+                 </ToolBar.Items>
+        </ToolBar>
+        <ToolBar Grid.Row="1" Template="{DynamicResource ToolBarTemplate}" Height="26" VerticalAlignment="Top" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" ItemsSource="{Binding Mode=OneWay}">
+            <ToolBar.Items>
+                <TextBlock Text="Aggregation" VerticalAlignment="Center" Margin="5,0,5,0"/>
+                <Grid>
+                    <CheckBox x:Name="AggregateAssetTypesCheckbox" VerticalAlignment="Center" DataContext="{Binding Mode=OneWay, Source={StaticResource FiltersVM}}" IsChecked="{Binding AggregateAssetTypes}" Checked="Checkbox_Checked" Unchecked="Checkbox_Checked" Content="Asset types"  Margin="5,0,5,0"/>
+                </Grid>
+                <Grid>
+                    <CheckBox x:Name="AggregateCurrenciesCheckbox" VerticalAlignment="Center" DataContext="{Binding Mode=OneWay, Source={StaticResource FiltersVM}}" IsChecked="{Binding AggregateCurrencies}" Checked="Checkbox_Checked" Unchecked="Checkbox_Checked" Content="Currencies"  Margin="5,0,5,0"/>
+                </Grid>
+                <Grid>
+                    <CheckBox x:Name="AggregatePortfoliosCheckbox" VerticalAlignment="Center" DataContext="{Binding Mode=OneWay, Source={StaticResource FiltersVM}}" IsChecked="{Binding AggregatePortfolios}" Checked="Checkbox_Checked" Unchecked="Checkbox_Checked" Content="Portfolios"  Margin="5,0,5,0"/>
+                </Grid>
+                <Grid>
+                    <CheckBox x:Name="AggregateBrokersCheckbox" VerticalAlignment="Center" DataContext="{Binding Mode=OneWay, Source={StaticResource FiltersVM}}" IsChecked="{Binding AggregateBrokers}" Checked="Checkbox_Checked" Unchecked="Checkbox_Checked" Content="Brokers"  Margin="5,0,5,0"/>
+                </Grid>
             </ToolBar.Items>
         </ToolBar>
         <ListView x:Name="lvAccounts" 
             DataContext="{Binding Source={StaticResource AccountsVM}}"
             ItemsSource="{Binding AccountEntries}"
             View="{Binding Source={StaticResource AccountsGridView}}"
-            Grid.Row="1" Margin="0,0,0,25"
+            Grid.Row="2" Margin="0,0,0,25"
             SelectedItem="{Binding Path=CurrentEntry}"/>
-        <GridSplitter Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Center" Grid.Row="2" />
+        <TextBlock x:Name="TotalValueTextBlock" VerticalAlignment="Bottom" Margin="10,0,0,6" Grid.Row="2" HorizontalAlignment="Left" Visibility="Collapsed"/>
+        <GridSplitter Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Center" Grid.Row="3" />
         <ListView
             DataContext="{Binding Source={StaticResource AccountsVM}}"
             ItemsSource="{Binding CurrentEntry.Entries}" 
             View="{Binding Source={StaticResource AccountEntriesGridView}}"
             VerticalAlignment="Stretch" SelectionChanged="ListView_AutoSizeColumns"
-            Grid.Row="3"/>
-        <TextBlock x:Name="TotalValueTextBlock" VerticalAlignment="Bottom" Margin="10,0,0,6" Grid.Row="1" HorizontalAlignment="Left" Visibility="Collapsed"/>
+            Grid.Row="4"/>
     </Grid>
 </modules:Module>

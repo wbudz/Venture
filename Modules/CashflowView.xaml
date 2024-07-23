@@ -27,16 +27,16 @@
                 <Button x:Name="CopyButton" Content="Copy" Click="CopyButton_Click" />
                 <Separator />
                 <TextBlock Text="Date" VerticalAlignment="Center" Margin="5,0,5,0"/>
-                <ComboBox x:Name="StartYearComboBox" VerticalAlignment="Center" Width="80" DataContext="{Binding Mode=OneWay, Source={StaticResource Filters}}" ItemsSource="{Binding ReportingYears, Mode=OneWay}" SelectedItem="{Binding CurrentYear, Mode=OneWay}" SelectionChanged="ComboBox_SelectionChanged" />
-                <ComboBox x:Name="StartMonthComboBox" VerticalAlignment="Center" Width="50" DataContext="{Binding Mode=OneWay, Source={StaticResource Filters}}" ItemsSource="{Binding ReportingMonths, Mode=OneWay}" SelectedIndex="0" SelectionChanged="ComboBox_SelectionChanged" />
+                <ComboBox x:Name="StartYearComboBox" VerticalAlignment="Center" Width="80" DataContext="{Binding Mode=OneWay, Source={StaticResource FiltersVM}}" ItemsSource="{Binding ReportingYears, Mode=OneWay}" SelectedItem="{Binding CurrentYear, Mode=OneWay}" SelectionChanged="ComboBox_SelectionChanged" />
+                <ComboBox x:Name="StartMonthComboBox" VerticalAlignment="Center" Width="50" DataContext="{Binding Mode=OneWay, Source={StaticResource FiltersVM}}" ItemsSource="{Binding ReportingMonths, Mode=OneWay}" SelectedIndex="0" SelectionChanged="ComboBox_SelectionChanged" />
                 <TextBlock Text="-" VerticalAlignment="Center" Margin="5,0,5,0"/>
-                <ComboBox x:Name="EndYearComboBox" VerticalAlignment="Center" Width="80" DataContext="{Binding Mode=OneWay, Source={StaticResource Filters}}" ItemsSource="{Binding ReportingYears, Mode=OneWay}" SelectedItem="{Binding CurrentYear}" SelectionChanged="ComboBox_SelectionChanged" />
-                <ComboBox x:Name="EndMonthComboBox" VerticalAlignment="Center" Width="50" DataContext="{Binding Mode=OneWay, Source={StaticResource Filters}}" ItemsSource="{Binding ReportingMonths, Mode=OneWay}" SelectedItem="{Binding CurrentMonth}" SelectionChanged="ComboBox_SelectionChanged" />
+                <ComboBox x:Name="EndYearComboBox" VerticalAlignment="Center" Width="80" DataContext="{Binding Mode=OneWay, Source={StaticResource FiltersVM}}" ItemsSource="{Binding ReportingYears, Mode=OneWay}" SelectedItem="{Binding CurrentYear}" SelectionChanged="ComboBox_SelectionChanged" />
+                <ComboBox x:Name="EndMonthComboBox" VerticalAlignment="Center" Width="50" DataContext="{Binding Mode=OneWay, Source={StaticResource FiltersVM}}" ItemsSource="{Binding ReportingMonths, Mode=OneWay}" SelectedItem="{Binding CurrentMonth}" SelectionChanged="ComboBox_SelectionChanged" />
                 <Separator />
                 <TextBlock Text="Portfolio" VerticalAlignment="Center" Margin="5,0,5,0"/>
-                <ComboBox x:Name="PortfolioComboBox" VerticalAlignment="Center" Width="80" DataContext="{Binding Mode=OneWay, Source={StaticResource Filters}}" ItemsSource="{Binding Portfolios}" SelectedItem="{Binding CurrentPortfolio}" SelectionChanged="ComboBox_SelectionChanged" />
+                <ComboBox x:Name="PortfolioComboBox" VerticalAlignment="Center" Width="80" DataContext="{Binding Mode=OneWay, Source={StaticResource FiltersVM}}" ItemsSource="{Binding Portfolios}" SelectedItem="{Binding CurrentPortfolio}" SelectionChanged="ComboBox_SelectionChanged" />
                 <TextBlock Text="Broker" VerticalAlignment="Center" Margin="5,0,5,0"/>
-                <ComboBox x:Name="BrokerComboBox" VerticalAlignment="Center" Width="80" DataContext="{Binding Mode=OneWay, Source={StaticResource Filters}}" ItemsSource="{Binding Brokers}" SelectedItem="{Binding CurrentBroker}" SelectionChanged="ComboBox_SelectionChanged" />
+                <ComboBox x:Name="BrokerComboBox" VerticalAlignment="Center" Width="80" DataContext="{Binding Mode=OneWay, Source={StaticResource FiltersVM}}" ItemsSource="{Binding Brokers}" SelectedItem="{Binding CurrentBroker}" SelectionChanged="ComboBox_SelectionChanged" />
             </ToolBar.Items>
         </ToolBar>
         <ListView x:Name="lvFlows" 

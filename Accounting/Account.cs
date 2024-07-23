@@ -10,7 +10,7 @@ namespace Venture
     {
         Unspecified,
         Assets,
-        ShareCapital,
+        ShareCapital, PriorPeriodResult,
         OtherComprehensiveIncomeProfit, OtherComprehensiveIncomeLoss,
         OrdinaryIncomeValuation, OrdinaryIncomeInflows,
         RealizedProfit, RealizedLoss,
@@ -25,7 +25,8 @@ namespace Venture
             {
                 var id = AccountType.ToString();
                 if (AssetType != null) id += "_" + AssetType.ToString();
-                id += "_" + (Portfolio?.UniqueId ?? "") + "_" + Currency;
+                if (Portfolio != null) id += "_" + Portfolio.UniqueId + "_" + Portfolio.Broker;
+                id += "_" + Currency;
                 return id;
             }
         }
@@ -45,6 +46,9 @@ namespace Venture
                         break;
                     case AccountType.ShareCapital:
                         id += "2000";
+                        break;
+                    case AccountType.PriorPeriodResult:
+                        id += "2200";
                         break;
                     case AccountType.OtherComprehensiveIncomeProfit:
                         id += "31" + GetAssetTypeNumericId(AssetType.GetValueOrDefault(Venture.AssetType.Undefined));
@@ -73,7 +77,7 @@ namespace Venture
                     default:
                         break;
                 }
-                id += Portfolio?.NumericId ?? "00";
+                id += "0" + Portfolio?.NumericId ?? "00";
                 return id;
             }
         }
@@ -87,6 +91,7 @@ namespace Venture
                     case AccountType.Assets:
                         return "Assets";
                     case AccountType.ShareCapital:
+                    case AccountType.PriorPeriodResult:
                     case AccountType.OtherComprehensiveIncomeProfit:
                     case AccountType.OtherComprehensiveIncomeLoss:
                         return "Equity";
