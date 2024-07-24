@@ -10,8 +10,9 @@ namespace Venture
     {
         Unspecified,
         Assets,
-        ShareCapital, PriorPeriodResult,
+        ShareCapital, PriorPeriodResult, NonTaxableResult, PrechargedTax,
         OtherComprehensiveIncomeProfit, OtherComprehensiveIncomeLoss,
+        TaxLiabilities, TaxReserves,
         OrdinaryIncomeValuation, OrdinaryIncomeInflows,
         RealizedProfit, RealizedLoss,
         Fees, Tax
@@ -50,11 +51,23 @@ namespace Venture
                     case AccountType.PriorPeriodResult:
                         id += "2200";
                         break;
+                    case AccountType.NonTaxableResult:
+                        id += "28" + GetAssetTypeNumericId(AssetType.GetValueOrDefault(Venture.AssetType.Undefined));
+                        break;
+                    case AccountType.PrechargedTax:
+                        id += "29" + GetAssetTypeNumericId(AssetType.GetValueOrDefault(Venture.AssetType.Undefined));
+                        break;
                     case AccountType.OtherComprehensiveIncomeProfit:
                         id += "31" + GetAssetTypeNumericId(AssetType.GetValueOrDefault(Venture.AssetType.Undefined));
                         break;
                     case AccountType.OtherComprehensiveIncomeLoss:
                         id += "32" + GetAssetTypeNumericId(AssetType.GetValueOrDefault(Venture.AssetType.Undefined));
+                        break;
+                    case AccountType.TaxLiabilities:
+                        id += "4090";
+                        break;
+                    case AccountType.TaxReserves:
+                        id += "4990";
                         break;
                     case AccountType.OrdinaryIncomeValuation:
                         id += "50" + GetAssetTypeNumericId(AssetType.GetValueOrDefault(Venture.AssetType.Undefined));
@@ -77,7 +90,7 @@ namespace Venture
                     default:
                         break;
                 }
-                id += "0" + Portfolio?.NumericId ?? "00";
+                id += "0" + (Portfolio?.NumericId ?? "00");
                 return id;
             }
         }
@@ -92,9 +105,14 @@ namespace Venture
                         return "Assets";
                     case AccountType.ShareCapital:
                     case AccountType.PriorPeriodResult:
+                    case AccountType.NonTaxableResult:
+                    case AccountType.PrechargedTax:
                     case AccountType.OtherComprehensiveIncomeProfit:
                     case AccountType.OtherComprehensiveIncomeLoss:
                         return "Equity";
+                    case AccountType.TaxLiabilities:
+                    case AccountType.TaxReserves:
+                        return "ReservesAndLiabilities";
                     case AccountType.OrdinaryIncomeValuation:
                     case AccountType.OrdinaryIncomeInflows:
                     case AccountType.RealizedProfit:

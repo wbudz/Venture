@@ -11,7 +11,7 @@ namespace Venture
     {
         public static void Process(SellTransactionDefinition std, IEnumerable<DerecognitionEvent> events)
         {
-            foreach (var book in new Book[] { Common.MainBook })
+            foreach (var book in Common.Books)
             {
                 PortfolioDefinition? portfolio = Definitions.Portfolios.Single(x => x.UniqueId == std.PortfolioSrc);
 
@@ -33,7 +33,7 @@ namespace Venture
                 /// <summary>
                 /// Reserves account which holds purchase fees for unsold assets - these may be book costs but not tax costs
                 /// </summary>
-                //var accountUnrealizedFeeDerecognition = Book.GetAccountingActivity("AssetDerecognitionOnSale", "UnrealizedFeeDerecognition", inv);
+                var accountUnrealizedFeeDerecognition = book.GetAccount(AccountType.TaxReserves, null, portfolio, std.Currency);
 
                 /// <summary>
                 /// Account where realized gains/losses from sale (market valuation) will be booked
@@ -53,10 +53,14 @@ namespace Venture
 
                 decimal assetDerecognitionAmount = 0;
                 decimal realizedResult = 0;
+                decimal purchaseFee = 0;
+
+                var time = new TimeArg(TimeArgDirection.Start, std.Timestamp, std.Index);
 
                 foreach (var e in events)
                 {
-                    assetDerecognitionAmount += e.AmortizedCostDirtyAmount;
+                    assetDerecognitionAmount += book.ApplyTaxRules ? e.PurchaseDirtyAmount : e.AmortizedCostDirtyAmount;
+                    purchaseFee += book.ApplyTaxRules ? Common.Round(e.Count / e.ParentAsset.GetCount(time) * e.ParentAsset.GetUnrealizedPurchaseFee(time)) : 0;
                 }
 
                 realizedResult = std.Amount - assetDerecognitionAmount;
@@ -73,8 +77,13 @@ namespace Venture
                     book.Enqueue(accountRealizedLossRecognition, std.Timestamp, std.Index, description + "(loss)", -realizedResult);
                 }
                 book.Enqueue(accountCashSettlement, std.Timestamp, std.Index, description + "(sale amount payment)", std.Amount);
-                book.Enqueue(accountCashSettlement, std.Timestamp, std.Index, description + "(fee payment)", -std.Fee);
-                book.Enqueue(accountFeeCost, std.Timestamp, std.Index, description + "(fee cost recognition)", std.Fee);
+                book.Enqueue(accountCashSettlement, std.Timestamp, std.Index, description + "(sale fee payment)", -std.Fee);
+                book.Enqueue(accountFeeCost, std.Timestamp, std.Index, description + "(sale fee cost recognition)", std.Fee);
+                if (book.ApplyTaxRules)
+                {
+                    book.Enqueue(accountUnrealizedFeeDerecognition, std.Timestamp, std.Index, description + "(purchase fee deferred tax asset derecognition)", -purchaseFee);
+                    book.Enqueue(accountFeeCost, std.Timestamp, std.Index, description + "(purchase fee cost recognition)", purchaseFee);
+                }
 
                 book.Commit();
             }

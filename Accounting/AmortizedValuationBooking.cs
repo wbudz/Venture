@@ -14,8 +14,10 @@ namespace Venture
         {
             if (portfolio == null) throw new Exception("Cannot process amortized valuation for null portfolio.");
 
-            foreach (var book in new Book[] { Common.MainBook })
+            foreach (var book in Common.Books)
             {
+                if (book.ApplyTaxRules) continue;
+
                 /// <summary>
                 /// Asset account where change in amortized cost valuation will be recognized
                 /// </summary>
@@ -53,7 +55,14 @@ namespace Venture
                         previousPrice = a.GetPurchasePrice(true);
                     }
 
-                    result += Common.Round(currentValuationEvent.Count * (currentPrice - previousPrice));
+                    if (a is Bond b)
+                    {
+                        result += Common.Round(currentValuationEvent.Count * b.UnitPrice * (currentPrice - previousPrice) / 100);
+                    }
+                    else
+                    {
+                        result += Common.Round(currentValuationEvent.Count * (currentPrice - previousPrice));
+                    }
                 }
 
                 book.Enqueue(accountAssetValuation, date, -1, "Amortized cost valuation (change of asset value)", result);

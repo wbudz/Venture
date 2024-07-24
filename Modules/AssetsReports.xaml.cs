@@ -26,7 +26,7 @@ namespace Venture.Modules
 
         const int DESCRIPTION_COLUMNS_COUNT = 7;
 
-        static FiltersViewModel FVM { get { return (FiltersViewModel)Application.Current.Resources["Filters"]; } }
+        static FiltersViewModel FVM { get { return (FiltersViewModel)Application.Current.Resources["FiltersVM"]; } }
 
         public AssetsReports()
         {

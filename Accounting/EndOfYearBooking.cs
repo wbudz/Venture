@@ -14,7 +14,7 @@ namespace Venture
         {
             if (portfolio == null) throw new Exception("Cannot process end of year bookings for null portfolio.");
 
-            foreach (var book in new Book[] { Common.MainBook })
+            foreach (var book in Common.Books)
             {
                 /// <summary>
                 /// Asset account where change in market valuation will be recognized

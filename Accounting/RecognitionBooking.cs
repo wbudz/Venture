@@ -11,7 +11,7 @@ namespace Venture
     {
         public static void Process(BuyTransactionDefinition btd)
         {
-            foreach (var book in new Book[] { Common.MainBook })
+            foreach (var book in Common.Books)
             {
                 PortfolioDefinition? portfolio = Definitions.Portfolios.Single(x => x.UniqueId == btd.PortfolioDst);
 
@@ -25,17 +25,20 @@ namespace Venture
                 /// </summary>
                 var accountCashSettlement = book.GetAccount(AccountType.Assets, AssetType.Cash, portfolio, btd.Currency);
 
+
                 /// <summary>
                 /// Cost account for fee recognition
                 /// </summary>
-                var accountFeeCost = book.GetAccount(AccountType.Fees, btd.AssetType, portfolio, btd.Currency);
+                var accountFeeRecognition = book.ApplyTaxRules ?
+                    book.GetAccount(AccountType.TaxReserves, null, portfolio, btd.Currency) :
+                    book.GetAccount(AccountType.Fees, btd.AssetType, portfolio, btd.Currency);
 
                 string description = $"Asset purchase of {btd.AssetId} ";
 
                 book.Enqueue(accountAssetRecognition, btd.Timestamp, btd.Index, description + "(asset recognition)", btd.Amount);
                 book.Enqueue(accountCashSettlement, btd.Timestamp, btd.Index, description + "(purchase amount payment)", -btd.Amount);
-                book.Enqueue(accountCashSettlement, btd.Timestamp, btd.Index, description + "(fee payment)", -btd.Fee);
-                book.Enqueue(accountFeeCost, btd.Timestamp, btd.Index, description + "(fee cost recognition)", btd.Fee);
+                book.Enqueue(accountCashSettlement, btd.Timestamp, btd.Index, description + "(purchase fee payment)", -btd.Fee);
+                book.Enqueue(accountFeeRecognition, btd.Timestamp, btd.Index, description + (book.ApplyTaxRules ? "(purchase fee deferred tax asset)" : "(purchase fee cost recognition)"), btd.Fee);
 
                 book.Commit();
             }

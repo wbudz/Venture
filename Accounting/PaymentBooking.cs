@@ -12,34 +12,7 @@ namespace Venture
     {
         public static void Process(PayTransactionDefinition ptd)
         {
-            //foreach (var book in new Book[] { Common.MainBook })
-            //{
-            //    var portfolioGroups = events.GroupBy(x => x.ParentAsset.Portfolio);
-
-            //    foreach (var p in portfolioGroups)
-            //    {
-            //        PortfolioDefinition portfolio = Booking.GetPortfolio(p);
-            //        string currency = Booking.GetCurrency(p);
-            //        decimal amount = Booking.GetAmount(p);
-            //        DateTime date = Booking.GetDate(p);
-            //        int transactionIndex = Booking.GetTransactionIndex(p);
-            //        PaymentType paymentType = Booking.GetPaymentType(p);
-
-            //        var accountCashSettlement = book.GetAccount(AccountType.Assets, AssetType.Cash, portfolio, currency);
-            //        string description = amount >= 0 ? "Cash payment (inflow)" : "Cash payment (outflow)";
-            //        book.Enqueue(accountCashSettlement, date, transactionIndex, description, portfolio, amount);
-            //        if (paymentType == PaymentType.ShareCapital)
-            //        {
-            //            var accountShareCapital = book.GetAccount(AccountType.ShareCapital, null, portfolio, currency);
-            //            description = amount >= 0 ? "Share capital increase" : "Share capital decrease";
-            //            book.Enqueue(accountShareCapital, date, transactionIndex, description, portfolio, -amount);
-            //        }
-            //    }                
-
-            //    book.Commit();
-            //}
-
-            foreach (var book in new Book[] { Common.MainBook })
+            foreach (var book in Common.Books)
             {
                 PortfolioDefinition? srcPortfolio = Definitions.Portfolios.SingleOrDefault(x => x.UniqueId == ptd.PortfolioSrc);
                 PortfolioDefinition? dstPortfolio = Definitions.Portfolios.SingleOrDefault(x => x.UniqueId == ptd.PortfolioDst);

@@ -158,6 +158,7 @@ namespace Venture
                     case "equityredemption": newItem = new EquityRedemptionEventDefinition(item); break;
                     case "additionalpremium": newItem = new AdditionalPremiumEventDefinition(item); break;
                     case "additionalcharge": newItem = new AdditionalChargeEventDefinition(item); break;
+                    case "incometaxdeductionbooking": newItem = new IncomeTaxDeductionBookingEventDefinition(item); break;
                     default:
                         throw new Exception($"Incorrect manual event definition: {item}.");
                 }

@@ -528,6 +528,7 @@ namespace Venture
                         }
                     }
                 }
+                TaxIncomeBooking.Process(dates[i]);
             }
         }
 

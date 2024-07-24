@@ -13,7 +13,7 @@ namespace Venture
     {
         public static void Process(FlowEvent e)
         {
-            foreach (var book in new Book[] { Common.MainBook })
+            foreach (var book in Common.Books)
             {
                 /// <summary>
                 /// Asset account for cash settlement of dividend/coupon/redemption (inflow)
@@ -24,6 +24,11 @@ namespace Venture
                 /// Result account for recognition of ordinary income.
                 /// </summary>
                 var accountOrdinaryIncome = book.GetAccount(AccountType.OrdinaryIncomeInflows, e.ParentAsset.AssetType, e.ParentAsset.Portfolio, e.ParentAsset.Currency);
+
+
+                var accountNonTaxableResult = book.GetAccount(AccountType.NonTaxableResult, e.ParentAsset.AssetType, e.ParentAsset.Portfolio, e.ParentAsset.Currency);
+
+                var accountPrechargedTax = book.GetAccount(AccountType.PrechargedTax, e.ParentAsset.AssetType, e.ParentAsset.Portfolio, e.ParentAsset.Currency);
 
                 /// <summary>
                 /// Tax account for recognition of income tax on dividend.
@@ -43,8 +48,16 @@ namespace Venture
                 description += $"from {e.ParentAsset.InstrumentId} ";
 
                 book.Enqueue(accountCashInflow, e.Timestamp, -1, description + "(cash inflow)", e.Amount);
-                book.Enqueue(accountOrdinaryIncome, e.Timestamp, -1, description + "(ordinary income)", -e.GrossAmount);
-                book.Enqueue(accountTaxRecognition, e.Timestamp, -1, description + "(tax recognition)", e.Tax);
+                if (book.ApplyTaxRules)
+                {
+                    book.Enqueue(accountNonTaxableResult, e.Timestamp, -1, description + "(non-taxable result)", -e.GrossAmount);
+                    book.Enqueue(accountPrechargedTax, e.Timestamp, -1, description + "(pre-charged tax)", e.Tax);
+                }
+                else
+                {
+                    book.Enqueue(accountOrdinaryIncome, e.Timestamp, -1, description + "(ordinary income)", -e.GrossAmount);
+                    book.Enqueue(accountTaxRecognition, e.Timestamp, -1, description + "(tax recognition)", e.Tax);
+                }
                 book.Commit();
             }
         }

@@ -50,6 +50,11 @@ namespace Venture
             return accounts.Where(x => x.IsResultAccount && x.Portfolio == portfolio && x.Currency == currency);
         }
 
+        public decimal GetResult(DateTime date)
+        {
+            return accounts.Where(x => x.IsResultAccount).Sum(x => x.GetNetAmount(date));
+        }
+
         public List<Modules.AccountsViewEntry> GetAccountsAsViewEntries(DateTime date, bool aggregateAssetTypes, bool aggregateCurrencies, bool aggregatePortfolios, bool aggregateBrokers)
         {
             List<Modules.AccountsViewEntry> output = new List<Modules.AccountsViewEntry>();

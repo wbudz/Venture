@@ -4,6 +4,7 @@ using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 
 namespace Venture
 {
@@ -229,6 +230,30 @@ namespace Venture
             Description = data["text3"];
             Amount = ConvertToDecimal(data["amount1"]);
             FXRate = GetFXRateFromData(data["amount2"]);
+        }
+    }
+
+    public abstract class BookingManualEventDefinition: ManualEventDefinition
+    {
+        public BookingManualEventDefinition(Dictionary<string, string> data) : base(data)
+        {
+        }
+    }
+
+    public class IncomeTaxDeductionBookingEventDefinition : BookingManualEventDefinition
+    {
+        public override string UniqueId { get { return $"{AdjustmentType}_{Timestamp:yyyyMMdd}"; } }
+
+        public override string AdjustmentType { get { return "IncomeTaxDeductionBooking"; } }
+
+        public string Description { get; private set; }
+
+        public decimal Amount { get; private set; }
+
+        public IncomeTaxDeductionBookingEventDefinition(Dictionary<string, string> data) : base(data)
+        {
+            Description = data["text1"];
+            Amount = ConvertToDecimal(data["amount1"]);
         }
     }
 }

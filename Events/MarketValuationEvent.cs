@@ -47,10 +47,10 @@ namespace Venture
 
             if (parentAsset.IsBond)
             {
-                MarketDirtyAmount = Common.Round(MarketDirtyPrice / 100 * Count * ((Bond)parentAsset).SecurityDefinition.UnitPrice);
-                MarketCleanAmount = Common.Round(MarketCleanPrice / 100 * Count * ((Bond)parentAsset).SecurityDefinition.UnitPrice);
-                AmortizedCostDirtyAmount = Common.Round(AmortizedCostDirtyPrice / 100 * Count * ((Bond)parentAsset).SecurityDefinition.UnitPrice);
-                AmortizedCostCleanAmount = Common.Round(AmortizedCostCleanPrice / 100 * Count * ((Bond)parentAsset).SecurityDefinition.UnitPrice);
+                MarketDirtyAmount = Common.Round(MarketDirtyPrice / 100 * parentAsset.GetNominalAmount(time));
+                MarketCleanAmount = Common.Round(MarketCleanPrice / 100 * parentAsset.GetNominalAmount(time));
+                AmortizedCostDirtyAmount = Common.Round(AmortizedCostDirtyPrice / 100 * parentAsset.GetNominalAmount(time));
+                AmortizedCostCleanAmount = Common.Round(AmortizedCostCleanPrice / 100 * parentAsset.GetNominalAmount(time));
             }
             else
             {

@@ -14,16 +14,18 @@ namespace Venture
     {
         public FiltersViewModel()
         {
+            Common.Books.ForEach(x => books.Add(x));
+            selectedBook = Books.First();
         }
 
-        private Book selectedBook = Common.MainBook;
+        private Book selectedBook;
         public Book SelectedBook
         {
             get { return selectedBook; }
             set { selectedBook = value; OnPropertyChanged(); }
         }
 
-        private ObservableCollection<Book> books = new() { Common.MainBook, Common.TaxBook };
+        private ObservableCollection<Book> books = new();
         public ObservableCollection<Book> Books
         {
             get { return books; }
