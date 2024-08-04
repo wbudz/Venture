@@ -29,6 +29,10 @@ namespace Venture
 
         public decimal AmortizedCostCleanAmount { get; protected set; } = 0;
 
+        public decimal CumulativeMarketValuation { get; protected set; } = 0;
+
+        public decimal CumulativeAmortizedCostValuation { get; protected set; } = 0;
+
         public ValuationEvent(StandardAsset parentAsset, DateTime date) : base(parentAsset, date)
         {
             UniqueId = $"ValuationEvent_{parentAsset.UniqueId}_{date.ToString("yyyyMMdd")}";
@@ -45,22 +49,18 @@ namespace Venture
             AmortizedCostDirtyPrice = parentAsset.GetAmortizedCostPrice(time, true);
             AmortizedCostCleanPrice = AmortizedCostDirtyPrice - accruedInterest;
 
-            if (parentAsset.IsBond)
-            {
-                MarketDirtyAmount = Common.Round(MarketDirtyPrice / 100 * parentAsset.GetNominalAmount(time));
-                MarketCleanAmount = Common.Round(MarketCleanPrice / 100 * parentAsset.GetNominalAmount(time));
-                AmortizedCostDirtyAmount = Common.Round(AmortizedCostDirtyPrice / 100 * parentAsset.GetNominalAmount(time));
-                AmortizedCostCleanAmount = Common.Round(AmortizedCostCleanPrice / 100 * parentAsset.GetNominalAmount(time));
-            }
-            else
-            {
-                MarketDirtyAmount = Common.Round(MarketDirtyPrice * Count);
-                MarketCleanAmount = Common.Round(MarketCleanPrice * Count);
-                AmortizedCostDirtyAmount = Common.Round(AmortizedCostDirtyPrice * Count);
-                AmortizedCostCleanAmount = Common.Round(AmortizedCostCleanPrice * Count);
-            }
+            MarketDirtyAmount = parentAsset.GetMarketValue(time, true);
+            MarketCleanAmount = parentAsset.GetMarketValue(time, false);
+            AmortizedCostDirtyAmount = parentAsset.GetAmortizedCostValue(time, true);
+            AmortizedCostCleanAmount = parentAsset.GetAmortizedCostValue(time, false);
 
-            Amount = MarketDirtyAmount - AmortizedCostDirtyAmount;
+            Amount = MarketDirtyAmount;
+
+            decimal unitPrice = parentAsset.IsBond ? (((Bond)parentAsset).UnitPrice / 100.0m) : 1;
+            decimal purchasePrice = parentAsset.GetPurchasePrice(true);
+            CumulativeAmortizedCostValuation = Common.Round((AmortizedCostDirtyPrice - purchasePrice) * Count * unitPrice);
+            CumulativeMarketValuation = Common.Round((MarketDirtyPrice - purchasePrice) * Count * unitPrice) - CumulativeAmortizedCostValuation;
+
         }
     }
 }

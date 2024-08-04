@@ -180,6 +180,10 @@ namespace Venture
             {
                 return output;
             }
+            if (date > Prices.Max(x=>x.Timestamp))
+            {
+                return 0; // TODO: warn about missing prices.
+            }    
             throw new Exception($"Price not found for instrument {instrument} at date {date:yyyy-MM-dd}.");
         }
 

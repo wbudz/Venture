@@ -109,8 +109,9 @@ namespace Venture
                     else
                     {
                         decimal purchaseAmount = ParentAsset.GetPurchaseAmount(time, true);
+                        decimal purchaseFee = ParentAsset.GetUnrealizedPurchaseFee(time);
                         decimal nominalAmount = ParentAsset.GetNominalAmount(time);
-                        Tax = TaxCalculations.CalculateFromRedemption(Amount - Math.Min(purchaseAmount, nominalAmount));
+                        Tax = TaxCalculations.CalculateFromRedemption(Amount - Math.Min(purchaseAmount + purchaseFee, nominalAmount));
                     }
                     Amount -= Tax;
                     break;

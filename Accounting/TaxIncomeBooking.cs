@@ -19,8 +19,8 @@ namespace Venture
 
                 if (manualAdjustment != null)
                 {
-                    var accountIncomeTaxInTaxBook = Common.TaxBook.GetAccount(AccountType.Tax, null, null, "PLN");
-                    var accountPriorPeriodResult = Common.TaxBook.GetAccount(AccountType.PriorPeriodResult, null, null, "PLN");
+                    var accountIncomeTaxInTaxBook = Common.TaxBook.GetAccount(AccountType.Tax, null, null, Common.LocalCurrency);
+                    var accountPriorPeriodResult = Common.TaxBook.GetAccount(AccountType.PriorPeriodResult, null, null, Common.LocalCurrency);
 
                     Common.TaxBook.Enqueue(accountIncomeTaxInTaxBook, date, -1, manualAdjustment.Description, manualAdjustment.Amount);
                     Common.TaxBook.Enqueue(accountPriorPeriodResult, date, -1, manualAdjustment.Description, -manualAdjustment.Amount);
@@ -37,12 +37,12 @@ namespace Venture
             /// <summary>
             /// Asset where accrued expense resulting from tax calculated but not yet charged is booked.
             /// </summary>
-            var accountTaxReserves = Common.MainBook.GetAccount(AccountType.TaxReserves, null, null, "PLN");
+            var accountTaxReserves = Common.MainBook.GetAccount(AccountType.TaxReserves, null, null, Common.LocalCurrency);
 
             /// <summary>
             /// Account where liabilities resulting from tax charged is booked.
             /// </summary>
-            var accountTaxLiabilities = Common.MainBook.GetAccount(AccountType.TaxLiabilities, null, null, "PLN");
+            var accountTaxLiabilities = Common.MainBook.GetAccount(AccountType.TaxLiabilities, null, null, Common.LocalCurrency);
 
             /// <summary>
             /// Account where tax that will be deducted and paid from current year's result is booked.

@@ -375,7 +375,8 @@ namespace Venture
 
         public bool IsActive(DateTime date)
         {
-            return IsActive(date, date);
+            //return IsActive(date, date);
+            return IsActive(new TimeArg(TimeArgDirection.End, date));
         }
 
         public IEnumerable<Event> GetEventsUntil(TimeArg time)

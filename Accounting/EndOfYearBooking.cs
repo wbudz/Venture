@@ -12,8 +12,6 @@ namespace Venture
     {
         public static void Process(PortfolioDefinition? portfolio, string currency, DateTime date)
         {
-            if (portfolio == null) throw new Exception("Cannot process end of year bookings for null portfolio.");
-
             foreach (var book in Common.Books)
             {
                 /// <summary>

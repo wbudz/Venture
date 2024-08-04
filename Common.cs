@@ -40,6 +40,8 @@ namespace Venture
 
         public static List<Book> Books = new() { MainBook, TaxBook };
 
+        public static string LocalCurrency { get; set; } = "PLN";
+
         public static DateTime CurrentDate { get { return new DateTime(FVM.CurrentYear, FVM.CurrentMonth, DateTime.DaysInMonth(FVM.CurrentYear, FVM.CurrentMonth)); } }
 
         public static DateTime StartDate { get; set; } = new DateTime(DateTime.Now.Year, 1, 1);

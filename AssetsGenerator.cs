@@ -15,7 +15,7 @@ namespace Venture
             if (transactions.Count() == 0) return output;
 
             DateTime currentDate = new DateTime(transactions.Peek().Timestamp.Year - 1, 12, 31);
-            DateTime previousDate = currentDate;
+            Queue<DateTime> reportingDates = new Queue<DateTime>(Financial.Calendar.GenerateReportingDates(currentDate, Common.EndDate, Financial.Calendar.TimeStep.Monthly).ToList());
 
             while (transactions.Count > 0)
             {
@@ -25,6 +25,12 @@ namespace Venture
                 // Go through pending events that come before (influence) current transaction - e.g. dividends, coupons that may add new cash    
                 // Also, Process manual entries that influence assets
                 ProcessPrecedingEvents(output, manuals, tr, currentDate);
+
+                // Go through preceding ends of months
+                while (reportingDates.Peek() < tr.Timestamp)
+                {
+                    ProcessEndOfPeriod(output, reportingDates.Dequeue());
+                }
 
                 // Process the transaction
                 if (tr is PayTransactionDefinition ptd)
@@ -106,15 +112,13 @@ namespace Venture
                     }
                 }
                 currentDate = tr.Timestamp;
-                if (currentDate.Year != previousDate.Year || currentDate.Month != previousDate.Month)
-                {
-                    ProcessEndOfMonth(output, previousDate, currentDate);
-                    if (currentDate.Year != previousDate.Year) ProcessEndOfYear(output, previousDate, currentDate);
-                    previousDate = currentDate;
-                }
             }
 
             ProcessPrecedingEvents(output, manuals, null, currentDate);
+            while (reportingDates.Count > 0)
+            {
+                ProcessEndOfPeriod(output, reportingDates.Dequeue());
+            }
 
             return output;
         }
@@ -479,56 +483,43 @@ namespace Venture
 
         }
 
-        private static void ProcessEndOfYear(List<Asset> output, DateTime startDate, DateTime endDate)
+        private static void ProcessEndOfPeriod(List<Asset> output, DateTime date)
         {
-            var dates = Financial.Calendar.GenerateReportingDates(startDate, endDate, Financial.Calendar.TimeStep.Yearly).ToList();
-            if (dates.Count > 0)
+            DateTime currentDate = date;
+            DateTime previousDate = Financial.Calendar.AddAndAlignToEndDate(date, -1, Financial.Calendar.TimeStep.Monthly);
+
+            // Create valuation events
+            foreach (var a in output.Where(x => x.IsActive(currentDate)))
             {
-                dates.Insert(0, dates[0].AddYears(-1));
+                var e = a.GenerateValuation(currentDate);
             }
 
-            for (int i = 1; i < dates.Count; i++)
+            var assets = output.Where(x => x.IsActive(previousDate) || x.IsActive(currentDate));
+            foreach (var portfolio in assets.Select(x => x.Portfolio).Distinct())
             {
-                var assets = output.Where(x => x.IsActive(dates[i - 1], dates[i]));
-                foreach (var portfolio in assets.Select(x => x.Portfolio).Distinct())
+                foreach (var currency in assets.Select(x => x.Currency).Distinct())
                 {
-                    foreach (var currency in assets.Select(x => x.Currency).Distinct())
+                    foreach (var assetType in assets.Select(x => x.AssetType).Distinct())
                     {
-                        EndOfYearBooking.Process(portfolio, currency, dates[i].AddDays(1));
+                        if (assetType == AssetType.Cash) continue;
+                        ValuationBooking.Process(assets, assetType, portfolio, currency, currentDate, previousDate);
                     }
                 }
             }
-        }
+            TaxIncomeBooking.Process(currentDate);
 
-        private static void ProcessEndOfMonth(List<Asset> output, DateTime startDate, DateTime endDate)
-        {
-            var dates = Financial.Calendar.GenerateReportingDates(startDate, endDate, Financial.Calendar.TimeStep.Monthly).ToList();
-            if (dates.Count > 0)
+            if (currentDate.Month == 12 && currentDate.Day == 31)
             {
-                dates.Insert(0, Financial.Calendar.AddAndAlignToEndDate(dates[0], -1, Financial.Calendar.TimeStep.Monthly));
-            }
+                previousDate = Financial.Calendar.AddAndAlignToEndDate(date, -1, Financial.Calendar.TimeStep.Yearly);
 
-            for (int i = 1; i < dates.Count; i++)
-            {
-                foreach (var a in output.Where(x => x.IsActive(new TimeArg(TimeArgDirection.End, dates[i]))))
-                {
-                    var e = a.GenerateValuation(dates[i]);
-                }
-
-                var assets = output.Where(x => x.IsActive(dates[i - 1], dates[i]));
-                foreach (var portfolio in assets.Select(x => x.Portfolio).Distinct())
+                assets = output.Where(x => x.IsActive(previousDate) || x.IsActive(currentDate));
+                foreach (var portfolio in assets.Select(x => x.Portfolio).Distinct().Append(null))
                 {
                     foreach (var currency in assets.Select(x => x.Currency).Distinct())
                     {
-                        foreach (var assetType in assets.Select(x => x.AssetType).Distinct())
-                        {
-                            if (assetType == AssetType.Cash) continue;
-                            AmortizedValuationBooking.Process(assets, assetType, portfolio, currency, dates[i]);
-                            MarketValuationBooking.Process(assets, assetType, portfolio, currency, dates[i]);
-                        }
+                        EndOfYearBooking.Process(portfolio, currency, currentDate.AddDays(1));
                     }
                 }
-                TaxIncomeBooking.Process(dates[i]);
             }
         }
 

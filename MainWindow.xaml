@@ -12,6 +12,13 @@
         <CommandBinding Command="{x:Static local:MainWindow.LoadDataCommand}" Executed="LoadDataCommand_Executed" CanExecute="LoadDataCommand_CanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.GenerateAssetsCommand}" Executed="GenerateAssetsCommand_Executed" CanExecute="GenerateAssetsCommand_CanExecute"/>
     </Window.CommandBindings>
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Modules\ToolbarTemplate.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
     <DockPanel LastChildFill="True">
         <Menu DockPanel.Dock="Top" Height="20">
             <MenuItem Header="File">
@@ -21,6 +28,10 @@
                 <MenuItem Header="Exit" Command="{x:Static local:MainWindow.ExitCommand}" />
             </MenuItem>
         </Menu>
+        <ToolBar Template="{DynamicResource ToolBarTemplate}" DockPanel.Dock="Top" Height="26" VerticalAlignment="Top" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
+            <Button Content="Load data" Command="{x:Static local:MainWindow.LoadDataCommand}" />
+            <Button Content="Generate assets" Command="{x:Static local:MainWindow.GenerateAssetsCommand}" />
+        </ToolBar>
         <StatusBar DockPanel.Dock="Bottom" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
             <TextBlock x:Name="StatusText" />
         </StatusBar>

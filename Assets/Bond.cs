@@ -203,15 +203,6 @@ namespace Venture
             else
             {
                 decimal price = Definitions.GetPrice(this.SecurityDefinition, time.Date);
-                //PriceDefinition? price = Definitions.Prices.LastOrDefault(x => x.InstrumentUniqueId == this.InstrumentUniqueId && x.Timestamp <= time.Date);
-                //if (price == null)
-                //{
-                //    throw new Exception($"No price for: {UniqueId} at date: {time.Date:yyyy-MM-dd}.");
-                //}
-                //else
-                //{
-                //    return price.Value + (dirty ? GetAccruedInterest(time.Date) : 0);
-                //}
                 return price + (dirty ? GetAccruedInterest(time.Date) : 0);
             }
         }

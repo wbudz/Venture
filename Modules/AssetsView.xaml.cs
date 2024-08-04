@@ -61,8 +61,8 @@ namespace Venture.Modules
         {
             List<(string property, string header)> columns = new List<(string property, string header)>();
             columns.Add(("UniqueId", "Unique id"));
-            columns.Add(("Type", "Type"));
-            columns.Add(("Portfolio", "Portfolio"));
+            columns.Add(("AssetType", "Type"));
+            columns.Add(("PortfolioId", "Portfolio"));
             columns.Add(("CustodyAccount", "Custody account"));
             columns.Add(("CashAccount", "Cash account"));
             columns.Add(("Currency", "Currency"));
