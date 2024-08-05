@@ -75,6 +75,12 @@ namespace Venture
                 }
                 else
                 {
+                    var accountEntries = a.GetEntriesAsViewEntries(date);
+                    foreach (var e in accountEntries)
+                    {
+                        entry.Entries.Insert(entry.Entries.Count(x => x.Date <= e.Date), e); // keep entries ordered by date
+                    }
+
                     entry.DebitAmount += a.GetDebitAmount(date);
                     entry.CreditAmount += a.GetCreditAmount(date);
                     entry.NetAmount += a.GetNetAmount(date);

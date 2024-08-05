@@ -54,6 +54,7 @@ namespace Venture
                 decimal assetDerecognitionAmount = 0;
                 decimal realizedResult = 0;
                 decimal purchaseFee = 0;
+                decimal tax = 0;
 
                 var time = new TimeArg(TimeArgDirection.Start, std.Timestamp, std.Index);
 
@@ -61,9 +62,10 @@ namespace Venture
                 {
                     assetDerecognitionAmount += book.ApplyTaxRules ? e.PurchaseDirtyAmount : e.AmortizedCostDirtyAmount;
                     purchaseFee += book.ApplyTaxRules ? Common.Round(e.Count / e.ParentAsset.GetCount(time) * e.ParentAsset.GetUnrealizedPurchaseFee(time)) : 0;
+                    tax += e.Tax;
                 }
 
-                realizedResult = std.Amount - assetDerecognitionAmount;
+                realizedResult = std.Amount - assetDerecognitionAmount - tax;
 
                 string description = $"Asset sale of {std.AssetId} ";
 
@@ -76,7 +78,7 @@ namespace Venture
                 {
                     book.Enqueue(accountRealizedLossRecognition, std.Timestamp, std.Index, description + "(loss)", -realizedResult);
                 }
-                book.Enqueue(accountCashSettlement, std.Timestamp, std.Index, description + "(sale amount payment)", std.Amount);
+                book.Enqueue(accountCashSettlement, std.Timestamp, std.Index, description + "(sale amount payment)", std.Amount - tax);
                 book.Enqueue(accountCashSettlement, std.Timestamp, std.Index, description + "(sale fee payment)", -std.Fee);
                 book.Enqueue(accountFeeCost, std.Timestamp, std.Index, description + "(sale fee cost recognition)", std.Fee);
                 if (book.ApplyTaxRules)

@@ -56,10 +56,9 @@ namespace Venture
 
             Amount = MarketDirtyAmount;
 
-            decimal unitPrice = parentAsset.IsBond ? (((Bond)parentAsset).UnitPrice / 100.0m) : 1;
-            decimal purchasePrice = parentAsset.GetPurchasePrice(true);
-            CumulativeAmortizedCostValuation = Common.Round((AmortizedCostDirtyPrice - purchasePrice) * Count * unitPrice);
-            CumulativeMarketValuation = Common.Round((MarketDirtyPrice - purchasePrice) * Count * unitPrice) - CumulativeAmortizedCostValuation;
+            decimal purchaseAmount = parentAsset.GetPurchaseAmount(time, true);
+            CumulativeAmortizedCostValuation = AmortizedCostDirtyAmount - purchaseAmount;
+            CumulativeMarketValuation = MarketDirtyAmount - purchaseAmount - CumulativeAmortizedCostValuation;
 
         }
     }

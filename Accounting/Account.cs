@@ -192,7 +192,7 @@ namespace Venture
 
         public IEnumerable<Modules.AccountEntriesViewEntry> GetEntriesAsViewEntries(DateTime date)
         {
-            foreach (var e in entries.Where(x => x.Date <= date))
+            foreach (var e in entries.Where(x => x.Date <= date).OrderBy(x=>x.Date))
             {
                 yield return new Modules.AccountEntriesViewEntry(e);
             }
