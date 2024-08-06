@@ -21,7 +21,7 @@ namespace Venture.Modules
     /// <summary>
     /// Interaction logic for DefinitionsView.xaml
     /// </summary>
-    public partial class AssetsReports : Module
+    public partial class AssetsReports : ReportModule
     {
         public ObservableCollection<object[]> ReportEntries { get; set; } = new();
 
@@ -33,19 +33,6 @@ namespace Venture.Modules
         {
             InitializeComponent();
             DataContext = this;
-        }
-
-        DataTemplate CreateTemplate(int column, bool numeric)
-        {
-            var factory = new FrameworkElementFactory(typeof(TextBlock));
-            var binding = new Binding("[" + column + "]");
-            if (numeric)
-                binding.StringFormat = "0.00";
-            factory.SetBinding(TextBlock.TextProperty, binding);
-            if (numeric)
-                factory.SetValue(TextBlock.HorizontalAlignmentProperty, HorizontalAlignment.Right);
-
-            return new DataTemplate { VisualTree = factory };
         }
 
         object[] GenerateReportEntry(Asset asset, int optionIndex, List<DateTime> dates)

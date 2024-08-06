@@ -29,21 +29,21 @@ namespace Venture
             PaymentType = ptd.PaymentType;
         }
 
-        public PaymentEvent(Cash parentAsset, BuyTransactionDefinition btd, decimal amount) : base(parentAsset, btd.Timestamp)
+        public PaymentEvent(Cash parentAsset, BuyTransactionDefinition btd, decimal amount, Event e) : base(parentAsset, btd.Timestamp)
         {
             UniqueId = $"Payment_Purchase_{btd.AssetType}_{btd.AssetId}_{btd.Index}_{btd.Timestamp.ToString("yyyyMMdd")}";
-            // TODO: Associated event
+            AssociatedEvent = e;
             Direction = PaymentDirection.Outflow;
             TransactionIndex = btd.Index;
             Amount = amount;
             FXRate = btd.FXRate;
         }
 
-        public PaymentEvent(Cash parentAsset, SellTransactionDefinition std, decimal amount) : base(parentAsset, std.Timestamp)
+        public PaymentEvent(Cash parentAsset, SellTransactionDefinition std, decimal amount, Event e) : base(parentAsset, std.Timestamp)
         {
             // Used in rare case when sale means net outgoing payment (e.g. when selling futures).
             UniqueId = $"Payment_Sale_{std.AssetType}_{std.AssetId}_{std.Index}_{std.Timestamp.ToString("yyyyMMdd")}";
-            // TODO: Associated event
+            AssociatedEvent = e;
             Direction = PaymentDirection.Outflow;
             TransactionIndex = std.Index;
             Amount = amount;

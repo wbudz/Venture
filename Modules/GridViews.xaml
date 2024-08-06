@@ -778,7 +778,7 @@
             <GridViewColumn Header="Cashflow type" Width="Auto">
                 <GridViewColumn.CellTemplate>
                     <DataTemplate>
-                        <TextBlock Text="{Binding CashflowType}" />
+                        <TextBlock Text="{Binding CashflowTypeDescription}" />
                     </DataTemplate>
                 </GridViewColumn.CellTemplate>
             </GridViewColumn>
@@ -1172,6 +1172,59 @@
         </GridView.Columns>
     </GridView>
     <GridView x:Key="AccountEntriesGridView">
+        <GridView.Columns>
+            <GridViewColumn Header="Date" Width="Auto">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Date, StringFormat = {}{0:yyyy-MM-dd}}"/>
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="Operation index" Width="Auto">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding OperationIndex}" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="Transaction index" Width="Auto">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding TransactionIndex}" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="Portfolio" Width="Auto">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding PortfolioId}" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="Broker" Width="Auto">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Broker}" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="Description" Width="Auto">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Description}" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="Amount" Width="Auto">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Amount, StringFormat = {}{0:N2}}" HorizontalAlignment="Right" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+        </GridView.Columns>
+    </GridView>
+    <GridView x:Key="AccountingOperationsGridView">
         <GridView.Columns>
             <GridViewColumn Header="Date" Width="Auto">
                 <GridViewColumn.CellTemplate>

@@ -6,4 +6,5 @@
     <modules:FuturesViewModel x:Key="FuturesVM"/>
     <modules:AssetsViewModel x:Key="AssetsVM"/>
     <modules:AccountsViewModel x:Key="AccountsVM"/>
+    <modules:OperationsViewModel x:Key="OperationsVM"/>
 </ResourceDictionary>

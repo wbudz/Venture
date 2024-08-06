@@ -87,8 +87,9 @@ namespace Venture
                         {
                             Asset asset = Asset.CreateFromBuyTransaction(btd, definition);
                             AddAsset(output, asset, btd.Timestamp);
+                            var purchase = asset.Events.OfType<RecognitionEvent>().First();
                             // Subtract cash used for purchase
-                            RegisterCashDeduction(output, btd);
+                            RegisterCashDeduction(output, btd, purchase);
                             RecognitionBooking.Process(btd);
                         }
                     }
@@ -123,7 +124,7 @@ namespace Venture
             return output;
         }
 
-        private static void RegisterCashDeduction(List<Asset> list, BuyTransactionDefinition btd)
+        private static void RegisterCashDeduction(List<Asset> list, BuyTransactionDefinition btd, Event e)
         {
             decimal remainingAmount = (btd.AssetType != AssetType.Futures ? btd.Amount : 0) + btd.Fee;
             if (remainingAmount == 0) throw new Exception("Cash deduction attempted with amount equal to 0.");
@@ -138,7 +139,7 @@ namespace Venture
             {
                 var currentAmount = c.GetNominalAmount(new TimeArg(TimeArgDirection.StartIncludingRedemptions, btd.SettlementDate, btd.Index));
                 if (currentAmount == 0) continue;
-                var evt = new PaymentEvent(c, btd, Math.Min(currentAmount, remainingAmount));
+                var evt = new PaymentEvent(c, btd, Math.Min(currentAmount, remainingAmount), e);
                 c.AddEvent(evt);
                 remainingAmount -= evt.Amount;
                 if (remainingAmount <= 0) break;
@@ -150,7 +151,7 @@ namespace Venture
             }
         }
 
-        private static void RegisterCashDeduction(List<Asset> list, SellTransactionDefinition std)
+        private static void RegisterCashDeduction(List<Asset> list, SellTransactionDefinition std, Event e)
         {
             // In case of sale transaction only fee is deducted.
             // This happens only for sales involving futures.
@@ -166,7 +167,7 @@ namespace Venture
             {
                 var currentAmount = c.GetNominalAmount(new TimeArg(TimeArgDirection.StartIncludingRedemptions, std.SettlementDate, std.Index));
                 if (currentAmount == 0) continue;
-                var evt = new PaymentEvent(c, std, Math.Min(currentAmount, remainingAmount));
+                var evt = new PaymentEvent(c, std, Math.Min(currentAmount, remainingAmount), e);
                 c.AddEvent(evt);
                 remainingAmount -= evt.Amount;
                 if (remainingAmount <= 0) break;
@@ -358,7 +359,8 @@ namespace Venture
             {
                 futures = new Futures(btd, definition);
                 AddAsset(list, futures, btd.Timestamp);
-                RegisterCashDeduction(list, btd);
+                var fr = futures.Events.OfType<FuturesRecognitionEvent>().First();
+                RegisterCashDeduction(list, btd, fr);
             }
             else
             {
@@ -370,7 +372,7 @@ namespace Venture
                 if (fr.Amount >= 0)
                 {
                     AddAsset(list, new Cash(fr), fr.Timestamp);
-                    RegisterCashDeduction(list, btd);
+                    RegisterCashDeduction(list, btd, fr);
                 }
                 else
                 {
@@ -394,7 +396,8 @@ namespace Venture
             {
                 futures = new Futures(std, definition);
                 AddAsset(list, futures, std.Timestamp);
-                RegisterCashDeduction(list, std);
+                var fr = futures.Events.OfType<FuturesRecognitionEvent>().First();
+                RegisterCashDeduction(list, std, fr);
             }
             else
             {
@@ -406,7 +409,7 @@ namespace Venture
                 if (fr.Amount >= 0)
                 {
                     AddAsset(list, new Cash(fr), fr.Timestamp);
-                    RegisterCashDeduction(list, std);
+                    RegisterCashDeduction(list, std, fr);
                 }
                 else
                 {

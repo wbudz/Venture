@@ -7,6 +7,16 @@ using System.Threading.Tasks;
 
 namespace Venture.Modules
 {
+    public enum CashflowType
+    {
+        Inflow_CapitalIncrease, Inflow_TaxPayment, Inflow_OtherPayment,
+        Inflow_SaleEquities, Inflow_SaleETF, Inflow_SaleBonds, Inflow_SaleFunds,
+        Inflow_Dividend, Inflow_Redemption, Inflow_Coupon,
+        Outflow_CapitalDecrease, Outflow_TaxPayment, Outflow_OtherPayment,
+        Outflow_PurchaseEquities, Outflow_PurchaseETF, Outflow_PurchaseBonds, Outflow_PurchaseFunds,
+        Unknown
+    }
+
     public class CashflowViewEntry : ModuleEntry
     {
         public string CashAccount { get; set; } = "";
@@ -21,7 +31,36 @@ namespace Venture.Modules
 
         public PaymentDirection Direction { get; set; } = PaymentDirection.Unspecified;
 
-        public string CashflowType { get; set; } = "Unknown";
+        public CashflowType CashflowType { get; set; } = CashflowType.Unknown;
+
+        public string CashflowTypeDescription
+        {
+            get
+            {
+                switch (CashflowType)
+                {
+                    case CashflowType.Inflow_CapitalIncrease: return "Inflow: capital increase";
+                    case CashflowType.Inflow_TaxPayment: return "Inflow: tax payment";
+                    case CashflowType.Inflow_OtherPayment: return "Inflow: other payment";
+                    case CashflowType.Inflow_SaleEquities: return "Inflow: sale of equities";
+                    case CashflowType.Inflow_SaleETF: return "Inflow: sale of ETF";
+                    case CashflowType.Inflow_SaleBonds: return "Inflow: sale of bonds";
+                    case CashflowType.Inflow_SaleFunds: return "Inflow: sale of funds";
+                    case CashflowType.Inflow_Dividend: return "Inflow: dividend";
+                    case CashflowType.Inflow_Redemption: return "Inflow: redemption";
+                    case CashflowType.Inflow_Coupon: return "Inflow: coupon";
+                    case CashflowType.Outflow_CapitalDecrease: return "Outflow: capital decrease";
+                    case CashflowType.Outflow_TaxPayment: return "Outflow: tax payment";
+                    case CashflowType.Outflow_OtherPayment: return "Outflow: other payment";
+                    case CashflowType.Outflow_PurchaseEquities: return "Outflow: purchase of equities";
+                    case CashflowType.Outflow_PurchaseETF: return "Outflow: purchase of ETF";
+                    case CashflowType.Outflow_PurchaseBonds: return "Outflow: purchase of bonds";
+                    case CashflowType.Outflow_PurchaseFunds: return "Outflow: purchase of funds";
+                    case CashflowType.Unknown: return "Unknown";
+                    default: return "Unspecified";
+                }
+            }
+        }
 
         public decimal Rate { get; set; }
 
@@ -64,15 +103,94 @@ namespace Venture.Modules
             if (p.TransactionIndex > -1)
             {
                 TransactionDefinition tr = Definitions.Transactions.Single(x => x.Index == TransactionIndex);
-                if (tr is BuyTransactionDefinition) CashflowType = "Purchase";
-                if (tr is SellTransactionDefinition) CashflowType = "Sale";
-                if (tr is PayTransactionDefinition) CashflowType = "Cash payment";
-                if (tr is TransferTransactionDefinition) CashflowType = "Asset transfer";
+
+                if (tr is BuyTransactionDefinition)
+                {
+                    switch (tr.AssetType)
+                    {
+                        case AssetType.Undefined: break;
+                        case AssetType.Cash: break;
+                        case AssetType.Equity:
+                            CashflowType = CashflowType.Outflow_PurchaseEquities; break;
+                        case AssetType.FixedTreasuryBonds:
+                        case AssetType.FloatingTreasuryBonds:
+                        case AssetType.FixedRetailTreasuryBonds:
+                        case AssetType.FloatingRetailTreasuryBonds:
+                        case AssetType.IndexedRetailTreasuryBonds:
+                        case AssetType.FixedCorporateBonds:
+                        case AssetType.FloatingCorporateBonds:
+                            CashflowType = CashflowType.Outflow_PurchaseBonds; break;
+                        case AssetType.ETF:
+                            CashflowType = CashflowType.Outflow_PurchaseETF; break;
+                        case AssetType.MoneyMarketFund:
+                        case AssetType.EquityMixedFund:
+                        case AssetType.TreasuryBondsFund:
+                        case AssetType.CorporateBondsFund:
+                            CashflowType = CashflowType.Outflow_PurchaseFunds; break;
+                        case AssetType.Futures: break;
+                        default: break;
+                    }
+                }
+                else if (tr is SellTransactionDefinition)
+                {
+                    switch (tr.AssetType)
+                    {
+                        case AssetType.Undefined: break;
+                        case AssetType.Cash: break;
+                        case AssetType.Equity:
+                            CashflowType = CashflowType.Inflow_SaleEquities; break;
+                        case AssetType.FixedTreasuryBonds:
+                        case AssetType.FloatingTreasuryBonds:
+                        case AssetType.FixedRetailTreasuryBonds:
+                        case AssetType.FloatingRetailTreasuryBonds:
+                        case AssetType.IndexedRetailTreasuryBonds:
+                        case AssetType.FixedCorporateBonds:
+                        case AssetType.FloatingCorporateBonds:
+                            CashflowType = CashflowType.Inflow_SaleBonds; break;
+                        case AssetType.ETF:
+                            CashflowType = CashflowType.Inflow_SaleETF; break;
+                        case AssetType.MoneyMarketFund:
+                        case AssetType.EquityMixedFund:
+                        case AssetType.TreasuryBondsFund:
+                        case AssetType.CorporateBondsFund:
+                            CashflowType = CashflowType.Inflow_SaleFunds; break;
+                        case AssetType.Futures: break;
+                        default: break;
+                    }
+                }
+                else if (tr is PayTransactionDefinition)
+                {
+                    switch (tr.PaymentType)
+                    {
+                        case PaymentType.Undefined: break;
+                        case PaymentType.ShareCapital:
+                        case PaymentType.OtherCapital:
+                            CashflowType = p.Direction == PaymentDirection.Outflow ? CashflowType.Outflow_CapitalDecrease : CashflowType.Inflow_CapitalIncrease;
+                            break;
+                        case PaymentType.Tax:
+                            CashflowType = p.Direction == PaymentDirection.Outflow ? CashflowType.Outflow_TaxPayment : CashflowType.Inflow_TaxPayment;
+                            break;
+                        case PaymentType.Receivables:
+                            CashflowType = p.Direction == PaymentDirection.Outflow ? CashflowType.Outflow_OtherPayment : CashflowType.Inflow_OtherPayment; // TODO: receivables?
+                            break;
+                        default: break;
+                    }
+                }
+                else if (tr is TransferTransactionDefinition) throw new Exception("Detected cash flow associated with transfer transaction.");
             }
             else if (p.AssociatedEvent != null)
             {
-                if (p.AssociatedEvent is FlowEvent) CashflowType = "Flow";
-                else CashflowType = p.AssociatedEvent.GetType().ToString();
+                if (p.AssociatedEvent is FlowEvent fe2)
+                {
+                    switch (fe2.FlowType)
+                    {
+                        case FlowType.Undefined: break;
+                        case FlowType.Dividend: CashflowType = CashflowType.Inflow_Dividend; break;
+                        case FlowType.Coupon: CashflowType = CashflowType.Inflow_Coupon; break;
+                        case FlowType.Redemption: CashflowType = CashflowType.Inflow_Redemption; break;
+                        default: break;
+                    }
+                }
             }
 
         }

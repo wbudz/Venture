@@ -12,10 +12,16 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Page Update="Modules\AccountingOperationsView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="Modules\AssetsReports.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Modules\AccountsView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Modules\CashflowReport.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Modules\FuturesView.xaml">

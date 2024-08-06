@@ -19,7 +19,7 @@ namespace Venture
         Fees, Tax
     }
 
-    public class Account: IFilterable
+    public class Account : IFilterable
     {
         public string UniqueId
         {
@@ -210,7 +210,15 @@ namespace Venture
 
         public IEnumerable<Modules.AccountEntriesViewEntry> GetEntriesAsViewEntries(DateTime date)
         {
-            foreach (var e in entries.Where(x => x.Date <= date).OrderBy(x=>x.Date))
+            foreach (var e in entries.Where(x => x.Date <= date).OrderBy(x => x.Date))
+            {
+                yield return new Modules.AccountEntriesViewEntry(e);
+            }
+        }
+
+        public IEnumerable<Modules.AccountEntriesViewEntry> GetEntriesAsViewEntries(long operationsIndex, long transactionIndex)
+        {
+            foreach (var e in entries.Where(x => (operationsIndex < 0 || x.OperationIndex == operationsIndex) && (transactionIndex < 0 || x.TransactionIndex == transactionIndex)))
             {
                 yield return new Modules.AccountEntriesViewEntry(e);
             }

@@ -15,10 +15,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Modules\AccountingOperationsView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Modules\AssetsReports.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Modules\AccountsView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Modules\CashflowReport.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Modules\FuturesView.xaml.cs">

@@ -114,6 +114,23 @@ namespace Venture
             return output.Values.ToList();
         }
 
+        public List<Modules.AccountEntriesViewEntry> GetAccountsAsViewEntries(long operationIndex, long transactionIndex)
+        {
+            List<Modules.AccountEntriesViewEntry> output = new();
+
+            var orderedAccounts = accounts.OrderBy(x => x.NumericId);
+
+            foreach (var a in orderedAccounts)
+            {
+                foreach (var e in a.GetEntriesAsViewEntries(operationIndex, transactionIndex))
+                {
+                    output.Add(e);
+                }
+            }
+
+            return output;
+        }
+
         public void Enqueue(Account account, DateTime date, long transactionIndex, string description, decimal amount)
         {
             if (amount == 0) return;
