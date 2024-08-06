@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.Intrinsics.X86;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -94,7 +95,7 @@ namespace Venture.Modules
 
                 string selectedPortfolio = PortfolioComboBox.SelectedItem.ToString() ?? "*";
                 string selectedBroker = BrokerComboBox.SelectedItem.ToString() ?? "*";
-                if (Filter(asset, selectedPortfolio, selectedBroker)) ReportEntries.Add(GenerateReportEntry(asset, OptionComboBox.SelectedIndex, dates));
+                if (((IFilterable)asset).Filter(selectedPortfolio, selectedBroker)) ReportEntries.Add(GenerateReportEntry(asset, OptionComboBox.SelectedIndex, dates));
             }
 
             gvReport.Columns.Clear();

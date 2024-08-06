@@ -13,7 +13,7 @@ namespace Venture
     /// Represents generic asset presentable as part of assets (any instrument, traded or not, cash, etc.).
     /// Includes derivatives.
     /// </summary>
-    public abstract class Asset
+    public abstract class Asset : IFilterable
     {
         protected List<Event> events = new List<Event>();
         /// <summary>
@@ -56,28 +56,43 @@ namespace Venture
         /// </summary>
         public AssetType AssetType { get; protected set; } = AssetType.Undefined;
 
+        protected PortfolioDefinition? portfolio;
         /// <summary>
         /// Portfolio which the investment belongs to.
         /// </summary>
-        public PortfolioDefinition? Portfolio { get; protected set; }
+        public PortfolioDefinition? Portfolio
+        {
+            get
+            {
+                return portfolio;
+            }
+            set
+            {
+                portfolio = value;
+                PortfolioId = value?.UniqueId ?? "";
+                CashAccount = value?.CashAccount ?? "";
+                CustodyAccount = value?.CustodyAccount ?? "";
+                Broker = value?.Broker ?? "";
+            }
+        }
 
-        public string PortfolioId { get { return Portfolio?.UniqueId ?? ""; } }
+        public string PortfolioId { get; protected set; } = "";
 
         /// <summary>
         /// For securities, cash account which receives potential flows; by default cash account from which the purchase was made.
         /// In case of cash instruments (e.g. deposit, cash, receivable), bank account where the cash resides or where it would flow at the maturity.
         /// </summary>
-        public string CashAccount { get { return Portfolio?.CashAccount ?? ""; } }
+        public string CashAccount { get; protected set; } = "";
 
         /// <summary>
         /// In case of securities, custody account where the instrument is kept; otherwise empty.
         /// </summary>
-        public string CustodyAccount { get { return Portfolio?.CustodyAccount ?? ""; } }
+        public string CustodyAccount { get; protected set; } = "";
 
         /// <summary>
         /// Denotes financial institution where asset is held.
         /// </summary>
-        public string Broker { get { return Portfolio?.Broker ?? ""; } }
+        public string Broker { get; protected set; } = "";
 
         /// <summary>
         /// Currency in which the investment is denominated.

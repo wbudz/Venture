@@ -11,11 +11,11 @@ namespace Venture.Modules
 {
     public class AccountsViewEntry : ModuleEntry
     {
-        public string NumericId { get; private set; }
+        public string NumericId { get; set; } = "";
 
-        public string AccountCategory { get; private set; }
+        public string AccountCategory { get; set; } = "";
 
-        public string AccountType { get; private set; }
+        public string AccountType { get; set; } = "";
 
         public string AssetType { get; set; } = "";
 
@@ -27,23 +27,21 @@ namespace Venture.Modules
 
         public ObservableCollection<AccountEntriesViewEntry> Entries { get; set; } = new ObservableCollection<AccountEntriesViewEntry>();
 
-        public AccountsViewEntry(Account account, DateTime date, bool aggregateAssetTypes, bool aggregateCurrencies, bool aggregatePortfolios, bool aggregateBrokers)
+        public AccountsViewEntry(Account account)
         {
-            UniqueId = GenerateUniqueIdForAggregations(account, aggregateAssetTypes, aggregateCurrencies, aggregatePortfolios, aggregateBrokers);
+            UniqueId = account.UniqueId;
+        }
 
-            NumericId = GenerateNumericIdForAggregations(account.NumericId, aggregateAssetTypes, aggregateCurrencies, aggregatePortfolios, aggregateBrokers);
+        public void SetPortfolio(PortfolioDefinition portfolio)
+        {
+            PortfolioId = portfolio?.UniqueId ?? "";
+            Broker = portfolio?.Broker ?? "";
+        }
 
-            AccountCategory = account.AccountCategory.ToString();
-            AccountType = account.AccountType.ToString();
-            AssetType = aggregateAssetTypes ? "*" : account.AssetType?.ToString() ?? "";
-            PortfolioId = aggregatePortfolios ? "*" : account.Portfolio?.UniqueId ?? "";
-            Broker = aggregateBrokers ? "*" : account.Portfolio?.Broker ?? "";
-            Currency = aggregateCurrencies ? "*" : account.Currency;
-            DebitAmount = account.GetDebitAmount(date);
-            CreditAmount = account.GetCreditAmount(date);
-            NetAmount = account.GetNetAmount(date);
-            // Events
-            Entries = new(account.GetEntriesAsViewEntries(date));
+        public void SetPortfolio(string portfolioId, string broker)
+        {
+            PortfolioId = portfolioId;
+            Broker = broker;
         }
 
         public static string GenerateUniqueIdForAggregations(Account a, bool aggregateAssetTypes, bool aggregateCurrencies, bool aggregatePortfolios, bool aggregateBrokers)

@@ -41,13 +41,13 @@ namespace Venture.Modules
             Stopwatch sw = new Stopwatch();
             sw.Start();
 
-            VM.AccountEntries.Clear();
-            foreach (var ave in FVM.SelectedBook.GetAccountsAsViewEntries(Common.CurrentDate, FVM.AggregateAssetTypes, FVM.AggregateCurrencies, FVM.AggregatePortfolios, FVM.AggregateBrokers))
-            {
-                string selectedPortfolio = PortfolioComboBox.SelectedItem.ToString() ?? "*";
-                string selectedBroker = BrokerComboBox.SelectedItem.ToString() ?? "*";
+            string selectedPortfolio = PortfolioComboBox.SelectedItem.ToString() ?? "*";
+            string selectedBroker = BrokerComboBox.SelectedItem.ToString() ?? "*";
 
-                if (Filter(ave, selectedPortfolio, selectedBroker)) VM.AccountEntries.Add(ave);
+            VM.AccountEntries.Clear();
+            foreach (var ave in FVM.SelectedBook.GetAccountsAsViewEntries(Common.CurrentDate, selectedPortfolio, selectedBroker, FVM.AggregateAssetTypes, FVM.AggregateCurrencies, FVM.AggregatePortfolios, FVM.AggregateBrokers))
+            {
+                VM.AccountEntries.Add(ave);
             }
 
             TotalValueTextBlock.Text = $"Total assets: {VM.AccountEntries.Where(x => x.AccountCategory == "Assets").Sum(x => x.NetAmount):N2} PLN. Total result: {-VM.AccountEntries.Where(x => x.AccountCategory == "ProfitAndLoss").Sum(x => x.NetAmount):N2} PLN.";

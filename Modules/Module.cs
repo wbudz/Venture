@@ -24,62 +24,6 @@ namespace Venture.Modules
         public Module()
         {
             DataContext = this;
-        }     
-        
-        public static bool Filter(ModuleEntry entry, string portfolio, string broker)
-        {
-            if (portfolio == "*")
-            {
-                // fall-through
-            }
-            else if (portfolio.EndsWith("_*"))
-            {
-                string portfolioName = portfolio.Substring(0, portfolio.IndexOf("_*"));
-                if (!entry.PortfolioId.StartsWith(portfolioName)) return false;
-            }
-            else
-            {
-                if (entry.PortfolioId != portfolio) return false;
-            }
-
-            if (broker == "*")
-            {
-                // fall-through
-            }
-            else
-            {
-                if (entry.Broker != broker) return false;
-            }
-
-            return true;
-        }
-
-        public static bool Filter(Asset asset, string portfolio, string broker)
-        {
-            if (portfolio == "*")
-            {
-                // fall-through
-            }
-            else if (portfolio.EndsWith("_*"))
-            {
-                string portfolioName = portfolio.Substring(0, portfolio.IndexOf("_*"));
-                if (!asset.PortfolioId.StartsWith(portfolioName)) return false;
-            }
-            else
-            {
-                if (asset.PortfolioId != portfolio) return false;
-            }
-
-            if (broker == "*")
-            {
-                // fall-through
-            }
-            else
-            {
-                if (asset.Broker != broker) return false;
-            }
-
-            return true;
         }
     }
 }

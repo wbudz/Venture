@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Intrinsics.X86;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Controls;
+using System.Xml;
 
 namespace Venture
 {
@@ -34,7 +37,7 @@ namespace Venture
         public Account GetAccount(AccountType type, AssetType? assetType, PortfolioDefinition? portfolio, string currency)
         {
             var account = accounts.SingleOrDefault(x => x.AccountType == type
-                && (assetType == null || x.AssetType == assetType)
+                && x.AssetType == assetType
                 && x.Portfolio == portfolio
                 && x.Currency == currency);
             if (account == null)
@@ -50,44 +53,65 @@ namespace Venture
             return accounts.Where(x => x.IsResultAccount && x.Portfolio == portfolio && x.Currency == currency);
         }
 
-        public decimal GetResult(DateTime date)
+        public decimal GetResult(DateTime date, PortfolioDefinition? portfolio)
         {
-            return accounts.Where(x => x.IsResultAccount).Sum(x => x.GetNetAmount(date));
+            return accounts.Where(x => x.IsResultAccount && (portfolio == null || x.Portfolio == portfolio)).Sum(x => x.GetNetAmount(date));
         }
 
-        public List<Modules.AccountsViewEntry> GetAccountsAsViewEntries(DateTime date, bool aggregateAssetTypes, bool aggregateCurrencies, bool aggregatePortfolios, bool aggregateBrokers)
-        {
-            List<Modules.AccountsViewEntry> output = new List<Modules.AccountsViewEntry>();
+        public List<Modules.AccountsViewEntry> GetAccountsAsViewEntries(DateTime date, string selectedPortfolio, string selectedBroker, bool aggregateAssetTypes, bool aggregateCurrencies, bool aggregatePortfolios, bool aggregateBrokers)
+        {            
+            Dictionary<string, Modules.AccountsViewEntry> output = new();
+            
+            var orderedAccounts = accounts.Where(x=> ((IFilterable)x).Filter(selectedPortfolio,selectedBroker)).OrderBy(x => x.NumericId);
 
-            foreach (var a in accounts.OrderBy(x => x.NumericId))
+            foreach (var a in orderedAccounts)
             {
                 if (a.GetEntriesCount(date) == 0) continue;
-
                 string numericId = Modules.AccountsViewEntry.GenerateNumericIdForAggregations(a.NumericId, aggregateAssetTypes, aggregateCurrencies, aggregatePortfolios, aggregateBrokers);
-                Modules.AccountsViewEntry? entry = null;
-
-                entry = output.SingleOrDefault(x => x.NumericId == numericId);
-
-                if (entry == null)
+                if (!output.ContainsKey(numericId))
                 {
-                    entry = new Modules.AccountsViewEntry(a, date, aggregateAssetTypes, aggregateCurrencies, aggregatePortfolios, aggregateBrokers);
-                    output.Add(entry);
-                }
-                else
-                {
+                    Modules.AccountsViewEntry ave = new Modules.AccountsViewEntry(a)
+                    {
+                        UniqueId = Modules.AccountsViewEntry.GenerateUniqueIdForAggregations(a, aggregateAssetTypes, aggregateCurrencies, aggregatePortfolios, aggregateBrokers),
+                        NumericId = Modules.AccountsViewEntry.GenerateNumericIdForAggregations(a.NumericId, aggregateAssetTypes, aggregateCurrencies, aggregatePortfolios, aggregateBrokers),
+                        AccountCategory = a.AccountCategory.ToString(),
+                        AccountType = a.AccountType.ToString(),
+                        AssetType = aggregateAssetTypes ? "*" : a.AssetType?.ToString() ?? "",
+                        Currency = aggregateCurrencies ? "*" : a.Currency,
+                        DebitAmount = a.GetDebitAmount(date),
+                        CreditAmount = a.GetCreditAmount(date),
+                        NetAmount = a.GetNetAmount(date)
+                    };
+
+                    string portfolioId = aggregatePortfolios ? "*" : a.Portfolio?.UniqueId ?? "";
+                    string broker = aggregateBrokers ? "*" : a.Portfolio?.Broker ?? "";
+
+                    ave.SetPortfolio(portfolioId, broker);
+
                     var accountEntries = a.GetEntriesAsViewEntries(date);
                     foreach (var e in accountEntries)
                     {
-                        entry.Entries.Insert(entry.Entries.Count(x => x.Date <= e.Date), e); // keep entries ordered by date
+                        ave.Entries.Add(e);
                     }
 
-                    entry.DebitAmount += a.GetDebitAmount(date);
-                    entry.CreditAmount += a.GetCreditAmount(date);
-                    entry.NetAmount += a.GetNetAmount(date);
+                    output.Add(numericId, ave);
+                }
+                else
+                {
+                    Modules.AccountsViewEntry ave = output[numericId];
+                    ave.DebitAmount += a.GetDebitAmount(date);
+                    ave.CreditAmount += a.GetCreditAmount(date);
+                    ave.NetAmount += a.GetNetAmount(date);
+
+                    var accountEntries = a.GetEntriesAsViewEntries(date);
+                    foreach (var e in accountEntries)
+                    {
+                        ave.Entries.Insert(ave.Entries.Count(x => x.Date <= e.Date), e); // keep entries ordered by date
+                    }
                 }
             }
-
-            return output;
+            
+            return output.Values.ToList();
         }
 
         public void Enqueue(Account account, DateTime date, long transactionIndex, string description, decimal amount)

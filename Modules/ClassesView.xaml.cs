@@ -54,7 +54,7 @@ namespace Venture.Modules
                     foreach (var c in currencies)
                     {
                         var ave = new ClassesViewEntry(Common.Assets, p, t, c, Common.CurrentDate);
-                        if (Filter(ave, selectedPortfolio, selectedBroker) && ave.BookValue != 0) ClassEntries.Add(ave);
+                        if (((IFilterable)ave).Filter(selectedPortfolio, selectedBroker) && ave.BookValue != 0) ClassEntries.Add(ave);
                     }
                 }
             }

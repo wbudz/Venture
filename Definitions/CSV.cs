@@ -98,6 +98,7 @@ namespace Venture
                 {
                     for (int j = 0; j < headers.Length; j++)
                     {
+                        if (String.IsNullOrEmpty(headers[j].Trim())) continue;
                         newItem.Add(headers[j], Lines[i][j]);
                     }
                 }

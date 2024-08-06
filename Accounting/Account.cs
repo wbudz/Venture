@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 
 namespace Venture
 {
@@ -18,7 +19,7 @@ namespace Venture
         Fees, Tax
     }
 
-    public class Account
+    public class Account: IFilterable
     {
         public string UniqueId
         {
@@ -132,7 +133,24 @@ namespace Venture
 
         public AssetType? AssetType { get; private set; }
 
-        public PortfolioDefinition? Portfolio { get; private set; }
+        protected PortfolioDefinition? portfolio;
+        public PortfolioDefinition? Portfolio
+        {
+            get
+            {
+                return portfolio;
+            }
+            set
+            {
+                portfolio = value;
+                PortfolioId = value?.UniqueId ?? "";
+                Broker = value?.Broker ?? "";
+            }
+        }
+
+        public string PortfolioId { get; protected set; } = "";
+
+        public string Broker { get; protected set; } = "";
 
         public string Currency { get; private set; }
 
@@ -206,6 +224,11 @@ namespace Venture
         public void Enter(AccountEntry entry)
         {
             entries.Add(entry);
+        }
+
+        public override string ToString()
+        {
+            return "Account: " + UniqueId;
         }
     }
 }

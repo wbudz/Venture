@@ -19,8 +19,10 @@ namespace Venture
 
                 if (manualAdjustment != null)
                 {
-                    var accountIncomeTaxInTaxBook = Common.TaxBook.GetAccount(AccountType.Tax, null, null, Common.LocalCurrency);
-                    var accountPriorPeriodResult = Common.TaxBook.GetAccount(AccountType.PriorPeriodResult, null, null, Common.LocalCurrency);
+                    var portfolio = Definitions.Portfolios.Single(x => x.UniqueId == manualAdjustment.Portfolio);
+
+                    var accountIncomeTaxInTaxBook = Common.TaxBook.GetAccount(AccountType.Tax, null, portfolio, Common.LocalCurrency);
+                    var accountPriorPeriodResult = Common.TaxBook.GetAccount(AccountType.PriorPeriodResult, null, portfolio, Common.LocalCurrency);
 
                     Common.TaxBook.Enqueue(accountIncomeTaxInTaxBook, date, -1, manualAdjustment.Description, manualAdjustment.Amount);
                     Common.TaxBook.Enqueue(accountPriorPeriodResult, date, -1, manualAdjustment.Description, -manualAdjustment.Amount);
@@ -28,38 +30,63 @@ namespace Venture
                 }
             }
 
-            decimal currentTaxResult = -Common.TaxBook.GetResult(date);
-            decimal previousTaxResult = date.Month == 1 ? 0 : -Common.TaxBook.GetResult(Financial.Calendar.AddAndAlignToEndDate(date, -1, Financial.Calendar.TimeStep.Monthly));
+            DateTime prevDate = Financial.Calendar.AddAndAlignToEndDate(date, -1, Financial.Calendar.TimeStep.Monthly);
+            decimal currentTaxTotalResult = -Common.TaxBook.GetResult(date, null);
+            decimal previousTaxTotalResult = date.Month == 1 ? 0 : -Common.TaxBook.GetResult(prevDate, null);
 
-            decimal currentTax = Common.Round(Math.Max(currentTaxResult, 0) * 0.19m, 0);
-            decimal previousTax = Common.Round(Math.Max(previousTaxResult, 0) * 0.19m, 0);
+            decimal currentTotalTax = Common.Round(Math.Max(currentTaxTotalResult, 0) * 0.19m, 0);
+            decimal previousTotalTax = Common.Round(Math.Max(previousTaxTotalResult, 0) * 0.19m, 0);
 
-            /// <summary>
-            /// Asset where accrued expense resulting from tax calculated but not yet charged is booked.
-            /// </summary>
-            var accountTaxReserves = Common.MainBook.GetAccount(AccountType.TaxReserves, null, null, Common.LocalCurrency);
+            Dictionary<PortfolioDefinition, decimal> currentTaxBreakdown = new Dictionary<PortfolioDefinition, decimal>();
+            Dictionary<PortfolioDefinition, decimal> previousTaxBreakdown = new Dictionary<PortfolioDefinition, decimal>();
 
-            /// <summary>
-            /// Account where liabilities resulting from tax charged is booked.
-            /// </summary>
-            var accountTaxLiabilities = Common.MainBook.GetAccount(AccountType.TaxLiabilities, null, null, Common.LocalCurrency);
-
-            /// <summary>
-            /// Account where tax that will be deducted and paid from current year's result is booked.
-            /// </summary>
-            var accountIncomeTax = Common.MainBook.GetAccount(AccountType.Tax, null, null, "PLN");
-
-            if (date.Month == 12)
+            foreach (var portfolio in Definitions.Portfolios)
             {
-                Common.MainBook.Enqueue(accountIncomeTax, date, -1, "Income tax (mid-year assessment derecognition)", -previousTax);
-                Common.MainBook.Enqueue(accountTaxReserves, date, -1, "Income tax (mid-year assessment derecognition)", previousTax);
-                Common.MainBook.Enqueue(accountIncomeTax, date, -1, "Income tax for " + date.Year, currentTax);
-                Common.MainBook.Enqueue(accountTaxLiabilities, date, -1, "Income tax for" + date.Year, -currentTax);
+                currentTaxBreakdown.Add(portfolio, Common.Round(Math.Max(-Common.TaxBook.GetResult(date, portfolio), 0) * 0.19m, 0));
+                if (date.Month == 1)
+                {
+                    previousTaxBreakdown.Add(portfolio, 0);
+                }
+                else
+                {
+                    previousTaxBreakdown.Add(portfolio, Common.Round(Math.Max(-Common.TaxBook.GetResult(prevDate, portfolio), 0) * 0.19m, 0));
+                }
             }
-            else
+
+            foreach (var portfolio in currentTaxBreakdown.OrderByDescending(x=>x.Value))
             {
-                Common.MainBook.Enqueue(accountIncomeTax, date, -1, "Income tax (mid-year assessment)", currentTax - previousTax);
-                Common.MainBook.Enqueue(accountTaxReserves, date, -1, "Income tax (mid-year assessment)", -(currentTax - previousTax));
+                var currentTax = Math.Min(currentTotalTax, currentTaxBreakdown[portfolio.Key]);
+                currentTotalTax -= currentTax;
+                var previousTax = Math.Min(previousTotalTax, previousTaxBreakdown[portfolio.Key]);
+                previousTotalTax -= previousTax;
+
+                /// <summary>
+                /// Asset where accrued expense resulting from tax calculated but not yet charged is booked.
+                /// </summary>
+                var accountTaxReserves = Common.MainBook.GetAccount(AccountType.TaxReserves, null, portfolio.Key, Common.LocalCurrency);
+
+                /// <summary>
+                /// Account where liabilities resulting from tax charged is booked.
+                /// </summary>
+                var accountTaxLiabilities = Common.MainBook.GetAccount(AccountType.TaxLiabilities, null, portfolio.Key, Common.LocalCurrency);
+
+                /// <summary>
+                /// Account where tax that will be deducted and paid from current year's result is booked.
+                /// </summary>
+                var accountIncomeTax = Common.MainBook.GetAccount(AccountType.Tax, null, portfolio.Key, Common.LocalCurrency);
+
+                if (date.Month == 12)
+                {
+                    Common.MainBook.Enqueue(accountIncomeTax, date, -1, "Income tax (mid-year assessment derecognition)", -previousTax);
+                    Common.MainBook.Enqueue(accountTaxReserves, date, -1, "Income tax (mid-year assessment derecognition)", previousTax);
+                    Common.MainBook.Enqueue(accountIncomeTax, date, -1, "Income tax for " + date.Year, currentTax);
+                    Common.MainBook.Enqueue(accountTaxLiabilities, date, -1, "Income tax for" + date.Year, -currentTax);
+                }
+                else
+                {
+                    Common.MainBook.Enqueue(accountIncomeTax, date, -1, "Income tax (mid-year assessment)", currentTax - previousTax);
+                    Common.MainBook.Enqueue(accountTaxReserves, date, -1, "Income tax (mid-year assessment)", -(currentTax - previousTax));
+                }
             }
 
             Common.MainBook.Commit();

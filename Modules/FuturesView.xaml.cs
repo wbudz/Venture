@@ -57,7 +57,7 @@ namespace Venture.Modules
                 string selectedPortfolio = PortfolioComboBox.SelectedItem.ToString() ?? "*";
                 string selectedBroker = BrokerComboBox.SelectedItem.ToString() ?? "*";
 
-                if (Filter(ave, selectedPortfolio, selectedBroker)) VM.FuturesEntries.Add(ave);
+                if (((IFilterable)ave).Filter(selectedPortfolio, selectedBroker)) VM.FuturesEntries.Add(ave);
             }
 
             TotalValueTextBlock.Text = $"Total result: {VM.FuturesEntries.Sum(x => x.Result):N2} PLN. Total fees: {VM.FuturesEntries.Sum(x => x.Fees):N2} PLN.";

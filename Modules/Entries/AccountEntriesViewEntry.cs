@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Venture.Modules
 {
-    public class AccountEntriesViewEntry: ModuleEntry
+    public class AccountEntriesViewEntry : ModuleEntry
     {
         public DateTime Date { get; private set; }
 

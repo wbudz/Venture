@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection.PortableExecutable;
+using System.Runtime.Intrinsics.X86;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -60,7 +61,7 @@ namespace Venture.Modules
             string selectedBroker = BrokerComboBox.SelectedItem.ToString() ?? "*";
             foreach (var item in source.OrderBy(x => x.Timestamp).ThenBy(x => x.TransactionIndex))
             { 
-                if (Filter(item, selectedPortfolio, selectedBroker)) CashflowViewEntries.Add(item);
+                if (((IFilterable)item).Filter(selectedPortfolio, selectedBroker)) CashflowViewEntries.Add(item);
             }
 
             TotalValueTextBlock.Text = $"Total value: {CashflowViewEntries.Sum(x => x.Amount):N2} PLN";
