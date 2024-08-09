@@ -52,7 +52,7 @@ namespace Venture
             if ((sender as TreeViewItem)?.Header.ToString() == "Futures") CurrentModule.Children.Add(new Modules.FuturesView());
 
             if ((sender as TreeViewItem)?.Header.ToString() == "Cashflow overview") CurrentModule.Children.Add(new Modules.CashflowView());
-            if ((sender as TreeViewItem)?.Header.ToString() == "Cashflow report") CurrentModule.Children.Add(new Modules.CashflowReport());
+            //if ((sender as TreeViewItem)?.Header.ToString() == "Cashflow report") CurrentModule.Children.Add(new Modules.CashflowReport());
 
             if ((sender as TreeViewItem)?.Header.ToString() == "Accounts") CurrentModule.Children.Add(new Modules.AccountsView());
             if ((sender as TreeViewItem)?.Header.ToString() == "Operations overview") CurrentModule.Children.Add(new Modules.AccountingOperationsView());

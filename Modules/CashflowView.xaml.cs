@@ -79,7 +79,7 @@ namespace Venture.Modules
             columns.Add(("CashflowType", "Cashflow type"));
             columns.Add(("AssociatedEvent", "Associated event"));
             columns.Add(("Timestamp", "Timestamp"));
-            columns.Add(("Portfolio", "Portfolio"));
+            columns.Add(("PortfolioId", "Portfolio"));
             columns.Add(("CashAccount", "Cash account"));
             columns.Add(("Broker", "Broker"));
             columns.Add(("Direction", "Direction"));

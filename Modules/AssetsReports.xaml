@@ -24,6 +24,7 @@
         <ToolBar Template="{DynamicResource ToolBarTemplate}" Height="26" VerticalAlignment="Top" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" ItemsSource="{Binding Mode=OneWay}">
             <ToolBar.Items>
                 <Button x:Name="RefreshButton" Content="Refresh" Click="RefreshButton_Click" />
+                <Button x:Name="CopyButton" Content="Copy" Click="CopyButton_Click" />
                 <Separator />
                 <ComboBox x:Name="OptionComboBox" SelectedIndex="3" Width="150">
                     <ComboBox.Items>

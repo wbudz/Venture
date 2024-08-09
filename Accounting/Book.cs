@@ -17,7 +17,7 @@ namespace Venture
 
         public bool ApplyTaxRules { get; private set; } = false;
 
-        private List<Account> accounts = new List<Account>();
+        private Dictionary<(AccountType type, AssetType? assetType, PortfolioDefinition? portfolio, string currency), Account> accounts = new();
 
         private long globalOperationIndex = 0;
 
@@ -36,33 +36,34 @@ namespace Venture
 
         public Account GetAccount(AccountType type, AssetType? assetType, PortfolioDefinition? portfolio, string currency)
         {
-            var account = accounts.SingleOrDefault(x => x.AccountType == type
-                && x.AssetType == assetType
-                && x.Portfolio == portfolio
-                && x.Currency == currency);
-            if (account == null)
+            Account? result;
+            if (!accounts.TryGetValue((type, assetType, portfolio, currency), out result))
             {
-                account = new Account(type, assetType, portfolio, currency);
-                accounts.Add(account);
+                result = new Account(type, assetType, portfolio, currency);
+                accounts.Add((type, assetType, portfolio, currency), result);
             }
-            return account;
+            else if (result==null)
+            {
+                throw new Exception("Null account encountered in GetAccount() method.");
+            }
+            return result;
         }
 
         public IEnumerable<Account> GetResultAccounts(PortfolioDefinition? portfolio, string currency)
         {
-            return accounts.Where(x => x.IsResultAccount && x.Portfolio == portfolio && x.Currency == currency);
+            return accounts.Values.Where(x => x.IsResultAccount && x.Portfolio == portfolio && x.Currency == currency);
         }
 
         public decimal GetResult(DateTime date, PortfolioDefinition? portfolio)
         {
-            return accounts.Where(x => x.IsResultAccount && (portfolio == null || x.Portfolio == portfolio)).Sum(x => x.GetNetAmount(date));
+            return accounts.Values.Where(x => x.IsResultAccount && (portfolio == null || x.Portfolio == portfolio)).Sum(x => x.GetNetAmount(date));
         }
 
         public List<Modules.AccountsViewEntry> GetAccountsAsViewEntries(DateTime date, string selectedPortfolio, string selectedBroker, bool aggregateAssetTypes, bool aggregateCurrencies, bool aggregatePortfolios, bool aggregateBrokers)
-        {            
+        {
             Dictionary<string, Modules.AccountsViewEntry> output = new();
-            
-            var orderedAccounts = accounts.Where(x=> ((IFilterable)x).Filter(selectedPortfolio,selectedBroker)).OrderBy(x => x.NumericId);
+
+            var orderedAccounts = accounts.Values.Where(x => ((IFilterable)x).Filter(selectedPortfolio, selectedBroker)).OrderBy(x => x.NumericId);
 
             foreach (var a in orderedAccounts)
             {
@@ -110,7 +111,7 @@ namespace Venture
                     }
                 }
             }
-            
+
             return output.Values.ToList();
         }
 
@@ -118,7 +119,7 @@ namespace Venture
         {
             List<Modules.AccountEntriesViewEntry> output = new();
 
-            var orderedAccounts = accounts.OrderBy(x => x.NumericId);
+            var orderedAccounts = accounts.Values.OrderBy(x => x.NumericId);
 
             foreach (var a in orderedAccounts)
             {

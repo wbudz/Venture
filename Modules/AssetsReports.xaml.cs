@@ -112,6 +112,16 @@ namespace Venture.Modules
             Refresh();
         }
 
+        private void CopyButton_Click(object sender, RoutedEventArgs e)
+        {
+            List<string> columns = new List<string>();
+            foreach (var column in gvReport.Columns)
+            {
+                if (column != null && column?.Header != null) columns.Add(column.Header.ToString() ?? "");
+            }
+            Clipboard.SetText(CSV.Export(ReportEntries, columns));
+        }
+
         private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (StartYearComboBox == null || EndYearComboBox == null) return;

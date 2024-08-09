@@ -1173,6 +1173,13 @@
     </GridView>
     <GridView x:Key="AccountEntriesGridView">
         <GridView.Columns>
+            <GridViewColumn Header="Account" Width="Auto">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding AccountId}"/>
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
             <GridViewColumn Header="Date" Width="Auto">
                 <GridViewColumn.CellTemplate>
                     <DataTemplate>

@@ -57,7 +57,7 @@ namespace Venture.Modules
             ((MainWindow)Application.Current.MainWindow).StatusText.Text = $"Module refresh took: {(sw.ElapsedMilliseconds / 1000.0):0.000} seconds.";
         }
 
-        private void CopyButton_Click(object sender, RoutedEventArgs e)
+        private void CopyAccountsButton_Click(object sender, RoutedEventArgs e)
         {
             List<(string property, string header)> columns = new List<(string property, string header)>();
             columns.Add(("UniqueId", "Unique id"));
@@ -70,6 +70,46 @@ namespace Venture.Modules
             columns.Add(("CreditAmount", "Credit amount"));
             columns.Add(("NetAmount", "Net amount"));
             Clipboard.SetText(CSV.Export<AccountsViewEntry>(VM.AccountEntries, columns));
+        }
+
+        private void CopySelectedEntriesButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (VM.CurrentEntry == null) return;
+
+            List<(string property, string header)> columns = new List<(string property, string header)>();
+            columns.Add(("AccountId", "Account id"));
+            columns.Add(("Date", "Date"));
+            columns.Add(("OperationIndex", "Operation index"));
+            columns.Add(("TransactionIndex", "Transaction index"));
+            columns.Add(("PortfolioId", "Portfolio"));
+            columns.Add(("Broker", "Broker"));
+            columns.Add(("Currency", "Description"));
+            columns.Add(("Amount", "Amount"));
+            Clipboard.SetText(CSV.Export<AccountEntriesViewEntry>(VM.CurrentEntry.Entries, columns));
+        }
+
+        private void CopyAllEntriesButton_Click(object sender, RoutedEventArgs e)
+        {
+            List<(string property, string header)> columns = new List<(string property, string header)>();
+            columns.Add(("AccountId", "Account id"));
+            columns.Add(("Date", "Date"));
+            columns.Add(("OperationIndex", "Operation index"));
+            columns.Add(("TransactionIndex", "Transaction index"));
+            columns.Add(("PortfolioId", "Portfolio"));
+            columns.Add(("Broker", "Broker"));
+            columns.Add(("Currency", "Description"));
+            columns.Add(("Amount", "Amount"));
+
+            ObservableCollection<AccountEntriesViewEntry> entries = new ObservableCollection<AccountEntriesViewEntry>();
+            foreach (var account in VM.AccountEntries)
+            {
+                foreach (var entry in account.Entries)
+                {
+                    entries.Add(entry);
+                }
+            }
+
+            Clipboard.SetText(CSV.Export<AccountEntriesViewEntry>(entries.OrderBy(x => x.Date).ThenBy(x => x.AccountId), columns));
         }
 
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
@@ -103,6 +143,18 @@ namespace Venture.Modules
                 }
 
                 column.Width = double.NaN;
+            }
+        }
+
+        private void CopyButton_Click(object sender, RoutedEventArgs e)
+        {
+            var button = sender as FrameworkElement;
+            if (button != null)
+            {
+                var cm = button.ContextMenu;
+                cm.PlacementTarget = button;
+                cm.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+                cm.IsOpen = true;
             }
         }
     }

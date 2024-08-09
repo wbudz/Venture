@@ -9,6 +9,8 @@ namespace Venture.Modules
 {
     public class AccountEntriesViewEntry : ModuleEntry
     {
+        public string AccountId { get; private set; }
+
         public DateTime Date { get; private set; }
 
         public long OperationIndex { get; set; }
@@ -22,6 +24,7 @@ namespace Venture.Modules
         public AccountEntriesViewEntry(AccountEntry entry)
         {
             UniqueId = entry.UniqueId;
+            AccountId = entry.Account.NumericId;
             PortfolioId = entry.Account.Portfolio?.UniqueId ?? "";
             Broker = entry.Account.Portfolio?.Broker ?? "";
             Currency = entry.Account.Currency;

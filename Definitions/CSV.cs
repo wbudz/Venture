@@ -208,5 +208,18 @@ namespace Venture
 
             return sb.ToString();
         }
+
+        public static string Export(IEnumerable<object[]> list, IEnumerable<string> headers)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendJoin('\t', headers);
+            foreach (var line in list)
+            {
+                sb.AppendLine();
+                sb.AppendJoin('\t', line);
+            }
+
+            return sb.ToString();
+        }
     }
 }

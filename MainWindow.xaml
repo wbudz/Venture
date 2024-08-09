@@ -36,7 +36,7 @@
             <TextBlock x:Name="StatusText" />
         </StatusBar>
         <TreeView DockPanel.Dock="Left" Width="200">
-            <TreeViewItem Header="Definitions">
+            <TreeViewItem Header="Definitions" IsExpanded="True">
                 <TreeViewItem Header="Portfolios" Selected="TreeViewItem_Selected" />
                 <TreeViewItem Header="Prices" Selected="TreeViewItem_Selected" />
                 <TreeViewItem Header="Instruments" Selected="TreeViewItem_Selected" />
@@ -45,17 +45,17 @@
                 <TreeViewItem Header="Coupons" Selected="TreeViewItem_Selected" />
                 <TreeViewItem Header="Manual adjustments" Selected="TreeViewItem_Selected" />
             </TreeViewItem>
-            <TreeViewItem Header="Assets">
+            <TreeViewItem Header="Assets" IsExpanded="True">
                 <TreeViewItem Header="Assets" Selected="TreeViewItem_Selected" />
                 <TreeViewItem Header="Asset classes" Selected="TreeViewItem_Selected" />
                 <TreeViewItem Header="Reports" Selected="TreeViewItem_Selected" />
                 <TreeViewItem Header="Futures" Selected="TreeViewItem_Selected" />
             </TreeViewItem>
-            <TreeViewItem Header="Cashflow">
+            <TreeViewItem Header="Cashflow" IsExpanded="True">
                 <TreeViewItem Header="Cashflow overview" Selected="TreeViewItem_Selected" />
-                <TreeViewItem Header="Cashflow report" Selected="TreeViewItem_Selected" />
+                <!--<TreeViewItem Header="Cashflow report" Selected="TreeViewItem_Selected" />-->
             </TreeViewItem>
-            <TreeViewItem Header="Accounting">
+            <TreeViewItem Header="Accounting" IsExpanded="True">
                 <TreeViewItem Header="Accounts" Selected="TreeViewItem_Selected" />
                 <TreeViewItem Header="Operations overview" Selected="TreeViewItem_Selected" />
             </TreeViewItem>

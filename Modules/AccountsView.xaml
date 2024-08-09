@@ -27,7 +27,22 @@
         <ToolBar Grid.Row="0" Template="{DynamicResource ToolBarTemplate}" Height="26" VerticalAlignment="Top" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" ItemsSource="{Binding Mode=OneWay}">
             <ToolBar.Items>
                 <Button x:Name="RefreshButton" Content="Refresh" Click="RefreshButton_Click" />
-                <Button x:Name="CopyButton" Content="Copy" Click="CopyButton_Click" />
+
+                <Button x:Name="CopyButton" Click="CopyButton_Click">
+                    <Button.Content>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Copy"/>
+                            <Polygon Points=" 0,0, 5,0 2,3" Fill="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" VerticalAlignment="Center" Margin="5,0,5,0" />
+                        </StackPanel>
+                    </Button.Content>
+                    <Button.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem x:Name="CopyAccountsButton" Header="Copy accounts" Click="CopyAccountsButton_Click" />
+                            <MenuItem x:Name="CopySelectedEntriesButton" Header="Copy entries for current account" Click="CopySelectedEntriesButton_Click" />
+                            <MenuItem x:Name="CopyAllEntriesButton" Header="Copy entries for all accounts" Click="CopyAllEntriesButton_Click" />
+                        </ContextMenu>
+                    </Button.ContextMenu>
+                </Button>
                 <Separator />
                 <TextBlock Text="Book" VerticalAlignment="Center" Margin="5,0,5,0"/>
                 <ComboBox x:Name="BookComboBox" VerticalAlignment="Center" Width="50" DataContext="{Binding Mode=OneWay, Source={StaticResource FiltersVM}}" ItemsSource="{Binding Books}" DisplayMemberPath="Name" SelectedItem="{Binding SelectedBook}" SelectionChanged="ComboBox_SelectionChanged" />
@@ -40,7 +55,7 @@
                 <ComboBox x:Name="PortfolioComboBox" VerticalAlignment="Center" Width="80" DataContext="{Binding Mode=OneWay, Source={StaticResource FiltersVM}}" ItemsSource="{Binding Portfolios}" SelectedItem="{Binding CurrentPortfolio}" SelectionChanged="ComboBox_SelectionChanged" />
                 <TextBlock Text="Broker" VerticalAlignment="Center" Margin="5,0,5,0"/>
                 <ComboBox x:Name="BrokerComboBox" VerticalAlignment="Center" Width="80" DataContext="{Binding Mode=OneWay, Source={StaticResource FiltersVM}}" ItemsSource="{Binding Brokers}" SelectedItem="{Binding CurrentBroker}" SelectionChanged="ComboBox_SelectionChanged" />
-                 </ToolBar.Items>
+            </ToolBar.Items>
         </ToolBar>
         <ToolBar Grid.Row="1" Template="{DynamicResource ToolBarTemplate}" Height="26" VerticalAlignment="Top" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" ItemsSource="{Binding Mode=OneWay}">
             <ToolBar.Items>
