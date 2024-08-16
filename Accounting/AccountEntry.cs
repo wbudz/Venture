@@ -48,5 +48,10 @@ namespace Venture
             Description = description;
             Amount = Common.Round(amount);
         }
+
+        public override string ToString()
+        {
+            return $"AccountEntry: {Date:yyyy-MM-dd} ({Description}): {Amount:D2} {Account.Currency}.";
+        }
     }
 }

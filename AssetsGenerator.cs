@@ -8,6 +8,7 @@ namespace Venture
     {
         public static List<Asset> GenerateAssets()
         {
+            Common.Books.ForEach(x => x.Clear());
             List<Asset> output = new List<Asset>();
             Queue<TransactionDefinition> transactions = new Queue<TransactionDefinition>(Definitions.Transactions);
             HashSet<ManualEventDefinition> manuals = new HashSet<ManualEventDefinition>(Definitions.ManualEvents.OfType<NonModifyingManualEventDefinition>());

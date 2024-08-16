@@ -7,6 +7,7 @@ using System.Windows.Controls;
 
 namespace Venture
 {
+
     public enum AccountType
     {
         Unspecified,
@@ -16,7 +17,9 @@ namespace Venture
         TaxLiabilities, TaxReserves,
         OrdinaryIncomeValuation, OrdinaryIncomeInflows,
         RealizedProfit, RealizedLoss,
-        Fees, Tax
+        RealizedIncome, RealizedExpense,
+        Fees, 
+        Tax, TaxDeduction
     }
 
     public class Account : IFilterable
@@ -32,6 +35,8 @@ namespace Venture
                 return id;
             }
         }
+
+        public Book ParentBook { get; private set; }
 
         public string NumericId
         {
@@ -82,11 +87,20 @@ namespace Venture
                     case AccountType.RealizedLoss:
                         id += "62" + GetAssetTypeNumericId(AssetType.GetValueOrDefault(Venture.AssetType.Undefined));
                         break;
+                    case AccountType.RealizedIncome:
+                        id += "67" + GetAssetTypeNumericId(AssetType.GetValueOrDefault(Venture.AssetType.Undefined));
+                        break;
+                    case AccountType.RealizedExpense:
+                        id += "68" + GetAssetTypeNumericId(AssetType.GetValueOrDefault(Venture.AssetType.Undefined));
+                        break;
                     case AccountType.Fees:
                         id += "80" + GetAssetTypeNumericId(AssetType.GetValueOrDefault(Venture.AssetType.Undefined));
                         break;
                     case AccountType.Tax:
                         id += "90" + GetAssetTypeNumericId(AssetType.GetValueOrDefault(Venture.AssetType.Undefined));
+                        break;
+                    case AccountType.TaxDeduction:
+                        id += "91" + GetAssetTypeNumericId(AssetType.GetValueOrDefault(Venture.AssetType.Undefined));
                         break;
                     default:
                         break;
@@ -118,8 +132,11 @@ namespace Venture
                     case AccountType.OrdinaryIncomeInflows:
                     case AccountType.RealizedProfit:
                     case AccountType.RealizedLoss:
+                    case AccountType.RealizedIncome:
+                    case AccountType.RealizedExpense:
                     case AccountType.Fees:
                     case AccountType.Tax:
+                    case AccountType.TaxDeduction:
                         return "ProfitAndLoss";
                     default:
                         return "Unspecified";
@@ -156,8 +173,9 @@ namespace Venture
 
         private List<AccountEntry> entries = new List<AccountEntry>();
 
-        public Account(AccountType type, AssetType? assetType, PortfolioDefinition? portfolio, string currency)
+        public Account(Book parentBook, AccountType type, AssetType? assetType, PortfolioDefinition? portfolio, string currency)
         {
+            ParentBook = parentBook;
             AccountType = type;
             AssetType = assetType;
             Portfolio = portfolio;
@@ -222,11 +240,6 @@ namespace Venture
             {
                 yield return new Modules.AccountEntriesViewEntry(e);
             }
-        }
-
-        public void Clear()
-        {
-            entries.Clear();
         }
 
         public void Enter(AccountEntry entry)

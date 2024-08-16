@@ -39,10 +39,10 @@ namespace Venture
             Account? result;
             if (!accounts.TryGetValue((type, assetType, portfolio, currency), out result))
             {
-                result = new Account(type, assetType, portfolio, currency);
+                result = new Account(this, type, assetType, portfolio, currency);
                 accounts.Add((type, assetType, portfolio, currency), result);
             }
-            else if (result==null)
+            else if (result == null)
             {
                 throw new Exception("Null account encountered in GetAccount() method.");
             }
@@ -56,7 +56,17 @@ namespace Venture
 
         public decimal GetResult(DateTime date, PortfolioDefinition? portfolio)
         {
-            return accounts.Values.Where(x => x.IsResultAccount && (portfolio == null || x.Portfolio == portfolio)).Sum(x => x.GetNetAmount(date));
+            return accounts.Values.Where(x => x.IsResultAccount
+                && (portfolio == null || x.Portfolio == portfolio))
+                .Sum(x => x.GetNetAmount(date));
+        }
+
+        public decimal GetResult(DateTime date, PortfolioDefinition? portfolio, IEnumerable<string> filterOutAccounts)
+        {
+            return accounts.Values.Where(x => x.IsResultAccount
+                && (portfolio == null || x.Portfolio == portfolio)
+                && filterOutAccounts.All(y => !Common.Like(x.NumericId, y)))
+                .Sum(x => x.GetNetAmount(date));
         }
 
         public List<Modules.AccountsViewEntry> GetAccountsAsViewEntries(DateTime date, string selectedPortfolio, string selectedBroker, bool aggregateAssetTypes, bool aggregateCurrencies, bool aggregatePortfolios, bool aggregateBrokers)
@@ -135,6 +145,7 @@ namespace Venture
         public void Enqueue(Account account, DateTime date, long transactionIndex, string description, decimal amount)
         {
             if (amount == 0) return;
+            if (account.ParentBook != this) throw new Exception($"Attempt made to enqueue booking in a wrong book ({account.ParentBook} instead of {this}).");
             AccountEntry accountEntry = new AccountEntry(account, date, transactionIndex, description, amount);
             pendingEntries.Enqueue(accountEntry);
         }

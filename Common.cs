@@ -96,5 +96,95 @@ namespace Venture
         {
             return Math.Round(value, digits, MidpointRounding.AwayFromZero);
         }
+
+        public static bool Like(string str, string pattern)
+        {
+            // Inspired by komma8.komma1
+            // https://stackoverflow.com/questions/5417070/c-sharp-version-of-sql-like
+            // Treats asterisk as wildcard and question mark as any one character.
+
+            bool isMatch = true,
+                isWildCardOn = false,
+                isCharWildCardOn = false,
+                endOfPattern = false;
+            int lastWildCard = -1;
+            int patternIndex = 0;
+            List<char> set = new List<char>();
+            char p = '\0';
+
+            for (int i = 0; i < str.Length; i++)
+            {
+                char c = str[i];
+                endOfPattern = (patternIndex >= pattern.Length);
+                if (!endOfPattern)
+                {
+                    p = pattern[patternIndex];
+
+                    if (!isWildCardOn && p == '*')
+                    {
+                        lastWildCard = patternIndex;
+                        isWildCardOn = true;
+                        while (patternIndex < pattern.Length &&
+                            pattern[patternIndex] == '*')
+                        {
+                            patternIndex++;
+                        }
+                        if (patternIndex >= pattern.Length) p = '\0';
+                        else p = pattern[patternIndex];
+                    }
+                    else if (p == '?')
+                    {
+                        isCharWildCardOn = true;
+                        patternIndex++;
+                    }                    
+                }
+
+                if (isWildCardOn)
+                {
+                    if (char.ToUpper(c) == char.ToUpper(p))
+                    {
+                        isWildCardOn = false;
+                        patternIndex++;
+                    }
+                }
+                else if (isCharWildCardOn)
+                {
+                    isCharWildCardOn = false;
+                }
+                else
+                {
+                    if (char.ToUpper(c) == char.ToUpper(p))
+                    {
+                        patternIndex++;
+                    }
+                    else
+                    {
+                        if (lastWildCard >= 0) patternIndex = lastWildCard;
+                        else
+                        {
+                            isMatch = false;
+                            break;
+                        }
+                    }
+                }
+            }
+            endOfPattern = (patternIndex >= pattern.Length);
+
+            if (isMatch && !endOfPattern)
+            {
+                bool isOnlyWildCards = true;
+                for (int i = patternIndex; i < pattern.Length; i++)
+                {
+                    if (pattern[i] != '*')
+                    {
+                        isOnlyWildCards = false;
+                        break;
+                    }
+                }
+                if (isOnlyWildCards) endOfPattern = true;
+            }
+            return isMatch && endOfPattern;
+        }
+
     }
 }

@@ -13,23 +13,6 @@ namespace Venture
     {
         public static void Process(DateTime date)
         {
-            if (date.Month == 1)
-            {
-                var manualAdjustment = Definitions.ManualEvents.OfType<IncomeTaxDeductionBookingEventDefinition>().SingleOrDefault(x => x.Timestamp.Year == date.Year);
-
-                if (manualAdjustment != null)
-                {
-                    var portfolio = Definitions.Portfolios.Single(x => x.UniqueId == manualAdjustment.Portfolio);
-
-                    var accountIncomeTaxInTaxBook = Common.TaxBook.GetAccount(AccountType.Tax, null, portfolio, Common.LocalCurrency);
-                    var accountPriorPeriodResult = Common.TaxBook.GetAccount(AccountType.PriorPeriodResult, null, portfolio, Common.LocalCurrency);
-
-                    Common.TaxBook.Enqueue(accountIncomeTaxInTaxBook, date, -1, manualAdjustment.Description, manualAdjustment.Amount);
-                    Common.TaxBook.Enqueue(accountPriorPeriodResult, date, -1, manualAdjustment.Description, -manualAdjustment.Amount);
-                    Common.TaxBook.Commit();
-                }
-            }
-
             DateTime prevDate = Financial.Calendar.AddAndAlignToEndDate(date, -1, Financial.Calendar.TimeStep.Monthly);
             decimal currentTaxTotalResult = -Common.TaxBook.GetResult(date, null);
             decimal previousTaxTotalResult = date.Month == 1 ? 0 : -Common.TaxBook.GetResult(prevDate, null);
@@ -37,27 +20,32 @@ namespace Venture
             decimal currentTotalTax = Common.Round(Math.Max(currentTaxTotalResult, 0) * 0.19m, 0);
             decimal previousTotalTax = Common.Round(Math.Max(previousTaxTotalResult, 0) * 0.19m, 0);
 
-            Dictionary<PortfolioDefinition, decimal> currentTaxBreakdown = new Dictionary<PortfolioDefinition, decimal>();
-            Dictionary<PortfolioDefinition, decimal> previousTaxBreakdown = new Dictionary<PortfolioDefinition, decimal>();
+            Dictionary<PortfolioDefinition, (decimal result, decimal deduction, decimal tax)> currentTaxBreakdown = new();
+            Dictionary<PortfolioDefinition, (decimal result, decimal deduction, decimal tax)> previousTaxBreakdown = new();
 
             foreach (var portfolio in Definitions.Portfolios)
             {
-                currentTaxBreakdown.Add(portfolio, Common.Round(Math.Max(-Common.TaxBook.GetResult(date, portfolio), 0) * 0.19m, 0));
-                if (date.Month == 1)
+                var currentResult = Math.Max(-Common.TaxBook.GetResult(date, portfolio, ["91*"]), 0);
+                var previousResult = date.Month == 1 ? 0 : Math.Max(-Common.TaxBook.GetResult(prevDate, portfolio, ["91*"]), 0);
+                decimal currentTaxDeduction = 0;
+                decimal previousTaxDeduction = 0;
+
+                var manualAdjustment = Definitions.ManualEvents.OfType<IncomeTaxDeductionBookingEventDefinition>().SingleOrDefault(x => x.Timestamp.Year == date.Year && x.Portfolio == portfolio.UniqueId);
+                if (manualAdjustment != null)
                 {
-                    previousTaxBreakdown.Add(portfolio, 0);
+                    currentTaxDeduction = Math.Min(currentResult, manualAdjustment.Amount);
+                    previousTaxDeduction = date.Month == 1 ? 0 : Math.Min(previousResult, manualAdjustment.Amount);
                 }
-                else
-                {
-                    previousTaxBreakdown.Add(portfolio, Common.Round(Math.Max(-Common.TaxBook.GetResult(prevDate, portfolio), 0) * 0.19m, 0));
-                }
+
+                currentTaxBreakdown.Add(portfolio, (currentResult, currentTaxDeduction, Common.Round((currentResult - currentTaxDeduction) * 0.19m, 0)));
+                previousTaxBreakdown.Add(portfolio, (previousResult, previousTaxDeduction, Common.Round((previousResult - previousTaxDeduction) * 0.19m, 0)));
             }
 
-            foreach (var portfolio in currentTaxBreakdown.OrderByDescending(x=>x.Value))
+            foreach (var portfolio in currentTaxBreakdown.OrderByDescending(x => x.Value))
             {
-                var currentTax = Math.Min(currentTotalTax, currentTaxBreakdown[portfolio.Key]);
+                var currentTax = Math.Min(currentTotalTax, currentTaxBreakdown[portfolio.Key].tax);
                 currentTotalTax -= currentTax;
-                var previousTax = Math.Min(previousTotalTax, previousTaxBreakdown[portfolio.Key]);
+                var previousTax = Math.Min(previousTotalTax, previousTaxBreakdown[portfolio.Key].tax);
                 previousTotalTax -= previousTax;
 
                 /// <summary>
@@ -74,6 +62,20 @@ namespace Venture
                 /// Account where tax that will be deducted and paid from current year's result is booked.
                 /// </summary>
                 var accountIncomeTax = Common.MainBook.GetAccount(AccountType.Tax, null, portfolio.Key, Common.LocalCurrency);
+
+
+                var manualAdjustment = Definitions.ManualEvents.OfType<IncomeTaxDeductionBookingEventDefinition>().SingleOrDefault(x => x.Timestamp.Year == date.Year && x.Portfolio == portfolio.Key.UniqueId);
+                if (manualAdjustment != null)
+                {
+                    var accountIncomeTaxDeduction = Common.TaxBook.GetAccount(AccountType.TaxDeduction, null, portfolio.Key, Common.LocalCurrency);
+                    var accountPriorPeriodResult = Common.TaxBook.GetAccount(AccountType.PriorPeriodResult, null, portfolio.Key, Common.LocalCurrency);
+
+                    decimal currentTaxDeduction = currentTaxBreakdown[portfolio.Key].deduction;
+                    decimal previousTaxDeduction = previousTaxBreakdown[portfolio.Key].deduction;
+                    Common.TaxBook.Enqueue(accountIncomeTaxDeduction, date, -1, manualAdjustment.Description, currentTaxDeduction - previousTaxDeduction);
+                    Common.TaxBook.Enqueue(accountPriorPeriodResult, date, -1, manualAdjustment.Description, -(currentTaxDeduction - previousTaxDeduction));
+                    Common.TaxBook.Commit();
+                }
 
                 if (date.Month == 12)
                 {
