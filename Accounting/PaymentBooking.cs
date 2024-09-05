@@ -26,8 +26,18 @@ namespace Venture
 
                     if (dstPortfolio == null)
                     {
-                        var accountShareCapital = book.GetAccount(AccountType.ShareCapital, null, srcPortfolio, ptd.Currency);
-                        book.Enqueue(accountShareCapital, ptd.SettlementDate, ptd.Index, "Share capital decrease", ptd.Amount);
+                        AccountType type = AccountType.ShareCapital;
+                        string description = "Share capital decrease";
+                        switch (ptd.PaymentType)
+                        {
+                            case PaymentType.ShareCapital: type = AccountType.ShareCapital; description = "Share capital decrease"; break;
+                            //case PaymentType.OtherCapital: type = AccountType.OtherCapital; description = "Other capital decrease"; break;
+                            case PaymentType.Tax: type = AccountType.TaxLiabilities; description = "Tax liabilities payment"; break;
+                            //case PaymentType.Receivables: type = AccountType.OtherLiabilities; description = "Other liabilities payment"; break;
+                            default: break;
+                        }
+                        var account2 = book.GetAccount(type, null, srcPortfolio, ptd.Currency);
+                        book.Enqueue(account2, ptd.SettlementDate, ptd.Index, description, ptd.Amount);
                     }
                 }
 
@@ -38,8 +48,18 @@ namespace Venture
 
                     if (srcPortfolio == null)
                     {
-                        var accountShareCapital = book.GetAccount(AccountType.ShareCapital, null, dstPortfolio, ptd.Currency);
-                        book.Enqueue(accountShareCapital, ptd.SettlementDate, ptd.Index, "Share capital increase", -ptd.Amount);
+                        AccountType type = AccountType.ShareCapital;
+                        string description = "Share capital increase";
+                        switch (ptd.PaymentType)
+                        {
+                            case PaymentType.ShareCapital: type = AccountType.ShareCapital; description = "Share capital increase"; break;
+                            //case PaymentType.OtherCapital: type = AccountType.OtherCapital; description = "Other capital increase"; break;
+                            case PaymentType.Tax: type = AccountType.Tax; description = "Tax benefit"; break;
+                            //case PaymentType.Receivables: type = AccountType.OtherReceivables; description = "Other receivables payment"; break;
+                            default: break;
+                        }
+                        var account2 = book.GetAccount(type, null, dstPortfolio, ptd.Currency);
+                        book.Enqueue(account2, ptd.SettlementDate, ptd.Index, description, -ptd.Amount);
                     }
                 }
 
