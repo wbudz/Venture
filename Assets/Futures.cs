@@ -156,7 +156,7 @@ namespace Venture
             }
         }
 
-        public override ValuationEvent? GenerateValuation(DateTime date)
+        public override ValuationEvent? GenerateValuation(DateTime date, bool redemption)
         {
             return null;
         }
@@ -199,6 +199,11 @@ namespace Venture
             return 0;
         }
 
+        public override decimal GetNominalPrice()
+        {
+            return 1;
+        }
+
         public override decimal GetMarketPrice(TimeArg time, bool dirty)
         {
             //if (!IsActive(time)) return 0;
@@ -217,7 +222,6 @@ namespace Venture
 
         public override decimal GetAmortizedCostPrice(TimeArg time, bool dirty)
         {
-            //return GetPurchasePrice(time, dirty);
             return 0;
         }
 
@@ -261,6 +265,11 @@ namespace Venture
         public override decimal GetPurchaseAmount(TimeArg time, bool dirty)
         {
             return Common.Round(GetPurchasePrice(time, dirty) * GetCount(time) * Multiplier);
+        }
+
+        public override decimal GetPurchaseAmount(bool dirty)
+        {
+            return Common.Round(GetPurchasePrice(dirty) * GetCount() * Multiplier);
         }
 
         public override decimal GetMarketValue(TimeArg time, bool dirty)

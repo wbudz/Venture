@@ -34,44 +34,45 @@ namespace Venture
                 var accountUnrealizedResultProfitRecognition = book.GetAccount(AccountType.OtherComprehensiveIncomeProfit, assetType, portfolio, currency);
                 var accountUnrealizedResultLossRecognition = book.GetAccount(AccountType.OtherComprehensiveIncomeLoss, assetType, portfolio, currency);
 
-                decimal currentMarketValuation = 0;
-                decimal currentAmortizedCostValuation = 0;
-                decimal previousMarketValuation = 0;
-                decimal previousAmortizedCostValuation = 0;
-
                 foreach (var a in assets.Where(x => x.Portfolio == portfolio && x.AssetType == assetType && x.Currency == currency))
                 {
-                    ValuationEvent? previousValuationEvent = a.Events.OfType<ValuationEvent>().LastOrDefault(x => x.Timestamp == previousDate);
-                    ValuationEvent? currentValuationEvent = a.Events.OfType<ValuationEvent>().LastOrDefault(x => x.Timestamp == currentDate);
+                    decimal currentMarketValuation = 0;
+                    decimal currentAmortizedCostValuation = 0;
+                    decimal previousMarketValuation = 0;
+                    decimal previousAmortizedCostValuation = 0;
+
+                    ValuationEvent? previousValuationEvent = a.Events.OfType<ValuationEvent>().LastOrDefault(x => !x.IsRedemptionValuation && x.Timestamp == previousDate);
+                    ValuationEvent? currentValuationEvent = a.Events.OfType<ValuationEvent>().LastOrDefault(x => !x.IsRedemptionValuation && x.Timestamp == currentDate);
+                    if (currentValuationEvent == null && a is Bond) currentValuationEvent = a.Events.OfType<ValuationEvent>().LastOrDefault(x => x.IsRedemptionValuation);
 
                     currentMarketValuation += currentValuationEvent?.CumulativeMarketValuation ?? 0;
                     currentAmortizedCostValuation += currentValuationEvent?.CumulativeAmortizedCostValuation ?? 0;
                     previousMarketValuation += previousValuationEvent?.CumulativeMarketValuation ?? 0;
                     previousAmortizedCostValuation += previousValuationEvent?.CumulativeAmortizedCostValuation ?? 0;
+
+                    decimal marketProfitChange = 0;
+                    decimal marketLossChange = 0;
+                    decimal amortizedCostChange = currentAmortizedCostValuation - previousAmortizedCostValuation;
+
+                    if (currentMarketValuation > previousMarketValuation)
+                    {
+                        marketLossChange = previousMarketValuation >= 0 ? 0 : Math.Min(-previousMarketValuation, currentMarketValuation - previousMarketValuation);
+                        marketProfitChange = currentMarketValuation - previousMarketValuation - marketLossChange;
+                    }
+
+                    if (currentMarketValuation < previousMarketValuation)
+                    {
+                        marketProfitChange = previousMarketValuation <= 0 ? 0 : Math.Max(-previousMarketValuation, currentMarketValuation - previousMarketValuation);
+                        marketLossChange = currentMarketValuation - previousMarketValuation - marketProfitChange;
+                    }
+
+                    book.Enqueue(accountAssetValuation, currentDate, -1, $"Market valuation of {a.InstrumentId} (change of asset value)", currentMarketValuation - previousMarketValuation);
+                    book.Enqueue(accountAssetValuation, currentDate, -1, $"Amortized cost valuation of {a.InstrumentId} (change of asset value)", currentAmortizedCostValuation - previousAmortizedCostValuation);
+                    book.Enqueue(accountUnrealizedResultProfitRecognition, currentDate, -1, $"Market valuation of {a.InstrumentId} (unrealized gains recognition)", -marketProfitChange);
+                    book.Enqueue(accountUnrealizedResultLossRecognition, currentDate, -1, $"Market valuation of {a.InstrumentId} (unrealized losses recognition)", -marketLossChange);
+                    book.Enqueue(accountOrdinaryIncomeRecognition, currentDate, -1, $"Amortized cost valuation of {a.InstrumentId} (ordinary income recognition)", -amortizedCostChange);
+                    book.Commit();
                 }
-
-                decimal marketProfitChange = 0;
-                decimal marketLossChange = 0;
-                decimal amortizedCostChange = currentAmortizedCostValuation - previousAmortizedCostValuation;
-
-                if (currentMarketValuation > previousMarketValuation)
-                {
-                    marketLossChange = previousMarketValuation >= 0 ? 0 : Math.Min(-previousMarketValuation, currentMarketValuation - previousMarketValuation);
-                    marketProfitChange = currentMarketValuation - previousMarketValuation - marketLossChange;
-                }
-
-                if (currentMarketValuation < previousMarketValuation)
-                {
-                    marketProfitChange = previousMarketValuation <= 0 ? 0 : Math.Max(-previousMarketValuation, currentMarketValuation - previousMarketValuation);
-                    marketLossChange = currentMarketValuation - previousMarketValuation - marketProfitChange;
-                }
-
-                book.Enqueue(accountAssetValuation, currentDate, -1, "Market valuation (change of asset value)", currentMarketValuation - previousMarketValuation);
-                book.Enqueue(accountAssetValuation, currentDate, -1, "Amortized cost valuation (change of asset value)", currentAmortizedCostValuation - previousAmortizedCostValuation);
-                book.Enqueue(accountUnrealizedResultProfitRecognition, currentDate, -1, "Market valuation (unrealized gains recognition)", -marketProfitChange);
-                book.Enqueue(accountUnrealizedResultLossRecognition, currentDate, -1, "Market valuation (unrealized losses recognition)", -marketLossChange);
-                book.Enqueue(accountOrdinaryIncomeRecognition, currentDate, -1, "Amortized cost valuation (ordinary income recognition)", -amortizedCostChange);
-                book.Commit();
             }
         }
     }

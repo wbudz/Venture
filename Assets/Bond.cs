@@ -52,6 +52,7 @@ namespace Venture
             DateTime start = GetPurchaseDate();
             DateTime end = MaturityDate;
             decimal redemption = 1;
+            decimal count = 0;
 
             // Check for premature redemption
             var manual = Definitions.ManualEvents.OfType<PrematureRedemptionEventDefinition>().SingleOrDefault(x=>x.InstrumentUniqueId == InstrumentUniqueId);
@@ -75,7 +76,8 @@ namespace Venture
                     {
                         if (date <= end)
                         {
-                            AddEvent(new FlowEvent(this, Financial.Calendar.WorkingDays(date, -2), date, FlowType.Coupon, CouponRate / CouponFreq, Currency, FX.GetRate(date, Currency)));
+                            count = GetCount(new TimeArg(TimeArgDirection.End, Financial.Calendar.WorkingDays(date, -2)));
+                            AddEvent(new FlowEvent(this, Financial.Calendar.WorkingDays(date, -2), date, FlowType.Coupon, count, CouponRate / CouponFreq, Currency, FX.GetRate(date, Currency)));
                         }
                         date = ShiftDate(date, monthStep);
                     }
@@ -93,14 +95,16 @@ namespace Venture
 
                     if (date <= end)
                     {
-                        AddEvent(new FlowEvent(this, Financial.Calendar.WorkingDays(date, -2), date, FlowType.Coupon, coupon.CouponRate / CouponFreq, Currency, FX.GetRate(date, Currency)));
+                        count = GetCount(new TimeArg(TimeArgDirection.End, Financial.Calendar.WorkingDays(date, -2)));
+                        AddEvent(new FlowEvent(this, Financial.Calendar.WorkingDays(date, -2), date, FlowType.Coupon, count, coupon.CouponRate / CouponFreq, Currency, FX.GetRate(date, Currency)));
                     }
                     date = ShiftDate(date, monthStep);
                 }
             }
 
             // Redemption
-            AddEvent(new FlowEvent(this, Financial.Calendar.WorkingDays(end, -2), end, FlowType.Redemption, redemption, Currency, FX.GetRate(end, Currency)));
+            count = GetCount(new TimeArg(TimeArgDirection.End, Financial.Calendar.WorkingDays(end, -2)));
+            AddEvent(new FlowEvent(this, Financial.Calendar.WorkingDays(end, -2), end, FlowType.Redemption, count, redemption, Currency, FX.GetRate(end, Currency)));
         }
 
         private DateTime ShiftDate(DateTime date, int monthStep)
@@ -189,6 +193,11 @@ namespace Venture
             }
         }
 
+        public override decimal GetNominalPrice()
+        {
+            return UnitPrice;
+        }
+
         public override decimal GetMarketPrice(TimeArg time, bool dirty)
         {
             if (!IsActive(time)) return 0;
@@ -245,6 +254,11 @@ namespace Venture
         public override decimal GetPurchaseAmount(TimeArg time, bool dirty)
         {
             return Common.Round(GetPurchasePrice(time, dirty) / 100 * GetNominalAmount(time));
+        }
+
+        public override decimal GetPurchaseAmount(bool dirty)
+        {
+            return Common.Round(GetPurchasePrice(dirty) / 100 * GetNominalAmount());
         }
 
         public override decimal GetMarketValue(TimeArg time, bool dirty)

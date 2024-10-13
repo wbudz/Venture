@@ -26,7 +26,8 @@ namespace Venture
         {
             foreach (var d in Definitions.Dividends.Where(x => x.InstrumentUniqueId == InstrumentUniqueId && x.RecordDate >= events.First().Timestamp))
             {
-                AddEvent(new FlowEvent(this, d.RecordDate, d.PaymentDate, FlowType.Dividend, d.PaymentPerShare, d.Currency, d.FXRate));
+                decimal count = GetCount(new TimeArg(TimeArgDirection.End, d.RecordDate));
+                AddEvent(new FlowEvent(this, d.RecordDate, d.PaymentDate, FlowType.Dividend, count, d.PaymentPerShare, d.Currency, d.FXRate));
             }
         }
 
@@ -38,6 +39,11 @@ namespace Venture
         public override decimal GetCouponRate(DateTime date)
         {
             return 0;
+        }
+
+        public override decimal GetNominalPrice()
+        {
+            return 1;
         }
 
         public override decimal GetMarketPrice(TimeArg time, bool dirty)
@@ -82,6 +88,11 @@ namespace Venture
         public override decimal GetPurchaseAmount(TimeArg time, bool dirty)
         {
             return Common.Round(GetPurchasePrice(time, dirty) * GetCount(time));
+        }
+
+        public override decimal GetPurchaseAmount(bool dirty)
+        {
+            return Common.Round(GetPurchasePrice(dirty) * GetCount());
         }
 
         public override decimal GetMarketValue(TimeArg time, bool dirty)

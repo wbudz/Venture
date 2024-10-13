@@ -142,7 +142,7 @@ namespace Venture
             bounds.endIndex = -1;
         }
 
-        public override ValuationEvent? GenerateValuation(DateTime date)
+        public override ValuationEvent? GenerateValuation(DateTime date, bool redemption)
         {
             return null;
         }
@@ -168,6 +168,11 @@ namespace Venture
         }
 
         #region Price
+
+        public override decimal GetNominalPrice()
+        {
+            return 1;
+        }
 
         public override decimal GetPurchasePrice(TimeArg time, bool dirty)
         {
@@ -218,6 +223,11 @@ namespace Venture
         public override decimal GetPurchaseAmount(TimeArg time, bool dirty)
         {
             return GetNominalAmount(time);
+        }
+
+        public override decimal GetPurchaseAmount(bool dirty)
+        {
+            return GetNominalAmount();
         }
 
         public override decimal GetMarketValue(TimeArg time, bool dirty)

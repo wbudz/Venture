@@ -83,7 +83,8 @@ namespace Venture.Modules
             columns.Add(("TransactionIndex", "Transaction index"));
             columns.Add(("PortfolioId", "Portfolio"));
             columns.Add(("Broker", "Broker"));
-            columns.Add(("Currency", "Description"));
+            columns.Add(("Description", "Description"));
+            columns.Add(("Currency", "Currency"));
             columns.Add(("Amount", "Amount"));
             Clipboard.SetText(CSV.Export<AccountEntriesViewEntry>(VM.CurrentEntry.Entries, columns));
         }
@@ -97,7 +98,8 @@ namespace Venture.Modules
             columns.Add(("TransactionIndex", "Transaction index"));
             columns.Add(("PortfolioId", "Portfolio"));
             columns.Add(("Broker", "Broker"));
-            columns.Add(("Currency", "Description"));
+            columns.Add(("Description", "Description"));
+            columns.Add(("Currency", "Currency"));
             columns.Add(("Amount", "Amount"));
 
             ObservableCollection<AccountEntriesViewEntry> entries = new ObservableCollection<AccountEntriesViewEntry>();

@@ -439,11 +439,13 @@ namespace Venture
             foreach (var asset in output)
             {
                 // Coupons, dividends, redemptions happen during the day and proceeds can be used immediately.
-                foreach (var ev in asset.Events.OfType<FlowEvent>().Where(x => x.Timestamp > startDate && x.Timestamp <= endDate))
+                var flows = asset.Events.OfType<FlowEvent>().Where(x => x.Timestamp > startDate && x.Timestamp <= endDate).ToList();
+                foreach (var ev in flows)
                 {
                     var cash = new Cash(ev);
                     newAssets.Add(cash);
                     InflowBooking.Process(ev);
+                    if (ev.FlowType == FlowType.Redemption) asset.GenerateValuation(ev.Timestamp, true);
                 }
                 // Futures settlement happens at the very end of the day (after market closes).
                 foreach (var ev in asset.Events.OfType<FuturesRevaluationEvent>().Where(x => x.Timestamp >= startDate && x.Timestamp < endDate))
@@ -495,7 +497,7 @@ namespace Venture
             // Create valuation events
             foreach (var a in output.Where(x => x.IsActive(currentDate)))
             {
-                var e = a.GenerateValuation(currentDate);
+                var e = a.GenerateValuation(currentDate, false);
             }
 
             var assets = output.Where(x => x.IsActive(previousDate) || x.IsActive(currentDate));

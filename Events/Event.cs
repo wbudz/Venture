@@ -34,10 +34,11 @@ namespace Venture
 
     public abstract class StandardAssetEvent: Event
     {
+        public decimal Count { get; protected set; } = 0;
+
         public StandardAssetEvent(StandardAsset parentAsset, DateTime timestamp): base(parentAsset, timestamp)
         { 
         }
-
     }
 
     public abstract class FuturesEvent: Event

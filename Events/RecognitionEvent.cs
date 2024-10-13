@@ -9,8 +9,6 @@ namespace Venture
 {
     public class RecognitionEvent : StandardAssetEvent
     {
-        public decimal Count { get; protected set; } = 0;
-
         public decimal DirtyPrice { get; protected set; } = 0;
 
         public decimal CleanPrice { get; protected set; } = 0;

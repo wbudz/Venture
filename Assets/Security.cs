@@ -87,9 +87,9 @@ namespace Venture
             bounds.endIndex = -1;
         }
 
-        public override ValuationEvent? GenerateValuation(DateTime date)
+        public override ValuationEvent? GenerateValuation(DateTime date, bool redemption)
         {
-            ValuationEvent e = new ValuationEvent(this, date);
+            ValuationEvent e = new ValuationEvent(this, date, redemption);
             AddEvent(e);
             return e;
         }

@@ -11,9 +11,12 @@ namespace Venture
 
     public class FlowEvent : Event
     {
+
         public DateTime RecordDate { get; protected set; }
 
         public FlowType FlowType { get; protected set; }
+
+        public decimal Count { get; protected set; }
 
         public decimal Rate { get; protected set; }
 
@@ -21,7 +24,7 @@ namespace Venture
 
         public decimal GrossAmount { get { return Amount + Tax; } }
 
-        public FlowEvent(StandardAsset parentAsset, DateTime recordDate, DateTime timestamp, FlowType type, decimal rate, string currency, decimal fxRate) : base(parentAsset, timestamp)
+        public FlowEvent(StandardAsset parentAsset, DateTime recordDate, DateTime timestamp, FlowType type, decimal count, decimal rate, string currency, decimal fxRate) : base(parentAsset, timestamp)
         {
             UniqueId = $"Flow_{type}_{parentAsset.UniqueId}_{timestamp.ToString("yyyyMMdd")}";
             RecordDate = recordDate;

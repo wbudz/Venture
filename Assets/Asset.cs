@@ -259,7 +259,7 @@ namespace Venture
 
         protected abstract void RecalculateBounds();
 
-        public abstract ValuationEvent? GenerateValuation(DateTime date);
+        public abstract ValuationEvent? GenerateValuation(DateTime date, bool redemption);
 
         public virtual void AddEvent(Event e)
         {
@@ -496,6 +496,8 @@ namespace Venture
 
         #region Price
 
+        public abstract decimal GetNominalPrice();
+
         /// <summary>
         /// Gets purchase price of the investment. In case of single purchase, it is the price of this transaction. In case of multiple purchases (average cost expense method) it is an average price of purchase transactions, taking into account possible disinvestments.
         /// </summary>
@@ -560,6 +562,8 @@ namespace Venture
         /// <param name="dirty">If true, dirty price (including interest) will be given</param>
         /// <returns>Purchase amount of the investment</returns>
         public abstract decimal GetPurchaseAmount(TimeArg time, bool dirty);
+
+        public abstract decimal GetPurchaseAmount(bool dirty);
 
         /// <summary>
         /// Gets market value of the investment.
