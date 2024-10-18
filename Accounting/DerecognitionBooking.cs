@@ -55,6 +55,7 @@ namespace Venture
 
                 string description = $"Asset sale of {std.AssetId} ";
 
+                DateTime bookingDate;
                 if (book.ApplyTaxRules)
                 {
                     /// <summary>
@@ -68,40 +69,56 @@ namespace Venture
                     var accountRealizedIncomeRecognition = book.GetAccount(AccountType.RealizedIncome, std.AssetType, portfolio, std.Currency);
                     var accountRealizedExpenseRecognition = book.GetAccount(AccountType.RealizedExpense, std.AssetType, portfolio, std.Currency);
 
-                    book.Enqueue(accountAssetDerecognition, std.Timestamp, std.Index, description + "(asset derecognition)", -assetDerecognitionAmount);
+                    // Pre-charged tax on funds
+                    var accountPrechargedTax = book.GetAccount(AccountType.PrechargedTax, std.AssetType, portfolio, std.Currency);
 
-                    book.Enqueue(accountRealizedIncomeRecognition, std.Timestamp, std.Index, description + "(income)", -(std.Amount - tax));
-                    book.Enqueue(accountRealizedExpenseRecognition, std.Timestamp, std.Index, description + "(expense)", assetDerecognitionAmount);
+                    bookingDate = std.SettlementDate;
 
-                    book.Enqueue(accountCashSettlement, std.Timestamp, std.Index, description + "(sale amount payment)", std.Amount - tax);
-                    book.Enqueue(accountCashSettlement, std.Timestamp, std.Index, description + "(sale fee payment)", -std.Fee);
-                    book.Enqueue(accountFeeCost, std.Timestamp, std.Index, description + "(sale fee cost recognition)", std.Fee);
-                    book.Enqueue(accountUnrealizedFeeDerecognition, std.Timestamp, std.Index, description + "(purchase fee deferred tax asset derecognition)", -purchaseFee);
-                    book.Enqueue(accountFeeCost, std.Timestamp, std.Index, description + "(purchase fee cost recognition)", purchaseFee);
+
+                    book.Enqueue(accountAssetDerecognition, bookingDate, std.Index, description + "(asset derecognition)", -assetDerecognitionAmount);
+
+                    book.Enqueue(accountRealizedIncomeRecognition, bookingDate, std.Index, description + "(income)", -std.Amount);
+                    book.Enqueue(accountRealizedExpenseRecognition, bookingDate, std.Index, description + "(expense)", assetDerecognitionAmount);
+
+                    book.Enqueue(accountCashSettlement, bookingDate, std.Index, description + "(sale amount payment)", std.Amount);
+                    book.Enqueue(accountCashSettlement, bookingDate, std.Index, description + "(sale fee payment)", -std.Fee);
+                    book.Enqueue(accountFeeCost, bookingDate, std.Index, description + "(sale fee cost recognition)", std.Fee);
+                    book.Enqueue(accountUnrealizedFeeDerecognition, bookingDate, std.Index, description + "(purchase fee deferred tax asset derecognition)", -purchaseFee);
+                    book.Enqueue(accountFeeCost, bookingDate, std.Index, description + "(purchase fee cost recognition)", purchaseFee);
+
+                    book.Enqueue(accountCashSettlement, bookingDate, std.Index, description + "(pre-charged tax)", -tax);
+                    book.Enqueue(accountPrechargedTax, bookingDate, std.Index, description + "(pre-charged tax)", tax);
                 }
                 else
                 {
+                    bookingDate = std.Timestamp;
+
                     /// <summary>
                     /// Account where realized gains/losses from sale (market valuation) will be booked
                     /// </summary>
                     var accountRealizedProfitRecognition = book.GetAccount(AccountType.RealizedProfit, std.AssetType, portfolio, std.Currency);
                     var accountRealizedLossRecognition = book.GetAccount(AccountType.RealizedLoss, std.AssetType, portfolio, std.Currency);
 
-                    decimal realizedResult = std.Amount - assetDerecognitionAmount - tax;
+                    // Pre-charged tax on funds
+                    var accountPrechargedTax = book.GetAccount(AccountType.Tax, std.AssetType, portfolio, std.Currency);
 
-                    book.Enqueue(accountAssetDerecognition, std.Timestamp, std.Index, description + "(asset derecognition)", -assetDerecognitionAmount);
+                    decimal realizedResult = std.Amount - assetDerecognitionAmount;
+
+                    book.Enqueue(accountAssetDerecognition, bookingDate, std.Index, description + "(asset derecognition)", -assetDerecognitionAmount);
                     if (realizedResult > 0)
                     {
-                        book.Enqueue(accountRealizedProfitRecognition, std.Timestamp, std.Index, description + "(profit)", -realizedResult);
+                        book.Enqueue(accountRealizedProfitRecognition, bookingDate, std.Index, description + "(profit)", -realizedResult);
                     }
                     else if (realizedResult < 0)
                     {
-                        book.Enqueue(accountRealizedLossRecognition, std.Timestamp, std.Index, description + "(loss)", -realizedResult);
+                        book.Enqueue(accountRealizedLossRecognition, bookingDate, std.Index, description + "(loss)", -realizedResult);
                     }
 
-                    book.Enqueue(accountCashSettlement, std.Timestamp, std.Index, description + "(sale amount payment)", std.Amount - tax);
-                    book.Enqueue(accountCashSettlement, std.Timestamp, std.Index, description + "(sale fee payment)", -std.Fee);
-                    book.Enqueue(accountFeeCost, std.Timestamp, std.Index, description + "(sale fee cost recognition)", std.Fee);
+                    book.Enqueue(accountCashSettlement, bookingDate, std.Index, description + "(sale amount payment)", std.Amount);
+                    book.Enqueue(accountCashSettlement, bookingDate, std.Index, description + "(sale fee payment)", -std.Fee);
+                    book.Enqueue(accountFeeCost, bookingDate, std.Index, description + "(sale fee cost recognition)", std.Fee);
+                    book.Enqueue(accountCashSettlement, bookingDate, std.Index, description + "(pre-charged tax)", -tax);
+                    book.Enqueue(accountPrechargedTax, bookingDate, std.Index, description + "(pre-charged tax)", tax);
                 }
 
                 book.Commit();

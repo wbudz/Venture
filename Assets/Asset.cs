@@ -111,13 +111,7 @@ namespace Venture
         {
             get
             {
-                return AssetType == AssetType.FixedCorporateBonds ||
-                    AssetType == AssetType.FixedRetailTreasuryBonds ||
-                    AssetType == AssetType.FixedTreasuryBonds ||
-                    AssetType == AssetType.FloatingCorporateBonds ||
-                    AssetType == AssetType.FloatingRetailTreasuryBonds ||
-                    AssetType == AssetType.FloatingTreasuryBonds ||
-                    AssetType == AssetType.IndexedRetailTreasuryBonds;
+                return IsAssetTypeBond(AssetType);
             }
         }
 
@@ -128,11 +122,27 @@ namespace Venture
         {
             get
             {
-                return AssetType == AssetType.CorporateBondsFund ||
-                    AssetType == AssetType.EquityMixedFund ||
-                    AssetType == AssetType.MoneyMarketFund ||
-                    AssetType == AssetType.TreasuryBondsFund;
+                return IsAssetTypeFund(AssetType);
             }
+        }
+
+        public static bool IsAssetTypeBond(AssetType type)
+        {
+            return type == AssetType.FixedCorporateBonds ||
+                    type == AssetType.FixedRetailTreasuryBonds ||
+                    type == AssetType.FixedTreasuryBonds ||
+                    type == AssetType.FloatingCorporateBonds ||
+                    type == AssetType.FloatingRetailTreasuryBonds ||
+                    type == AssetType.FloatingTreasuryBonds ||
+                    type == AssetType.IndexedRetailTreasuryBonds;
+        }
+
+        public static bool IsAssetTypeFund(AssetType type)
+        {
+            return type == AssetType.CorporateBondsFund ||
+                    type == AssetType.EquityMixedFund ||
+                    type == AssetType.MoneyMarketFund ||
+                    type == AssetType.TreasuryBondsFund;
         }
 
         /// <summary>

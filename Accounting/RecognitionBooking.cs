@@ -35,10 +35,12 @@ namespace Venture
 
                 string description = $"Asset purchase of {btd.AssetId} ";
 
-                book.Enqueue(accountAssetRecognition, btd.Timestamp, btd.Index, description + "(asset recognition)", btd.Amount);
-                book.Enqueue(accountCashSettlement, btd.Timestamp, btd.Index, description + "(purchase amount payment)", -btd.Amount);
-                book.Enqueue(accountCashSettlement, btd.Timestamp, btd.Index, description + "(purchase fee payment)", -btd.Fee);
-                book.Enqueue(accountFeeRecognition, btd.Timestamp, btd.Index, description + (book.ApplyTaxRules ? "(purchase fee deferred tax asset)" : "(purchase fee cost recognition)"), btd.Fee);
+                DateTime bookingDate = book.ApplyTaxRules ? btd.SettlementDate : btd.Timestamp;
+
+                book.Enqueue(accountAssetRecognition, bookingDate, btd.Index, description + "(asset recognition)", btd.Amount);
+                book.Enqueue(accountCashSettlement, bookingDate, btd.Index, description + "(purchase amount payment)", -btd.Amount);
+                book.Enqueue(accountCashSettlement, bookingDate, btd.Index, description + "(purchase fee payment)", -btd.Fee);
+                book.Enqueue(accountFeeRecognition, bookingDate, btd.Index, description + (book.ApplyTaxRules ? "(purchase fee deferred tax asset)" : "(purchase fee cost recognition)"), btd.Fee);
 
                 book.Commit();
             }
