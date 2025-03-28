@@ -41,18 +41,30 @@ namespace Venture
                     decimal previousMarketValuation = 0;
                     decimal previousAmortizedCostValuation = 0;
 
+                    decimal marketProfitChange = 0;
+                    decimal marketLossChange = 0;
+                    decimal amortizedCostChange = 0;
+
                     ValuationEvent? previousValuationEvent = a.Events.OfType<ValuationEvent>().LastOrDefault(x => !x.IsRedemptionValuation && x.Timestamp == previousDate);
                     ValuationEvent? currentValuationEvent = a.Events.OfType<ValuationEvent>().LastOrDefault(x => !x.IsRedemptionValuation && x.Timestamp == currentDate);
-                    if (currentValuationEvent == null && a is Bond) currentValuationEvent = a.Events.OfType<ValuationEvent>().LastOrDefault(x => x.IsRedemptionValuation);
+                    if (currentValuationEvent == null)
+                    {
+                        currentValuationEvent = a.Events.OfType<ValuationEvent>().LastOrDefault(x => x.IsRedemptionValuation && x.Timestamp <= currentDate);
+                    }
+
+                    // For derecognitions, we do amortized cost revaluation
+                    DerecognitionEvent? derecognitionEvent = a.Events.OfType<DerecognitionEvent>().LastOrDefault(x => x.Timestamp > previousDate && x.Timestamp <= currentDate);
+                    if (currentValuationEvent == null && derecognitionEvent != null && previousValuationEvent != null)
+                    {
+                        currentValuationEvent = new ValuationEvent(derecognitionEvent);
+                    }
 
                     currentMarketValuation += currentValuationEvent?.CumulativeMarketValuation ?? 0;
                     currentAmortizedCostValuation += currentValuationEvent?.CumulativeAmortizedCostValuation ?? 0;
                     previousMarketValuation += previousValuationEvent?.CumulativeMarketValuation ?? 0;
                     previousAmortizedCostValuation += previousValuationEvent?.CumulativeAmortizedCostValuation ?? 0;
 
-                    decimal marketProfitChange = 0;
-                    decimal marketLossChange = 0;
-                    decimal amortizedCostChange = currentAmortizedCostValuation - previousAmortizedCostValuation;
+                    amortizedCostChange += currentAmortizedCostValuation - previousAmortizedCostValuation;
 
                     if (currentMarketValuation > previousMarketValuation)
                     {
@@ -66,11 +78,14 @@ namespace Venture
                         marketLossChange = currentMarketValuation - previousMarketValuation - marketProfitChange;
                     }
 
+
+
                     book.Enqueue(accountAssetValuation, currentDate, -1, $"Market valuation of {a.InstrumentId} (change of asset value)", currentMarketValuation - previousMarketValuation);
                     book.Enqueue(accountAssetValuation, currentDate, -1, $"Amortized cost valuation of {a.InstrumentId} (change of asset value)", currentAmortizedCostValuation - previousAmortizedCostValuation);
                     book.Enqueue(accountUnrealizedResultProfitRecognition, currentDate, -1, $"Market valuation of {a.InstrumentId} (unrealized gains recognition)", -marketProfitChange);
                     book.Enqueue(accountUnrealizedResultLossRecognition, currentDate, -1, $"Market valuation of {a.InstrumentId} (unrealized losses recognition)", -marketLossChange);
                     book.Enqueue(accountOrdinaryIncomeRecognition, currentDate, -1, $"Amortized cost valuation of {a.InstrumentId} (ordinary income recognition)", -amortizedCostChange);
+
                     book.Commit();
                 }
             }

@@ -289,6 +289,7 @@ namespace Venture
                 output.Add(evt);
                 remainingCount -= soldCount;
                 remainingFee -= fee;
+
                 if (remainingCount <= 0) break;
             }
 
@@ -332,6 +333,7 @@ namespace Venture
                 output.Add(evt);
                 remainingCount -= soldCount;
                 remainingFee -= fee;
+
                 if (remainingCount <= 0) break;
             }
 
@@ -445,7 +447,10 @@ namespace Venture
                     var cash = new Cash(ev);
                     newAssets.Add(cash);
                     InflowBooking.Process(ev);
-                    if (ev.FlowType == FlowType.Redemption) asset.GenerateValuation(ev.Timestamp, true);
+                    if (ev.FlowType == FlowType.Redemption)
+                    {
+                        asset.GenerateValuation(ev.Timestamp, true);
+                    }
                 }
                 // Futures settlement happens at the very end of the day (after market closes).
                 foreach (var ev in asset.Events.OfType<FuturesRevaluationEvent>().Where(x => x.Timestamp >= startDate && x.Timestamp < endDate))
@@ -500,7 +505,7 @@ namespace Venture
                 var e = a.GenerateValuation(currentDate, false);
             }
 
-            var assets = output.Where(x => x.IsActive(previousDate) || x.IsActive(currentDate));
+            var assets = output.Where(x => x.IsActive(previousDate, currentDate)); //output.Where(x => x.IsActive(previousDate) || x.IsActive(currentDate));
             foreach (var portfolio in assets.Select(x => x.Portfolio).Distinct())
             {
                 foreach (var currency in assets.Select(x => x.Currency).Distinct())

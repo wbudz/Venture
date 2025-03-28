@@ -9,6 +9,8 @@ namespace Venture
 {
     public class DerecognitionEvent : StandardAssetEvent
     {
+        public decimal CleanAmount { get; protected set; } = 0;
+
         public decimal DirtyPrice { get; protected set; } = 0;
 
         public decimal CleanPrice { get; protected set; } = 0;
@@ -57,6 +59,7 @@ namespace Venture
             if (parentAsset.IsBond)
             {
                 Amount = Common.Round(std.Price / 100 * std.Count * ((Bond)parentAsset).SecurityDefinition.UnitPrice);
+                CleanAmount = Common.Round(CleanPrice / 100 * std.Count * ((Bond)parentAsset).SecurityDefinition.UnitPrice);
                 PurchaseDirtyAmount = Common.Round(PurchaseDirtyPrice / 100 * std.Count * ((Bond)parentAsset).SecurityDefinition.UnitPrice);
                 PurchaseCleanAmount = Common.Round(PurchaseCleanPrice / 100 * std.Count * ((Bond)parentAsset).SecurityDefinition.UnitPrice);
                 AmortizedCostDirtyAmount = Common.Round(AmortizedCostDirtyPrice / 100 * std.Count * ((Bond)parentAsset).SecurityDefinition.UnitPrice);
@@ -65,6 +68,7 @@ namespace Venture
             else
             {
                 Amount = Common.Round(std.Price * std.Count);
+                CleanAmount = Common.Round(CleanPrice * std.Count);
                 PurchaseDirtyAmount = Common.Round(PurchaseDirtyPrice * std.Count);
                 PurchaseCleanAmount = Common.Round(PurchaseCleanPrice * std.Count);
                 AmortizedCostDirtyAmount = Common.Round(AmortizedCostDirtyPrice * std.Count);

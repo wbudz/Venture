@@ -77,9 +77,9 @@ namespace Venture
                     }
                     else
                     {
-                        book.Enqueue(accountCashInflow, e.Timestamp, -1, description + "(cash inflow)", e.Amount - e.Tax);
+                        book.Enqueue(accountCashInflow, e.Timestamp, -1, description + "(cash inflow)", e.Amount);
                         book.Enqueue(accountAsset, e.Timestamp, -1, description + "(asset derecognition)", -nominalAmount);
-                        book.Enqueue(accountOrdinaryIncome, e.Timestamp, -1, description + "(ordinary income)", nominalAmount - e.Amount);
+                        book.Enqueue(accountOrdinaryIncome, e.Timestamp, -1, description + "(ordinary income)", nominalAmount - e.Amount - e.Tax);
                         book.Enqueue(accountTaxRecognition, e.Timestamp, -1, description + "(tax recognition)", e.Tax);
                     }
                 }

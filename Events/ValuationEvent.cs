@@ -84,5 +84,36 @@ namespace Venture
             IsRedemptionValuation = redemptionValuation;
 
         }
+
+        public ValuationEvent(DerecognitionEvent de) : base((StandardAsset)de.ParentAsset, de.Timestamp)
+        {
+            UniqueId = $"ValuationEvent_{de.ParentAsset.UniqueId}_{de.Timestamp.ToString("yyyyMMdd")}";
+            TransactionIndex = -1;
+
+            TimeArg time = new TimeArg(TimeArgDirection.End, de.Timestamp, de.TransactionIndex);
+            decimal accruedInterest = de.ParentAsset.GetAccruedInterest(de.Timestamp);
+
+            Count = de.Count;
+            FXRate = 0; // TODO: Implement FX rates
+
+            MarketDirtyPrice = de.DirtyPrice;
+            MarketCleanPrice = de.CleanPrice;
+            AmortizedCostDirtyPrice = de.AmortizedCostDirtyPrice;
+            AmortizedCostCleanPrice = de.AmortizedCostCleanPrice;
+
+            MarketDirtyAmount = de.Amount;
+            MarketCleanAmount = de.CleanAmount;
+            AmortizedCostDirtyAmount = de.AmortizedCostDirtyAmount;
+            AmortizedCostCleanAmount = de.AmortizedCostCleanPrice;
+
+            Amount = MarketDirtyAmount;
+
+            decimal purchaseAmount = de.PurchaseDirtyAmount;
+            CumulativeAmortizedCostValuation = AmortizedCostDirtyAmount - purchaseAmount;
+            CumulativeMarketValuation = 0;
+
+            IsRedemptionValuation = false;
+
+        }
     }
 }

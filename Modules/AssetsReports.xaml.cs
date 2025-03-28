@@ -77,7 +77,7 @@ namespace Venture.Modules
             foreach (var asset in Common.Assets)
             {
                 if (asset is Cash) continue;
-                if (!asset.IsActive(new DateTime(startYear, 1, 1), new DateTime(endYear, 12, 31))) continue;
+                if (!asset.IsActive(new DateTime(startYear, 1, 1).AddDays(-1), new DateTime(endYear, 12, 31))) continue;
                 if (asset.BoundsStart.Year == asset.BoundsEnd.Year && asset.BoundsStart.Month == asset.BoundsEnd.Month) continue; // omit assets that were owned only during one month
 
                 string selectedPortfolio = PortfolioComboBox.SelectedItem.ToString() ?? "*";

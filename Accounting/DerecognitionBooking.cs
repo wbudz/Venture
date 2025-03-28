@@ -58,6 +58,8 @@ namespace Venture
                 DateTime bookingDate;
                 if (book.ApplyTaxRules)
                 {
+                    // REALIZED PROFIT: SALE AMOUNT - PURCHASE AMOUNT
+
                     /// <summary>
                     /// Reserves account which holds purchase fees for unsold assets - these may be book costs but not tax costs
                     /// </summary>
@@ -91,6 +93,8 @@ namespace Venture
                 }
                 else
                 {
+                    // REALIZED PROFIT: SALE AMOUNT - AMORTIZED DIRTY AMOUNT ON THE DAY OF SALE
+
                     bookingDate = std.Timestamp;
 
                     /// <summary>
