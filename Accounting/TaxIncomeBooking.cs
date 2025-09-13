@@ -82,7 +82,7 @@ namespace Venture
                     Common.MainBook.Enqueue(accountIncomeTax, date, -1, "Income tax (mid-year assessment derecognition)", -previousTax);
                     Common.MainBook.Enqueue(accountTaxReserves, date, -1, "Income tax (mid-year assessment derecognition)", previousTax);
                     Common.MainBook.Enqueue(accountIncomeTax, date, -1, "Income tax for " + date.Year, currentTax);
-                    Common.MainBook.Enqueue(accountTaxLiabilities, date, -1, "Income tax for" + date.Year, -currentTax);
+                    Common.MainBook.Enqueue(accountTaxLiabilities, date, -1, "Income tax for " + date.Year, -currentTax);
                 }
                 else
                 {

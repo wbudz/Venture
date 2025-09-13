@@ -15,9 +15,14 @@ namespace Venture
             foreach (var book in Common.Books)
             {
                 /// <summary>
-                /// Asset account where change in market valuation will be recognized
+                /// Prior period result account
                 /// </summary>
                 var accountPriorPeriodResult = book.GetAccount(AccountType.PriorPeriodResult, null, portfolio, currency);
+
+                /// <summary>
+                /// Prior period result account
+                /// </summary>
+                var accountNonTaxableResult = book.GetAccount(AccountType.NonTaxableResult, null, portfolio, currency);
 
                 decimal totalResult = 0;
 
@@ -28,6 +33,11 @@ namespace Venture
                     book.Enqueue(a, date, -1, "End of year book closing", -currentResult);
                 }
                 book.Enqueue(accountPriorPeriodResult, date, -1, "End of year book closing", totalResult);
+
+                decimal nonTaxableResult = accountNonTaxableResult.GetNetAmount(date);
+                book.Enqueue(accountNonTaxableResult, date, -1, "End of year book closing (non-taxable income)", -nonTaxableResult);
+                book.Enqueue(accountPriorPeriodResult, date, -1, "End of year book closing (non-taxable income)", nonTaxableResult);
+
                 book.Commit();
             }
         }
