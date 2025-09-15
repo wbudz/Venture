@@ -12,8 +12,10 @@ namespace Venture.Modules
         Inflow_CapitalIncrease, Inflow_TaxPayment, Inflow_OtherPayment,
         Inflow_SaleEquities, Inflow_SaleETF, Inflow_SaleBonds, Inflow_SaleFunds,
         Inflow_Dividend, Inflow_Redemption, Inflow_Coupon,
+        Inflow_Futures,
         Outflow_CapitalDecrease, Outflow_TaxPayment, Outflow_OtherPayment,
         Outflow_PurchaseEquities, Outflow_PurchaseETF, Outflow_PurchaseBonds, Outflow_PurchaseFunds,
+        Outflow_Futures,
         Unknown
     }
 
@@ -49,6 +51,7 @@ namespace Venture.Modules
                     case CashflowType.Inflow_Dividend: return "Inflow: dividend";
                     case CashflowType.Inflow_Redemption: return "Inflow: redemption";
                     case CashflowType.Inflow_Coupon: return "Inflow: coupon";
+                    case CashflowType.Inflow_Futures: return "Inflow: futures";
                     case CashflowType.Outflow_CapitalDecrease: return "Outflow: capital decrease";
                     case CashflowType.Outflow_TaxPayment: return "Outflow: tax payment";
                     case CashflowType.Outflow_OtherPayment: return "Outflow: other payment";
@@ -56,6 +59,7 @@ namespace Venture.Modules
                     case CashflowType.Outflow_PurchaseETF: return "Outflow: purchase of ETF";
                     case CashflowType.Outflow_PurchaseBonds: return "Outflow: purchase of bonds";
                     case CashflowType.Outflow_PurchaseFunds: return "Outflow: purchase of funds";
+                    case CashflowType.Outflow_Futures: return "Outflow: futures";
                     case CashflowType.Unknown: return "Unknown";
                     default: return "Unspecified";
                 }
@@ -127,7 +131,8 @@ namespace Venture.Modules
                         case AssetType.TreasuryBondsFund:
                         case AssetType.CorporateBondsFund:
                             CashflowType = CashflowType.Outflow_PurchaseFunds; break;
-                        case AssetType.Futures: break;
+                        case AssetType.Futures:
+                            CashflowType = p.Direction == PaymentDirection.Outflow ? CashflowType.Outflow_Futures : CashflowType.Inflow_Futures; break;
                         default: break;
                     }
                 }
@@ -154,7 +159,8 @@ namespace Venture.Modules
                         case AssetType.TreasuryBondsFund:
                         case AssetType.CorporateBondsFund:
                             CashflowType = CashflowType.Inflow_SaleFunds; break;
-                        case AssetType.Futures: break;
+                        case AssetType.Futures:
+                            CashflowType = p.Direction == PaymentDirection.Outflow ? CashflowType.Outflow_Futures : CashflowType.Inflow_Futures; break;
                         default: break;
                     }
                 }
@@ -190,6 +196,10 @@ namespace Venture.Modules
                         case FlowType.Redemption: CashflowType = CashflowType.Inflow_Redemption; break;
                         default: break;
                     }
+                }
+                else if (p.AssociatedEvent is FuturesRevaluationEvent fe3)
+                {
+                    CashflowType = p.Direction == PaymentDirection.Outflow ? CashflowType.Outflow_Futures : CashflowType.Inflow_Futures;
                 }
             }
 

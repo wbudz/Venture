@@ -83,6 +83,7 @@ namespace Venture
                         if (definition.AssetType == AssetType.Futures)
                         {
                             ProcessFuturesTransaction(output, definition, btd);
+                            // TODO: FuturesTransactionBooking.Process(btd)
                         }
                         else
                         {
@@ -99,6 +100,7 @@ namespace Venture
                         if (definition.AssetType == AssetType.Futures)
                         {
                             ProcessFuturesTransaction(output, definition, std);
+                            // TODO: FuturesTransactionBooking.Process(std)
                         }
                         else
                         {
@@ -459,10 +461,12 @@ namespace Venture
                     {
                         var cash = new Cash(ev);
                         newAssets.Add(cash);
+                        // TODO: FuturesTransactionBooking.Process(ev)
                     }
                     else
                     {
                         RegisterCashDeduction(output, ev);
+                        // TODO: FuturesTransactionBooking.Process(ev)
                     }
                 }
             }

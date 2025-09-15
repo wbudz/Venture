@@ -69,6 +69,13 @@ namespace Venture
                 .Sum(x => x.GetNetAmount(date));
         }
 
+        public decimal GetNonTaxableResult(DateTime date, PortfolioDefinition? portfolio)
+        {
+            return accounts.Values.Where(x => x.AccountType == AccountType.NonTaxableResult
+                && (portfolio == null || x.Portfolio == portfolio))
+                .Sum(x => x.GetNetAmount(date));
+        }
+
         public List<Modules.AccountsViewEntry> GetAccountsAsViewEntries(DateTime date, string selectedPortfolio, string selectedBroker, bool aggregateAssetTypes, bool aggregateCurrencies, bool aggregatePortfolios, bool aggregateBrokers)
         {
             Dictionary<string, Modules.AccountsViewEntry> output = new();
@@ -167,6 +174,11 @@ namespace Venture
                 AccountEntry accountEntry = pendingEntries.Dequeue();
                 accountEntry.Account.Enter(accountEntry);
             }
+        }
+
+        public override string ToString()
+        {
+            return "Book: " + Name;
         }
     }
 }

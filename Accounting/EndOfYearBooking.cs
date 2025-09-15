@@ -34,7 +34,7 @@ namespace Venture
                 }
                 book.Enqueue(accountPriorPeriodResult, date, -1, "End of year book closing", totalResult);
 
-                decimal nonTaxableResult = accountNonTaxableResult.GetNetAmount(date);
+                decimal nonTaxableResult = book.GetNonTaxableResult(date, portfolio);
                 book.Enqueue(accountNonTaxableResult, date, -1, "End of year book closing (non-taxable income)", -nonTaxableResult);
                 book.Enqueue(accountPriorPeriodResult, date, -1, "End of year book closing (non-taxable income)", nonTaxableResult);
 
