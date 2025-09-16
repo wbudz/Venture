@@ -83,7 +83,6 @@ namespace Venture
                         if (definition.AssetType == AssetType.Futures)
                         {
                             ProcessFuturesTransaction(output, definition, btd);
-                            // TODO: FuturesTransactionBooking.Process(btd)
                         }
                         else
                         {
@@ -100,7 +99,6 @@ namespace Venture
                         if (definition.AssetType == AssetType.Futures)
                         {
                             ProcessFuturesTransaction(output, definition, std);
-                            // TODO: FuturesTransactionBooking.Process(std)
                         }
                         else
                         {
@@ -365,7 +363,8 @@ namespace Venture
                 futures = new Futures(btd, definition);
                 AddAsset(list, futures, btd.Timestamp);
                 var fr = futures.Events.OfType<FuturesRecognitionEvent>().First();
-                RegisterCashDeduction(list, btd, fr);
+                RegisterCashDeduction(list, btd, fr); // fee
+                FuturesBooking.Process(fr);
             }
             else
             {
@@ -377,12 +376,13 @@ namespace Venture
                 if (fr.Amount >= 0)
                 {
                     AddAsset(list, new Cash(fr), fr.Timestamp);
-                    RegisterCashDeduction(list, btd, fr);
+                    RegisterCashDeduction(list, btd, fr); // fee
                 }
                 else
                 {
-                    RegisterCashDeduction(list, fr);
+                    RegisterCashDeduction(list, fr); // fee + negative valuation
                 }
+                FuturesBooking.Process(fr);
             }
         }
 
@@ -402,7 +402,8 @@ namespace Venture
                 futures = new Futures(std, definition);
                 AddAsset(list, futures, std.Timestamp);
                 var fr = futures.Events.OfType<FuturesRecognitionEvent>().First();
-                RegisterCashDeduction(list, std, fr);
+                RegisterCashDeduction(list, std, fr); // fee
+                FuturesBooking.Process(fr);
             }
             else
             {
@@ -414,12 +415,13 @@ namespace Venture
                 if (fr.Amount >= 0)
                 {
                     AddAsset(list, new Cash(fr), fr.Timestamp);
-                    RegisterCashDeduction(list, std, fr);
+                    RegisterCashDeduction(list, std, fr); // fee
                 }
                 else
                 {
-                    RegisterCashDeduction(list, fr);
+                    RegisterCashDeduction(list, fr); // fee + negative valuation
                 }
+                FuturesBooking.Process(fr);
             }
         }
 
@@ -461,13 +463,12 @@ namespace Venture
                     {
                         var cash = new Cash(ev);
                         newAssets.Add(cash);
-                        // TODO: FuturesTransactionBooking.Process(ev)
                     }
                     else
                     {
                         RegisterCashDeduction(output, ev);
-                        // TODO: FuturesTransactionBooking.Process(ev)
                     }
+                    FuturesBooking.Process(ev);
                 }
             }
 
