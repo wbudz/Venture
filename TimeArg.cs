@@ -25,11 +25,11 @@ namespace Venture
         {
             if (TransactionIndex > -1)
             {
-                return $"TimeArg: {Direction} {Date} @ {TransactionIndex}";
+                return "TimeArg:" + Direction + " " + Date.ToString("yyyy-MM-dd") + " @ " + TransactionIndex;
             }
             else
             {
-                return $"TimeArg: {Direction} {Date}";
+                return "TimeArg:" + Direction + " " + Date.ToString("yyyy-MM-dd");
             }
         }
     }

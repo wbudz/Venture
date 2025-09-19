@@ -52,4 +52,15 @@ namespace Venture
         }
 
     }
+
+    public abstract class FuturesTransactionEvent: FuturesEvent
+    {
+        public decimal Count { get; protected set; } = 0;
+
+        public decimal Fee { get; protected set; } = 0;
+
+        public FuturesTransactionEvent(Futures parentAsset, DateTime timestamp) : base(parentAsset, timestamp)
+        {
+        }
+    }
 }

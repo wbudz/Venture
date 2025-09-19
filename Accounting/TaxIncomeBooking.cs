@@ -13,40 +13,37 @@ namespace Venture
     {
         public static void Process(DateTime date)
         {
+            (decimal result, decimal deduction, decimal tax) total;
+            string deductionDescription = "";
+
             DateTime prevDate = Financial.Calendar.AddAndAlignToEndDate(date, -1, Financial.Calendar.TimeStep.Monthly);
-            decimal currentTaxTotalResult = -Common.TaxBook.GetResult(date, null);
-            decimal previousTaxTotalResult = date.Month == 1 ? 0 : -Common.TaxBook.GetResult(prevDate, null);
+            total = (-Common.TaxBook.GetTaxableResult(date, null), 0, 0);
 
-            decimal currentTotalTax = Common.Round(Math.Max(currentTaxTotalResult, 0) * 0.19m, 0);
-            decimal previousTotalTax = Common.Round(Math.Max(previousTaxTotalResult, 0) * 0.19m, 0);
+            var manualAdjustment = Definitions.ManualEvents.OfType<IncomeTaxDeductionBookingEventDefinition>().SingleOrDefault(x => x.Timestamp.Year == date.Year);
+            if (manualAdjustment != null)
+            {
+                total.deduction = Math.Min(total.result, manualAdjustment.Amount);
+                deductionDescription = manualAdjustment.Description;
+            }
 
-            Dictionary<PortfolioDefinition, (decimal result, decimal deduction, decimal tax)> currentTaxBreakdown = new();
-            Dictionary<PortfolioDefinition, (decimal result, decimal deduction, decimal tax)> previousTaxBreakdown = new();
+            total.tax = Common.Round(Math.Max(total.result - total.deduction, 0) * Globals.TaxRate, 0);
+
+            Dictionary<PortfolioDefinition, decimal> resultBreakdown = new();
 
             foreach (var portfolio in Definitions.Portfolios)
             {
-                var currentResult = Math.Max(-Common.TaxBook.GetResult(date, portfolio, ["91*"]), 0);
-                var previousResult = date.Month == 1 ? 0 : Math.Max(-Common.TaxBook.GetResult(prevDate, portfolio, ["91*"]), 0);
-                decimal currentTaxDeduction = 0;
-                decimal previousTaxDeduction = 0;
-
-                var manualAdjustment = Definitions.ManualEvents.OfType<IncomeTaxDeductionBookingEventDefinition>().SingleOrDefault(x => x.Timestamp.Year == date.Year && x.Portfolio == portfolio.UniqueId);
-                if (manualAdjustment != null)
-                {
-                    currentTaxDeduction = Math.Min(currentResult, manualAdjustment.Amount);
-                    previousTaxDeduction = date.Month == 1 ? 0 : Math.Min(previousResult, manualAdjustment.Amount);
-                }
-
-                currentTaxBreakdown.Add(portfolio, (currentResult, currentTaxDeduction, Common.Round((currentResult - currentTaxDeduction) * 0.19m, 0)));
-                previousTaxBreakdown.Add(portfolio, (previousResult, previousTaxDeduction, Common.Round((previousResult - previousTaxDeduction) * 0.19m, 0)));
+                var portfolioResult = -Common.TaxBook.GetTaxableResult(date, portfolio);
+                resultBreakdown.Add(portfolio, portfolioResult);
             }
 
-            foreach (var portfolio in currentTaxBreakdown.OrderByDescending(x => x.Value))
+            decimal unusedDeduction = total.deduction;
+            decimal unassignedTax = total.tax;
+            foreach (var portfolio in resultBreakdown.OrderByDescending(x => x.Value))
             {
-                var currentTax = Math.Min(currentTotalTax, currentTaxBreakdown[portfolio.Key].tax);
-                currentTotalTax -= currentTax;
-                var previousTax = Math.Min(previousTotalTax, previousTaxBreakdown[portfolio.Key].tax);
-                previousTotalTax -= previousTax;
+                decimal portfolioDeduction = Math.Min(Math.Max(portfolio.Value,0), unusedDeduction);
+                unusedDeduction -= portfolioDeduction;
+                decimal portfolioTax = Math.Min(Common.Round(Math.Max(portfolio.Value - portfolioDeduction, 0) * Globals.TaxRate, 0), unassignedTax);
+                unassignedTax -= portfolioTax;
 
                 /// <summary>
                 /// Asset where accrued expense resulting from tax calculated but not yet charged is booked.
@@ -63,31 +60,33 @@ namespace Venture
                 /// </summary>
                 var accountIncomeTax = Common.MainBook.GetAccount(AccountType.Tax, null, portfolio.Key, Common.LocalCurrency);
 
+                var accountIncomeTaxDeduction = Common.TaxBook.GetAccount(AccountType.TaxDeduction, null, portfolio.Key, Common.LocalCurrency);
 
-                var manualAdjustment = Definitions.ManualEvents.OfType<IncomeTaxDeductionBookingEventDefinition>().SingleOrDefault(x => x.Timestamp.Year == date.Year && x.Portfolio == portfolio.Key.UniqueId);
-                if (manualAdjustment != null)
+                var accountPriorPeriodResult = Common.TaxBook.GetAccount(AccountType.PriorPeriodResult, null, portfolio.Key, Common.LocalCurrency);
+
+                // Get previous months tax
+                decimal previousTax = 0;
+                decimal previousDeduction = 0;
+                if (date.Month != 1)
                 {
-                    var accountIncomeTaxDeduction = Common.TaxBook.GetAccount(AccountType.TaxDeduction, null, portfolio.Key, Common.LocalCurrency);
-                    var accountPriorPeriodResult = Common.TaxBook.GetAccount(AccountType.PriorPeriodResult, null, portfolio.Key, Common.LocalCurrency);
-
-                    decimal currentTaxDeduction = currentTaxBreakdown[portfolio.Key].deduction;
-                    decimal previousTaxDeduction = previousTaxBreakdown[portfolio.Key].deduction;
-                    Common.TaxBook.Enqueue(accountIncomeTaxDeduction, date, -1, manualAdjustment.Description, currentTaxDeduction - previousTaxDeduction);
-                    Common.TaxBook.Enqueue(accountPriorPeriodResult, date, -1, manualAdjustment.Description, -(currentTaxDeduction - previousTaxDeduction));
-                    Common.TaxBook.Commit();
+                    previousTax = accountIncomeTax.GetNetAmount(prevDate);
+                    previousDeduction = accountIncomeTaxDeduction.GetNetAmount(prevDate);
                 }
+
+                Common.TaxBook.Enqueue(accountIncomeTaxDeduction, date, -1, deductionDescription, portfolioDeduction - previousDeduction);
+                Common.TaxBook.Enqueue(accountPriorPeriodResult, date, -1, deductionDescription, -(portfolioDeduction - previousDeduction));
 
                 if (date.Month == 12)
                 {
                     Common.MainBook.Enqueue(accountIncomeTax, date, -1, "Income tax (mid-year assessment derecognition)", -previousTax);
                     Common.MainBook.Enqueue(accountTaxReserves, date, -1, "Income tax (mid-year assessment derecognition)", previousTax);
-                    Common.MainBook.Enqueue(accountIncomeTax, date, -1, "Income tax for " + date.Year, currentTax);
-                    Common.MainBook.Enqueue(accountTaxLiabilities, date, -1, "Income tax for " + date.Year, -currentTax);
+                    Common.MainBook.Enqueue(accountIncomeTax, date, -1, "Income tax for " + date.Year, portfolioTax);
+                    Common.MainBook.Enqueue(accountTaxLiabilities, date, -1, "Income tax for " + date.Year, -portfolioTax);
                 }
                 else
                 {
-                    Common.MainBook.Enqueue(accountIncomeTax, date, -1, "Income tax (mid-year assessment)", currentTax - previousTax);
-                    Common.MainBook.Enqueue(accountTaxReserves, date, -1, "Income tax (mid-year assessment)", -(currentTax - previousTax));
+                    Common.MainBook.Enqueue(accountIncomeTax, date, -1, "Income tax (mid-year assessment)", portfolioTax - previousTax);
+                    Common.MainBook.Enqueue(accountTaxReserves, date, -1, "Income tax (mid-year assessment)", -(portfolioTax - previousTax));
                 }
             }
 

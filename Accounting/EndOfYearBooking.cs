@@ -20,7 +20,7 @@ namespace Venture
                 var accountPriorPeriodResult = book.GetAccount(AccountType.PriorPeriodResult, null, portfolio, currency);
 
                 /// <summary>
-                /// Prior period result account
+                /// Non taxable result account
                 /// </summary>
                 var accountNonTaxableResult = book.GetAccount(AccountType.NonTaxableResult, null, portfolio, currency);
 
@@ -34,9 +34,23 @@ namespace Venture
                 }
                 book.Enqueue(accountPriorPeriodResult, date, -1, "End of year book closing", totalResult);
 
+                // Non taxable result
                 decimal nonTaxableResult = book.GetNonTaxableResult(date, portfolio);
                 book.Enqueue(accountNonTaxableResult, date, -1, "End of year book closing (non-taxable income)", -nonTaxableResult);
                 book.Enqueue(accountPriorPeriodResult, date, -1, "End of year book closing (non-taxable income)", nonTaxableResult);
+
+
+                if (book.ApplyTaxRules)
+                {
+                    /// <summary>
+                    /// Income tax deduction account
+                    /// </summary>
+                    var accountIncomeTaxDeduction = book.GetAccount(AccountType.TaxDeduction, null, portfolio, Common.LocalCurrency);
+                    // income tax deduction
+                    decimal incomeTaxDeduction = accountIncomeTaxDeduction.GetNetAmount(date);
+                    book.Enqueue(accountIncomeTaxDeduction, date, -1, "End of year book closing (income tax reduction)", -incomeTaxDeduction);
+                    book.Enqueue(accountPriorPeriodResult, date, -1, "End of year book closing (income tax reduction)", incomeTaxDeduction);
+                }
 
                 book.Commit();
             }

@@ -40,7 +40,7 @@ namespace Venture
             GenerateFlows();
         }
 
-        public Cash(FuturesRecognitionEvent fr) : base()
+        public Cash(FuturesTransactionEvent fr) : base()
         {
             UniqueId = $"Cash_FuturesRecognition_{fr.ParentAsset.UniqueId}_{fr.Timestamp.ToString("yyyyMMdd")}";
             AssetType = AssetType.Cash;
@@ -48,10 +48,10 @@ namespace Venture
             Currency = fr.ParentAsset.Currency;
             ValuationClass = ValuationClass.AvailableForSale;
 
-            if (fr.Amount <= 0) throw new Exception($"Tried to create cash (from sale) with amount equal or less than 0.");
+            if (fr.Amount - fr.Fee <= 0) throw new Exception($"Tried to create cash (from sale) with amount equal or less than 0.");
 
             PaymentDirection direction = PaymentDirection.Inflow;
-            AddEvent(new PaymentEvent(this, fr, fr.Amount, direction));
+            AddEvent(new PaymentEvent(this, fr, fr.Amount - fr.Fee, direction));
             GenerateFlows();
         }
 

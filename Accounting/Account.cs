@@ -146,6 +146,8 @@ namespace Venture
 
         public bool IsResultAccount { get { return AccountCategory == "ProfitAndLoss"; } }
 
+        public bool IsIncomeTaxable { get { return AccountType == AccountType.RealizedIncome || AccountType == AccountType.RealizedExpense || AccountType == AccountType.Fees; } }
+
         public AccountType AccountType { get; private set; }
 
         public AssetType? AssetType { get; private set; }
@@ -201,7 +203,7 @@ namespace Venture
                 case Venture.AssetType.EquityMixedFund: return "72";
                 case Venture.AssetType.TreasuryBondsFund: return "73";
                 case Venture.AssetType.CorporateBondsFund: return "74";
-                case Venture.AssetType.Futures: return "00";
+                case Venture.AssetType.Futures: return "80";
                 default: return "00";
             }
         }

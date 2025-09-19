@@ -39,7 +39,7 @@ namespace Venture.Modules
             RecognitionDate = futures.GetPurchaseDate();
             DerecognitionDate = futures.Events.OfType<FuturesEvent>().FirstOrDefault(x => x.IsTotalDerecognition)?.Timestamp;
             Result = events.Sum(x => x.Amount);
-            Fees = events.OfType<FuturesRecognitionEvent>().Sum(x => x.Fee);
+            Fees = events.OfType<FuturesTransactionEvent>().Sum(x => x.Fee);
             // Events
             foreach (var e in events)
             {

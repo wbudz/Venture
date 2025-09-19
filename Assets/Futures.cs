@@ -35,9 +35,9 @@ namespace Venture
 
         public Futures(BuyTransactionDefinition btd, InstrumentDefinition definition) : this((TransactionDefinition)btd, definition)
         {
-            Portfolio = Definitions.Portfolios.Single(x=>x.UniqueId == btd.PortfolioDst);
+            Portfolio = Definitions.Portfolios.Single(x => x.UniqueId == btd.PortfolioDst);
 
-            AddEvent(new FuturesRecognitionEvent(this, btd));
+            AddEvent(new FuturesRecognitionEvent(this, btd, btd.Count));
             GenerateFlows();
         }
 
@@ -45,7 +45,7 @@ namespace Venture
         {
             Portfolio = Definitions.Portfolios.Single(x => x.UniqueId == std.PortfolioSrc);
 
-            AddEvent(new FuturesRecognitionEvent(this, std));
+            AddEvent(new FuturesRecognitionEvent(this, std, std.Count));
             GenerateFlows();
         }
 
@@ -58,12 +58,12 @@ namespace Venture
             { index = events.Count; }
             events.Insert(index, e);
 
-            // Check if total derecognition
-            if (e is FuturesRecognitionEvent fr)
+            if (e is FuturesDerecognitionEvent fde)
             {
+                // Check if total derecognition
                 if (GetCount(new TimeArg(TimeArgDirection.End, e.Timestamp, e.TransactionIndex)) == 0)
                 {
-                    fr.IsTotalDerecognition = true;
+                    fde.IsTotalDerecognition = true;
                     for (int i = events.Count - 1; i > index; i--)
                     {
                         events.RemoveAt(i);
@@ -80,10 +80,10 @@ namespace Venture
             bounds.startIndex = Events.First().TransactionIndex;
             foreach (Event e in Events)
             {
-                if (e is FuturesRecognitionEvent r && r.IsTotalDerecognition)
+                if (e is FuturesDerecognitionEvent fde && fde.IsTotalDerecognition)
                 {
-                    bounds.endDate = r.Timestamp;
-                    bounds.endIndex = r.TransactionIndex;
+                    bounds.endDate = fde.Timestamp;
+                    bounds.endIndex = fde.TransactionIndex;
                     return;
                 }
             }
@@ -135,13 +135,12 @@ namespace Venture
 
             foreach (var evt in Events.Skip(1))
             {
-                if (evt is FuturesRecognitionEvent fr)
+                if (evt is FuturesDerecognitionEvent fde)
                 {
-                    currentPrice = fr.Price;
-                    decimal amount = Common.Round((currentPrice - previousPrice) * count * Multiplier);
-                    fr.Amount = amount; // - fr.Fee ??
-                    count += fr.Count;
-                    if (fr.IsTotalDerecognition) continue;
+                    decimal amount = Common.Round((fde.Price - previousPrice) * count * Multiplier);
+                    fde.Amount = amount; // - fr.Fee ??
+                    count += fde.Count;
+                    if (fde.IsTotalDerecognition) continue;
                 }
                 if (evt is FuturesRevaluationEvent fs)
                 {
@@ -178,12 +177,12 @@ namespace Venture
             var events = GetEventsUntil(time);
             foreach (Event e in events)
             {
-                if (e is FuturesRecognitionEvent fr)
+                if (e is FuturesTransactionEvent ft)
                 {
-                    if (fr.IsTotalDerecognition)
+                    if (ft.IsTotalDerecognition)
                         count = 0;
                     else
-                        count += fr.Count;
+                        count += ft.Count;
                 }
                 if (e is FuturesRevaluationEvent fs)
                 {
@@ -206,17 +205,6 @@ namespace Venture
 
         public override decimal GetMarketPrice(TimeArg time, bool dirty)
         {
-            //if (!IsActive(time)) return 0;
-
-            //Data.Price? price = Data.Definitions.Prices.LastOrDefault(x => x.InstrumentId == AssociatedTicker && x.Timestamp <= time.Date);
-            //if (price == null)
-            //{
-            //    throw new Exception($"No price for: {UniqueId} at date: {time.Date:yyyy-MM-dd}.");
-            //}
-            //else
-            //{
-            //    return price.Value;
-            //}
             return 0;
         }
 
@@ -274,13 +262,11 @@ namespace Venture
 
         public override decimal GetMarketValue(TimeArg time, bool dirty)
         {
-            //return Common.Round(GetMarketPrice(time, dirty) * GetCount(time));
             return 0;
         }
 
         public override decimal GetAmortizedCostValue(TimeArg time, bool dirty)
         {
-            //return Common.Round(GetAmortizedCostPrice(time, dirty) * GetCount(time));
             return 0;
         }
 
@@ -394,15 +380,21 @@ namespace Venture
 
         public override decimal GetUnrealizedPurchaseFee(TimeArg time)
         {
-            // TODO: Come up with better formula.
+            decimal count = 0;
             decimal fee = 0;
 
             foreach (Event e in GetEventsUntil(time))
             {
-                if (e is FuturesRecognitionEvent evt)
+                if (e is FuturesRecognitionEvent purchase)
                 {
-                    fee += evt.Fee;
-                    if (evt.IsTotalDerecognition) return 0;
+                    count = purchase.Count;
+                    fee += purchase.Fee;
+                }
+                if (e is FuturesDerecognitionEvent sale)
+                {
+                    decimal current = Common.Round(sale.Count / count * fee);
+                    count -= sale.Count;
+                    fee -= current;
                 }
             }
             return fee;

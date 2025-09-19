@@ -34,6 +34,7 @@ namespace Venture.Modules
             UniqueId = e.UniqueId;
 
             if (e is FuturesRecognitionEvent) Type = "Recognition";
+            if (e is FuturesDerecognitionEvent) Type = "Derecognition";
             if (e is FuturesRevaluationEvent) Type = "Revaluation";
 
             Timestamp = e.Timestamp;
@@ -45,7 +46,7 @@ namespace Venture.Modules
             CountNew = CountPrevious;
             Multiplier = multiplier;
 
-            if (e is FuturesRecognitionEvent fre)
+            if (e is FuturesTransactionEvent fre)
             {
                 CountChange = fre.Count;
                 CountNew += fre.Count;

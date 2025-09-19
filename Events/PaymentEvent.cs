@@ -70,7 +70,7 @@ namespace Venture
             FXRate = fl.FXRate;
         }
 
-        public PaymentEvent(Cash parentAsset, FuturesRecognitionEvent fr, decimal amount, PaymentDirection direction) : base(parentAsset, fr.Timestamp)
+        public PaymentEvent(Cash parentAsset, FuturesTransactionEvent fr, decimal amount, PaymentDirection direction) : base(parentAsset, fr.Timestamp)
         {
             UniqueId = $"Payment_FuturesRecognition_{fr.ParentAsset.InstrumentUniqueId}_{fr.TransactionIndex}_{fr.Timestamp.ToString("yyyyMMdd")}";
             AssociatedEvent = fr;

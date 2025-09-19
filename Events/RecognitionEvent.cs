@@ -31,6 +31,7 @@ namespace Venture
             DirtyPrice = tr.Price;
             CleanPrice = tr.Price - parentAsset.GetAccruedInterest(tr.Timestamp);
             Fee = tr.Fee;
+            OriginalFee = Fee;
 
             Count = tr.Count;
             FXRate = tr.FXRate;

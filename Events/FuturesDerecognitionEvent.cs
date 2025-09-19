@@ -7,11 +7,12 @@ using System.Windows.Markup;
 
 namespace Venture
 {
-    public class FuturesRecognitionEvent : FuturesTransactionEvent
+    public class FuturesDerecognitionEvent : FuturesTransactionEvent
     {
-        public FuturesRecognitionEvent(Futures parentAsset, TransactionDefinition td, decimal count) : base(parentAsset, td.Timestamp)
+
+        public FuturesDerecognitionEvent(Futures parentAsset, TransactionDefinition td, decimal count) : base(parentAsset, td.Timestamp)
         {
-            UniqueId = $"FuturesRecognition_{parentAsset.UniqueId}_{td.Index}_{td.Timestamp.ToString("yyyyMMdd")}";
+            UniqueId = $"FuturesDerecognition{parentAsset.UniqueId}_{td.Index}_{td.Timestamp.ToString("yyyyMMdd")}";
             TransactionIndex = td.Index;
 
             Count = ((td is SellTransactionDefinition) ? -1 : 1) * count;

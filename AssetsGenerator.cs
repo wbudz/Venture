@@ -127,6 +127,8 @@ namespace Venture
 
         private static void RegisterCashDeduction(List<Asset> list, BuyTransactionDefinition btd, Event e)
         {
+            if (e is FuturesEvent) throw new Exception("Not intended to be used with futures.");
+
             decimal remainingAmount = (btd.AssetType != AssetType.Futures ? btd.Amount : 0) + btd.Fee;
             if (remainingAmount == 0) throw new Exception("Cash deduction attempted with amount equal to 0.");
 
@@ -154,6 +156,8 @@ namespace Venture
 
         private static void RegisterCashDeduction(List<Asset> list, SellTransactionDefinition std, Event e)
         {
+            if (e is FuturesEvent) throw new Exception("Not intended to be used with futures.");
+
             // In case of sale transaction only fee is deducted.
             // This happens only for sales involving futures.
             // Otherwise, fee is deducted from amount gained in sale.
@@ -205,11 +209,17 @@ namespace Venture
             }
         }
 
-        private static void RegisterCashDeduction(List<Asset> list, FuturesRecognitionEvent fr)
+        private static void RegisterCashDeduction(List<Asset> list, FuturesTransactionEvent fr)
         {
-            if (fr.Amount - fr.Fee >= 0) throw new Exception("Cash deduction can be created only from event with negative amount.");
-
-            decimal remainingAmount = Math.Abs(fr.Amount) + fr.Fee;
+            decimal remainingAmount = 0;
+            if (fr.Amount - fr.Fee >= 0)
+            {
+                remainingAmount = fr.Fee;
+            }
+            else
+            {
+                remainingAmount = Math.Abs(fr.Amount) + fr.Fee;
+            }
 
             string portfolio = fr.ParentAsset.PortfolioId;
             string currency = fr.ParentAsset.Currency;
@@ -351,38 +361,15 @@ namespace Venture
         {
             if (String.IsNullOrEmpty(btd.PortfolioDst)) throw new Exception("Portfolio not specified for futures contract.");
 
-            Futures? futures = list.OfType<Futures>().SingleOrDefault(x =>
-                x.SecurityDefinition.UniqueId == btd.InstrumentUniqueId &&
-                x.Currency == btd.Currency &&
-                x.CashAccount == btd.AccountSrc &&
-                x.CustodyAccount == btd.AccountDst &&
-                x.PortfolioId == btd.PortfolioDst);
+            BuyTransactionDefinition? mtd = (BuyTransactionDefinition?)RegisterFuturesDerecognition(list, definition, btd);
 
-            if (futures == null)
+            if (mtd != null && mtd.Count != 0)
             {
-                futures = new Futures(btd, definition);
+                var futures = new Futures(btd, definition);
                 AddAsset(list, futures, btd.Timestamp);
                 var fr = futures.Events.OfType<FuturesRecognitionEvent>().First();
-                RegisterCashDeduction(list, btd, fr); // fee
-                FuturesBooking.Process(fr);
-            }
-            else
-            {
-                var fr = new FuturesRecognitionEvent(futures, btd);
-                futures.AddEvent(fr);
-                futures.RecalculateFlows();
-
-                // Futures valuation
-                if (fr.Amount >= 0)
-                {
-                    AddAsset(list, new Cash(fr), fr.Timestamp);
-                    RegisterCashDeduction(list, btd, fr); // fee
-                }
-                else
-                {
-                    RegisterCashDeduction(list, fr); // fee + negative valuation
-                }
-                FuturesBooking.Process(fr);
+                RegisterCashDeduction(list, fr); // fee
+                FuturesRecognitionBooking.Process(fr);
             }
         }
 
@@ -390,44 +377,69 @@ namespace Venture
         {
             if (String.IsNullOrEmpty(std.PortfolioSrc)) throw new Exception("Portfolio not specified for futures contract.");
 
-            Futures? futures = list.OfType<Futures>().SingleOrDefault(x =>
-                x.SecurityDefinition.UniqueId == std.InstrumentUniqueId &&
-                x.Currency == std.Currency &&
-                x.CashAccount == std.AccountDst &&
-                x.CustodyAccount == std.AccountSrc &&
-                x.PortfolioId == std.PortfolioSrc);
+            SellTransactionDefinition? mtd = (SellTransactionDefinition?)RegisterFuturesDerecognition(list, definition, std);
 
-            if (futures == null)
+            if (mtd != null && mtd.Count != 0)
             {
-                futures = new Futures(std, definition);
+                var futures = new Futures(std, definition);
                 AddAsset(list, futures, std.Timestamp);
                 var fr = futures.Events.OfType<FuturesRecognitionEvent>().First();
-                RegisterCashDeduction(list, std, fr); // fee
-                FuturesBooking.Process(fr);
-            }
-            else
-            {
-                var fr = new FuturesRecognitionEvent(futures, std);
-                futures.AddEvent(fr);
-                futures.RecalculateFlows();
-
-                // Futures valuation
-                if (fr.Amount >= 0)
-                {
-                    AddAsset(list, new Cash(fr), fr.Timestamp);
-                    RegisterCashDeduction(list, std, fr); // fee
-                }
-                else
-                {
-                    RegisterCashDeduction(list, fr); // fee + negative valuation
-                }
-                FuturesBooking.Process(fr);
+                RegisterCashDeduction(list, fr); // fee
+                FuturesRecognitionBooking.Process(fr);
             }
         }
 
         private static void ProcessFuturesTransaction(List<Asset> list, InstrumentDefinition definition, TransferTransactionDefinition ttr)
         {
             throw new NotImplementedException();
+        }
+
+        private static TransactionDefinition? RegisterFuturesDerecognition(List<Asset> list, InstrumentDefinition definition, TransactionDefinition td)
+        {
+            var src = list.OfType<Futures>().Where(x =>
+               x.SecurityDefinition.UniqueId == td.InstrumentUniqueId &&
+               x.Currency == td.Currency &&
+               ((td is BuyTransactionDefinition && x.CashAccount == td.AccountSrc) || (td is SellTransactionDefinition && x.CashAccount == td.AccountDst)) &&
+               ((td is BuyTransactionDefinition && x.CustodyAccount == td.AccountDst) || (td is SellTransactionDefinition && x.CustodyAccount == td.AccountSrc)) &&
+               ((td is BuyTransactionDefinition && x.PortfolioId == td.PortfolioDst) || (td is SellTransactionDefinition && x.PortfolioId == td.PortfolioSrc))).ToList();
+
+            decimal sgn = td is SellTransactionDefinition ? -1 : 1;
+            decimal remainingCount = td.Count * sgn;
+            decimal remainingFee = td.Fee;
+
+            foreach (var s in src)
+            {
+                var currentCount = s.GetCount(new TimeArg(TimeArgDirection.Start, td.SettlementDate, td.Index));
+                if (currentCount == 0) continue;
+                if (sgn < 0 && currentCount < 0) continue;
+                if (sgn > 0 && currentCount > 0) continue;
+
+                decimal derecognizedCount = sgn > 0 ? Math.Max(remainingCount, currentCount) : Math.Min(-remainingCount, currentCount);
+                decimal fee = Math.Abs(Common.Round(remainingFee * derecognizedCount / remainingCount));
+                td = TransactionDefinition.CreateModifiedTransaction<TransactionDefinition>(td, td.Count - derecognizedCount, td.Price, fee);
+                var fde = new FuturesDerecognitionEvent(s, td, derecognizedCount);
+                s.AddEvent(fde);
+                s.RecalculateFlows();
+                FuturesDerecognitionBooking.Process(fde);
+
+                // Derecognition settlement
+                if (fde.Amount - fde.Fee >= 0)
+                {
+                    AddAsset(list, new Cash(fde), fde.Timestamp);
+                }
+                else
+                {
+                    RegisterCashDeduction(list, fde); // fee
+                }
+
+                remainingCount -= derecognizedCount;
+                remainingFee -= fee;
+
+                if (remainingCount == 0) return null; // whole transaction covered by derecognition
+            }
+
+            // some part of transaction remained, a new futures contract will have to be created
+            return td;
         }
 
         private static void AddAsset(List<Asset> list, Asset asset, DateTime timestamp)
@@ -468,7 +480,7 @@ namespace Venture
                     {
                         RegisterCashDeduction(output, ev);
                     }
-                    FuturesBooking.Process(ev);
+                    // TODO: FuturesValuationBooking.Process(ev);
                 }
             }
 

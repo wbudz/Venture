@@ -51,7 +51,7 @@ namespace Venture
 
         public override string ToString()
         {
-            return $"AccountEntry: {Date:yyyy-MM-dd} ({Description}): {Amount:D2} {Account.Currency}.";
+            return "AccountEntry: " + Date.ToString("yyyy-MM-dd") + " (" + Description + "): " + Amount + " " + Account.Currency + ".";
         }
     }
 }

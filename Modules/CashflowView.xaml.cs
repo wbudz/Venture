@@ -50,6 +50,7 @@ namespace Venture.Modules
                 Int32.Parse(EndYearComboBox.SelectedItem.ToString() ?? Common.CurrentDate.Year.ToString()),
                 Int32.Parse(EndMonthComboBox.SelectedItem.ToString() ?? Common.CurrentDate.Month.ToString()),
                 1);
+            if (endDate < startDate) endDate = startDate;
             endDate = new DateTime(endDate.Year, endDate.Month, DateTime.DaysInMonth(endDate.Year, endDate.Month));
 
             foreach (var asset in Common.Assets.OfType<Cash>())

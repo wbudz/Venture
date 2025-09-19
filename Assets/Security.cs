@@ -151,7 +151,7 @@ namespace Venture
                 if (e is RecognitionEvent purchase)
                 {
                     count = purchase.Count;
-                    fee += purchase.Fee;
+                    fee += purchase.OriginalFee;
                 }
                 if (e is DerecognitionEvent sale)
                 {

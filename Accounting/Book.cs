@@ -69,6 +69,14 @@ namespace Venture
                 .Sum(x => x.GetNetAmount(date));
         }
 
+        public decimal GetTaxableResult(DateTime date, PortfolioDefinition? portfolio)
+        {
+            return accounts.Values.Where(x => x.IsIncomeTaxable
+                && !Globals.TaxFreePortfolios.Contains(x.PortfolioId)
+                && (portfolio == null || x.Portfolio == portfolio))
+                .Sum(x => x.GetNetAmount(date));
+        }
+
         public decimal GetNonTaxableResult(DateTime date, PortfolioDefinition? portfolio)
         {
             return accounts.Values.Where(x => x.AccountType == AccountType.NonTaxableResult

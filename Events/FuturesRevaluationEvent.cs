@@ -9,10 +9,9 @@ namespace Venture
 {
     public class FuturesRevaluationEvent : FuturesEvent
     {
-
         public FuturesRevaluationEvent(Futures parentAsset, decimal count, decimal price, decimal amount, DateTime date) : base(parentAsset, date)
         {
-            UniqueId = $"FuturesSettlement_{parentAsset.UniqueId}_{date.ToString("yyyyMMdd")}";
+            UniqueId = $"FuturesRevaluation_{parentAsset.UniqueId}_{date.ToString("yyyyMMdd")}";
             TransactionIndex = -1;
 
             Amount = amount;
