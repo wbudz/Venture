@@ -202,7 +202,12 @@ namespace Venture.Modules
                     CashflowType = p.Direction == PaymentDirection.Outflow ? CashflowType.Outflow_Futures : CashflowType.Inflow_Futures;
                 }
             }
-
+            else if (p.AssociatedManualEvent != null)
+            {
+                if (p.AssociatedManualEvent is AdditionalPremiumEventDefinition) CashflowType = CashflowType.Inflow_OtherPayment;
+                if (p.AssociatedManualEvent is AdditionalChargeEventDefinition) CashflowType = CashflowType.Outflow_OtherPayment;
+                if (p.AssociatedManualEvent is EquityRedemptionEventDefinition) CashflowType = CashflowType.Inflow_Redemption;
+            }
         }
     }
 }

@@ -246,16 +246,13 @@ namespace Venture
 
         public override string AdjustmentType { get { return "IncomeTaxDeductionBooking"; } }
 
-        //public string Portfolio { get; private set; }
-
         public string Description { get; private set; }
 
         public decimal Amount { get; private set; }
 
         public IncomeTaxDeductionBookingEventDefinition(Dictionary<string, string> data) : base(data)
         {
-            //Portfolio = data["text1"];
-            Description = data["text2"];
+            Description = data["text1"];
             Amount = ConvertToDecimal(data["amount1"]);
         }
     }

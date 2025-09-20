@@ -48,21 +48,21 @@ namespace Venture
                 /// <summary>
                 /// Asset where accrued expense resulting from tax calculated but not yet charged is booked.
                 /// </summary>
-                var accountTaxReserves = Common.MainBook.GetAccount(AccountType.TaxReserves, null, portfolio.Key, Common.LocalCurrency);
+                var accountTaxReserves = Common.MainBook.GetAccount(AccountType.TaxReserves, null, portfolio.Key, Globals.LocalCurrency);
 
                 /// <summary>
                 /// Account where liabilities resulting from tax charged is booked.
                 /// </summary>
-                var accountTaxLiabilities = Common.MainBook.GetAccount(AccountType.TaxLiabilities, null, portfolio.Key, Common.LocalCurrency);
+                var accountTaxLiabilities = Common.MainBook.GetAccount(AccountType.TaxLiabilities, null, portfolio.Key, Globals.LocalCurrency);
 
                 /// <summary>
                 /// Account where tax that will be deducted and paid from current year's result is booked.
                 /// </summary>
-                var accountIncomeTax = Common.MainBook.GetAccount(AccountType.Tax, null, portfolio.Key, Common.LocalCurrency);
+                var accountIncomeTax = Common.MainBook.GetAccount(AccountType.Tax, null, portfolio.Key, Globals.LocalCurrency);
 
-                var accountIncomeTaxDeduction = Common.TaxBook.GetAccount(AccountType.TaxDeduction, null, portfolio.Key, Common.LocalCurrency);
+                var accountIncomeTaxDeduction = Common.TaxBook.GetAccount(AccountType.TaxDeduction, null, portfolio.Key, Globals.LocalCurrency);
 
-                var accountPriorPeriodResult = Common.TaxBook.GetAccount(AccountType.PriorPeriodResult, null, portfolio.Key, Common.LocalCurrency);
+                var accountPriorPeriodResult = Common.TaxBook.GetAccount(AccountType.PriorPeriodResult, null, portfolio.Key, Globals.LocalCurrency);
 
                 // Get previous months tax
                 decimal previousTax = 0;

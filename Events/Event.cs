@@ -19,6 +19,8 @@ namespace Venture
 
         public decimal FXRate { get; protected set; } = 1;
 
+        public ManualEventDefinition? AssociatedManualEvent = null;
+
         public Event(Asset parentAsset, DateTime timestamp)
         {
             ParentAsset = parentAsset;

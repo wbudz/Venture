@@ -93,6 +93,7 @@ namespace Venture
         {
             UniqueId = $"Payment_AdditionalPremium_{mn.Portfolio}_{mn.Timestamp.ToString("yyyyMMdd")}";
             AssociatedEvent = null;
+            AssociatedManualEvent = mn;
             Direction = PaymentDirection.Inflow;
             Amount = mn.Amount;
             FXRate = mn.FXRate;
@@ -103,6 +104,7 @@ namespace Venture
         {
             UniqueId = $"Payment_AdditionalCharge_{mn.Portfolio}_{mn.Timestamp.ToString("yyyyMMdd")}";
             AssociatedEvent = null;
+            AssociatedManualEvent = mn;
             Direction = PaymentDirection.Outflow;
             Amount = amount;
             FXRate = mn.FXRate;
@@ -111,7 +113,8 @@ namespace Venture
         public PaymentEvent(Cash parentAsset, EquityRedemptionEventDefinition mn, decimal amount) : base(parentAsset, mn.Timestamp)
         {
             UniqueId = $"Payment_EquityRedemption_{mn.InstrumentUniqueId}_{mn.Timestamp.ToString("yyyyMMdd")}";
-            AssociatedEvent = null; // should point to equity redemption event (derecognition)
+            AssociatedEvent = null;
+            AssociatedManualEvent = mn;
             Direction = PaymentDirection.Inflow;
             Amount = amount;
             FXRate = FX.GetRate(mn.Timestamp, parentAsset.Currency);

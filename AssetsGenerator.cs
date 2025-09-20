@@ -492,18 +492,21 @@ namespace Venture
                 if (mn is AdditionalPremiumEventDefinition ape)
                 {
                     ProcessAdditionalPremium(output, ape);
+                    ManualEventBooking.Process(ape);
                 }
                 if (mn is AdditionalChargeEventDefinition ace)
                 {
                     ProcessAdditionalCharge(output, ace);
+                    ManualEventBooking.Process(ace);
                 }
                 if (mn is EquityRedemptionEventDefinition ere)
                 {
-                    ProcessEquityRedemption(output, ere);
+                    ProcessEquityRedemption(output, ere); // Accounting impact inside
                 }
                 if (mn is EquitySpinOffEventDefinition eso)
                 {
                     ProcessEquitySpinOff(output, eso);
+                    // No immediate accounting impact of equity spin-off.
                 }
 
                 manual.Remove(mn);
@@ -540,10 +543,9 @@ namespace Venture
             {
                 previousDate = Financial.Calendar.AddAndAlignToEndDate(date, -1, Financial.Calendar.TimeStep.Yearly);
 
-                assets = output.Where(x => x.IsActive(previousDate) || x.IsActive(currentDate));
-                foreach (var portfolio in assets.Select(x => x.Portfolio).Distinct().Append(null))
+                foreach (var portfolio in Definitions.Portfolios.Append(null))
                 {
-                    foreach (var currency in assets.Select(x => x.Currency).Distinct())
+                    foreach (var currency in Globals.SupportedCurrencies)
                     {
                         EndOfYearBooking.Process(portfolio, currency, currentDate.AddDays(1));
                     }
@@ -607,6 +609,8 @@ namespace Venture
 
                 // Process cash payment
                 newAssets.Add(new Cash(mn, asset, evt.Amount));
+
+                ManualEventBooking.Process(mn, evt);
             }
             newAssets.ForEach(x => AddAsset(output, x, mn.Timestamp));
         }
@@ -700,14 +704,12 @@ namespace Venture
                 decimal diff = Common.Round(transactionAmount - derecognitionAmount);
                 var evt = output.OrderByDescending(x => x.Amount).First();
                 evt.Amount += diff;
-                //throw new Exception("ReconcileDerecognitionAmounts activated."); //TODO: remove
             }
             if (feeAmount != feeSum)
             {
                 decimal diff = Common.Round(feeAmount - feeSum);
                 var evt = output.OrderByDescending(x => x.Amount).First();
                 evt.Fee += diff;
-                //throw new Exception("ReconcileDerecognitionAmounts activated."); //TODO: remove
             }
         }
     }
