@@ -95,8 +95,8 @@ namespace Venture
         {
             // Happens at creation of futures, so there is only one Recognition event and MaturityDate.
             var prices = Definitions.Prices.Where(x => x.AssetId == AssociatedTicker);
-            decimal previousPrice = GetPurchasePrice(false);
-            decimal currentPrice = GetPurchasePrice(false);
+            decimal previousPrice = GetPurchasePrice(false, false);
+            decimal currentPrice = GetPurchasePrice(false, false);
 
             DateTime previousEnd = GetPurchaseDate();
             DateTime currentEnd = Financial.Calendar.GetEndDate(previousEnd, Financial.Calendar.TimeStep.Monthly);
@@ -129,8 +129,8 @@ namespace Venture
         public void RecalculateFlows()
         {
             var prices = Definitions.Prices.Where(x => x.AssetId == AssociatedTicker);
-            decimal previousPrice = GetPurchasePrice(false);
-            decimal currentPrice = GetPurchasePrice(false);
+            decimal previousPrice = GetPurchasePrice(false, false);
+            decimal currentPrice = GetPurchasePrice(false, false);
             decimal count = GetCount();
 
             foreach (var evt in Events.Skip(1))
@@ -218,7 +218,7 @@ namespace Venture
             return 0;
         }
 
-        public override decimal GetPurchasePrice(TimeArg time, bool dirty)
+        public override decimal GetPurchasePrice(TimeArg time, bool dirty, bool original)
         {
             if (!IsActive(time)) return 0;
 
@@ -242,7 +242,7 @@ namespace Venture
 
         public override decimal GetNominalAmount(TimeArg time)
         {
-            return Common.Round(GetPurchaseAmount(time, false));
+            return Common.Round(GetPurchaseAmount(time, false, false));
         }
 
         public override decimal GetInterestAmount(TimeArg time)
@@ -250,14 +250,14 @@ namespace Venture
             return 0;
         }
 
-        public override decimal GetPurchaseAmount(TimeArg time, bool dirty)
+        public override decimal GetPurchaseAmount(TimeArg time, bool dirty, bool original)
         {
-            return Common.Round(GetPurchasePrice(time, dirty) * GetCount(time) * Multiplier);
+            return Common.Round(GetPurchasePrice(time, dirty, original) * GetCount(time) * Multiplier);
         }
 
-        public override decimal GetPurchaseAmount(bool dirty)
+        public override decimal GetPurchaseAmount(bool dirty, bool original)
         {
-            return Common.Round(GetPurchasePrice(dirty) * GetCount() * Multiplier);
+            return Common.Round(GetPurchasePrice(dirty, original) * GetCount() * Multiplier);
         }
 
         public override decimal GetMarketValue(TimeArg time, bool dirty)

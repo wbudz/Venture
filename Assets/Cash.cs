@@ -17,7 +17,7 @@ namespace Venture
 
             UniqueId = $"Cash_Payment_{ptd.Index}";
             AssetType = AssetType.Cash;
-            Portfolio = Definitions.Portfolios.Single(x=>x.UniqueId == ptd.PortfolioDst);
+            Portfolio = Definitions.Portfolios.Single(x => x.UniqueId == ptd.PortfolioDst);
             Currency = ptd.Currency;
             ValuationClass = ValuationClass.AvailableForSale;
 
@@ -174,7 +174,7 @@ namespace Venture
             return 1;
         }
 
-        public override decimal GetPurchasePrice(TimeArg time, bool dirty)
+        public override decimal GetPurchasePrice(TimeArg time, bool dirty, bool original)
         {
             return IsActive(time) ? 1 : 0;
         }
@@ -220,12 +220,12 @@ namespace Venture
             return 0;
         }
 
-        public override decimal GetPurchaseAmount(TimeArg time, bool dirty)
+        public override decimal GetPurchaseAmount(TimeArg time, bool dirty, bool original)
         {
             return GetNominalAmount(time);
         }
 
-        public override decimal GetPurchaseAmount(bool dirty)
+        public override decimal GetPurchaseAmount(bool dirty, bool original)
         {
             return GetNominalAmount();
         }

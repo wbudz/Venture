@@ -35,6 +35,14 @@ namespace Venture
 
         public decimal AmortizedCostCleanAmount { get; protected set; } = 0;
 
+        public decimal OriginalPurchaseDirtyPrice { get; protected set; } = 0;
+
+        public decimal OriginalPurchaseCleanPrice { get; protected set; } = 0;
+
+        public decimal OriginalPurchaseDirtyAmount { get; protected set; } = 0;
+
+        public decimal OriginalPurchaseCleanAmount { get; protected set; } = 0;
+
         public decimal Tax { get; set; } = 0;
 
         public bool IsTotal { get; protected set; } = false;
@@ -51,8 +59,10 @@ namespace Venture
             FXRate = std.FXRate;
 
             var time = new TimeArg(TimeArgDirection.Start, std.Timestamp, std.Index);
-            PurchaseDirtyPrice = parentAsset.GetPurchasePrice(true);
-            PurchaseCleanPrice = parentAsset.GetPurchasePrice(false);
+            PurchaseDirtyPrice = parentAsset.GetPurchasePrice(true, false);
+            PurchaseCleanPrice = parentAsset.GetPurchasePrice(false, false);
+            OriginalPurchaseDirtyPrice = parentAsset.GetPurchasePrice(true, true);
+            OriginalPurchaseCleanPrice = parentAsset.GetPurchasePrice(false, true);
             AmortizedCostDirtyPrice = parentAsset.GetAmortizedCostPrice(time, true);
             AmortizedCostCleanPrice = parentAsset.GetAmortizedCostPrice(time, false);
 
@@ -62,6 +72,8 @@ namespace Venture
                 CleanAmount = Common.Round(CleanPrice / 100 * std.Count * ((Bond)parentAsset).SecurityDefinition.UnitPrice);
                 PurchaseDirtyAmount = Common.Round(PurchaseDirtyPrice / 100 * std.Count * ((Bond)parentAsset).SecurityDefinition.UnitPrice);
                 PurchaseCleanAmount = Common.Round(PurchaseCleanPrice / 100 * std.Count * ((Bond)parentAsset).SecurityDefinition.UnitPrice);
+                OriginalPurchaseDirtyAmount = Common.Round(OriginalPurchaseDirtyPrice / 100 * std.Count * ((Bond)parentAsset).SecurityDefinition.UnitPrice);
+                OriginalPurchaseCleanAmount = Common.Round(OriginalPurchaseCleanPrice / 100 * std.Count * ((Bond)parentAsset).SecurityDefinition.UnitPrice);
                 AmortizedCostDirtyAmount = Common.Round(AmortizedCostDirtyPrice / 100 * std.Count * ((Bond)parentAsset).SecurityDefinition.UnitPrice);
                 AmortizedCostCleanAmount = Common.Round(AmortizedCostCleanPrice / 100 * std.Count * ((Bond)parentAsset).SecurityDefinition.UnitPrice);
             }
@@ -71,6 +83,8 @@ namespace Venture
                 CleanAmount = Common.Round(CleanPrice * std.Count);
                 PurchaseDirtyAmount = Common.Round(PurchaseDirtyPrice * std.Count);
                 PurchaseCleanAmount = Common.Round(PurchaseCleanPrice * std.Count);
+                OriginalPurchaseDirtyAmount = Common.Round(OriginalPurchaseDirtyPrice * std.Count);
+                OriginalPurchaseCleanAmount = Common.Round(OriginalPurchaseCleanPrice * std.Count);
                 AmortizedCostDirtyAmount = Common.Round(AmortizedCostDirtyPrice * std.Count);
                 AmortizedCostCleanAmount = Common.Round(AmortizedCostCleanPrice * std.Count);
             }
@@ -94,8 +108,10 @@ namespace Venture
             FXRate = ttd.FXRate;
 
             var time = new TimeArg(TimeArgDirection.Start, ttd.Timestamp, ttd.Index);
-            PurchaseDirtyPrice = parentAsset.GetPurchasePrice(true);
-            PurchaseCleanPrice = parentAsset.GetPurchasePrice(false);
+            PurchaseDirtyPrice = parentAsset.GetPurchasePrice(true, false);
+            PurchaseCleanPrice = parentAsset.GetPurchasePrice(false, false);
+            OriginalPurchaseDirtyPrice = parentAsset.GetPurchasePrice(true, true);
+            OriginalPurchaseCleanPrice = parentAsset.GetPurchasePrice(false, true);
             AmortizedCostDirtyPrice = parentAsset.GetAmortizedCostPrice(time, true);
             AmortizedCostCleanPrice = parentAsset.GetAmortizedCostPrice(time, false);
 
@@ -104,6 +120,8 @@ namespace Venture
                 Amount = Common.Round(ttd.Price / 100 * ttd.Count * ((Bond)parentAsset).SecurityDefinition.UnitPrice);
                 PurchaseDirtyAmount = Common.Round(PurchaseDirtyPrice / 100 * ttd.Count * ((Bond)parentAsset).SecurityDefinition.UnitPrice);
                 PurchaseCleanAmount = Common.Round(PurchaseCleanPrice / 100 * ttd.Count * ((Bond)parentAsset).SecurityDefinition.UnitPrice);
+                OriginalPurchaseDirtyAmount = Common.Round(OriginalPurchaseDirtyPrice / 100 * ttd.Count * ((Bond)parentAsset).SecurityDefinition.UnitPrice);
+                OriginalPurchaseCleanAmount = Common.Round(OriginalPurchaseCleanPrice / 100 * ttd.Count * ((Bond)parentAsset).SecurityDefinition.UnitPrice);
                 AmortizedCostDirtyAmount = Common.Round(AmortizedCostDirtyPrice / 100 * ttd.Count * ((Bond)parentAsset).SecurityDefinition.UnitPrice);
                 AmortizedCostCleanAmount = Common.Round(AmortizedCostCleanPrice / 100 * ttd.Count * ((Bond)parentAsset).SecurityDefinition.UnitPrice);
             }
@@ -112,6 +130,8 @@ namespace Venture
                 Amount = Common.Round(ttd.Price * ttd.Count);
                 PurchaseDirtyAmount = Common.Round(PurchaseDirtyPrice * ttd.Count);
                 PurchaseCleanAmount = Common.Round(PurchaseCleanPrice * ttd.Count);
+                OriginalPurchaseDirtyAmount = Common.Round(OriginalPurchaseDirtyPrice * ttd.Count);
+                OriginalPurchaseCleanAmount = Common.Round(OriginalPurchaseCleanPrice * ttd.Count);
                 AmortizedCostDirtyAmount = Common.Round(AmortizedCostDirtyPrice * ttd.Count);
                 AmortizedCostCleanAmount = Common.Round(AmortizedCostCleanPrice * ttd.Count);
             }
@@ -137,12 +157,16 @@ namespace Venture
             FXRate = FX.GetRate(manual.Timestamp, parentAsset.Currency);
 
             var time = new TimeArg(TimeArgDirection.Start, manual.Timestamp);
-            PurchaseDirtyPrice = parentAsset.GetPurchasePrice(true);
-            PurchaseCleanPrice = parentAsset.GetPurchasePrice(false);
+            PurchaseDirtyPrice = parentAsset.GetPurchasePrice(true, false);
+            PurchaseCleanPrice = parentAsset.GetPurchasePrice(false, false);
+            OriginalPurchaseDirtyPrice = parentAsset.GetPurchasePrice(true, true);
+            OriginalPurchaseCleanPrice = parentAsset.GetPurchasePrice(false, true);
             AmortizedCostDirtyPrice = parentAsset.GetAmortizedCostPrice(time, true);
             AmortizedCostCleanPrice = parentAsset.GetAmortizedCostPrice(time, false);
             PurchaseDirtyAmount = Common.Round(PurchaseDirtyPrice * count);
             PurchaseCleanAmount = Common.Round(PurchaseCleanPrice * count);
+            OriginalPurchaseDirtyAmount = Common.Round(OriginalPurchaseDirtyPrice * count);
+            OriginalPurchaseCleanAmount = Common.Round(OriginalPurchaseCleanPrice * count);
             AmortizedCostDirtyAmount = Common.Round(AmortizedCostDirtyPrice * count);
             AmortizedCostCleanAmount = Common.Round(AmortizedCostCleanPrice * count);
 
@@ -163,12 +187,16 @@ namespace Venture
             FXRate = FX.GetRate(manual.Timestamp, parentAsset.Currency);
 
             var time = new TimeArg(TimeArgDirection.Start, manual.Timestamp);
-            PurchaseDirtyPrice = parentAsset.GetPurchasePrice(true);
-            PurchaseCleanPrice = parentAsset.GetPurchasePrice(false);
+            PurchaseDirtyPrice = parentAsset.GetPurchasePrice(true, false);
+            PurchaseCleanPrice = parentAsset.GetPurchasePrice(false, false);
+            OriginalPurchaseDirtyPrice = parentAsset.GetPurchasePrice(true, true);
+            OriginalPurchaseCleanPrice = parentAsset.GetPurchasePrice(false, true);
             AmortizedCostDirtyPrice = parentAsset.GetAmortizedCostPrice(time, true);
             AmortizedCostCleanPrice = parentAsset.GetAmortizedCostPrice(time, false);
             PurchaseDirtyAmount = Common.Round(PurchaseDirtyPrice * count);
             PurchaseCleanAmount = Common.Round(PurchaseCleanPrice * count);
+            OriginalPurchaseDirtyAmount = Common.Round(OriginalPurchaseDirtyPrice * count);
+            OriginalPurchaseCleanAmount = Common.Round(OriginalPurchaseCleanPrice * count);
             AmortizedCostDirtyAmount = Common.Round(AmortizedCostDirtyPrice * count);
             AmortizedCostCleanAmount = Common.Round(AmortizedCostCleanPrice * count);
 

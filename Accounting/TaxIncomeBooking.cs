@@ -42,7 +42,7 @@ namespace Venture
             {
                 decimal portfolioDeduction = Math.Min(Math.Max(portfolio.Value,0), unusedDeduction);
                 unusedDeduction -= portfolioDeduction;
-                decimal portfolioTax = Math.Min(Common.Round(Math.Max(portfolio.Value - portfolioDeduction, 0) * Globals.TaxRate, 0), unassignedTax);
+                decimal portfolioTax = Math.Min(Math.Ceiling(Math.Max(portfolio.Value - portfolioDeduction, 0) * Globals.TaxRate), unassignedTax);
                 unassignedTax -= portfolioTax;
 
                 /// <summary>

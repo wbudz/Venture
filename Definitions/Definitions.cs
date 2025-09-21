@@ -159,6 +159,8 @@ namespace Venture
                     case "additionalpremium": newItem = new AdditionalPremiumEventDefinition(item); break;
                     case "additionalcharge": newItem = new AdditionalChargeEventDefinition(item); break;
                     case "incometaxdeductionbooking": newItem = new IncomeTaxDeductionBookingEventDefinition(item); break;
+                    case "additionaltaxableincome": newItem = new AdditionalTaxableIncomeEventDefinition(item); break;
+                    case "additionaltaxableexpense": newItem = new AdditionalTaxableExpenseEventDefinition(item); break;
                     default:
                         throw new Exception($"Incorrect manual event definition: {item}.");
                 }

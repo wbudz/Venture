@@ -197,6 +197,8 @@ namespace Venture
 
         public decimal FXRate { get; private set; }
 
+        public bool IncomeTaxable { get; private set; }
+
         public AdditionalPremiumEventDefinition(Dictionary<string, string> data) : base(data)
         {
             Portfolio = data["text1"];
@@ -204,6 +206,7 @@ namespace Venture
             Description = data["text3"];
             Amount = ConvertToDecimal(data["amount1"]);
             FXRate = GetFXRateFromData(data["amount2"]);
+            IncomeTaxable = ConvertToBool(data["amount3"]);
         }
     }
 
@@ -223,6 +226,8 @@ namespace Venture
 
         public decimal FXRate { get; private set; }
 
+        public bool IncomeTaxable { get; private set; }
+
         public AdditionalChargeEventDefinition(Dictionary<string, string> data) : base(data)
         {
             Portfolio = data["text1"];
@@ -230,6 +235,7 @@ namespace Venture
             Description = data["text3"];
             Amount = ConvertToDecimal(data["amount1"]);
             FXRate = GetFXRateFromData(data["amount2"]);
+            IncomeTaxable = ConvertToBool(data["amount3"]);
         }
     }
 
@@ -253,6 +259,52 @@ namespace Venture
         public IncomeTaxDeductionBookingEventDefinition(Dictionary<string, string> data) : base(data)
         {
             Description = data["text1"];
+            Amount = ConvertToDecimal(data["amount1"]);
+        }
+    }
+
+    public class AdditionalTaxableIncomeEventDefinition : NonModifyingManualEventDefinition
+    {
+        public override string UniqueId { get { return $"{AdjustmentType}_{Timestamp:yyyyMMdd}_{Portfolio}"; } }
+
+        public override string AdjustmentType { get { return "AdditionalTaxableIncome"; } }
+
+        public string Portfolio { get; private set; }
+
+        public string AssetType { get; private set; }
+
+        public string Description { get; private set; }
+
+        public decimal Amount { get; private set; }
+
+        public AdditionalTaxableIncomeEventDefinition(Dictionary<string, string> data) : base(data)
+        {
+            Portfolio = data["text1"];
+            AssetType = data["text2"];
+            Description = data["text3"];
+            Amount = ConvertToDecimal(data["amount1"]);
+        }
+    }
+
+    public class AdditionalTaxableExpenseEventDefinition : NonModifyingManualEventDefinition
+    {
+        public override string UniqueId { get { return $"{AdjustmentType}_{Timestamp:yyyyMMdd}_{Portfolio}"; } }
+
+        public override string AdjustmentType { get { return "AdditionalTaxableExpense"; } }
+
+        public string Portfolio { get; private set; }
+
+        public string AssetType { get; private set; }
+
+        public string Description { get; private set; }
+
+        public decimal Amount { get; private set; }
+
+        public AdditionalTaxableExpenseEventDefinition(Dictionary<string, string> data) : base(data)
+        {
+            Portfolio = data["text1"];
+            AssetType = data["text2"];
+            Description = data["text3"];
             Amount = ConvertToDecimal(data["amount1"]);
         }
     }

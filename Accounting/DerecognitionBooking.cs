@@ -46,19 +46,19 @@ namespace Venture
 
                 var time = new TimeArg(TimeArgDirection.Start, std.Timestamp, std.Index);
 
-                foreach (var e in events)
-                {
-                    assetDerecognitionAmount += book.ApplyTaxRules ? e.PurchaseDirtyAmount : e.AmortizedCostDirtyAmount;
-                    purchaseFee += book.ApplyTaxRules ? Common.Round(e.Count / e.ParentAsset.GetCount(time) * e.ParentAsset.GetUnrealizedPurchaseFee(time)) : 0;
-                    tax += e.Tax;
-                }
-
                 string description = $"Asset sale of {std.AssetId} ";
 
                 DateTime bookingDate;
                 if (book.ApplyTaxRules)
                 {
                     // REALIZED PROFIT: SALE AMOUNT - PURCHASE AMOUNT
+
+                    foreach (var e in events)
+                    {
+                        assetDerecognitionAmount += e.OriginalPurchaseDirtyAmount;
+                        purchaseFee += Common.Round(e.Count / e.ParentAsset.GetCount(time) * e.ParentAsset.GetUnrealizedPurchaseFee(time));
+                        tax += e.Tax;
+                    }
 
                     /// <summary>
                     /// Reserves account which holds purchase fees for unsold assets - these may be book costs but not tax costs
@@ -71,35 +71,52 @@ namespace Venture
                     var accountRealizedIncomeRecognition = book.GetAccount(AccountType.RealizedIncome, std.AssetType, portfolio, std.Currency);
                     var accountRealizedExpenseRecognition = book.GetAccount(AccountType.RealizedExpense, std.AssetType, portfolio, std.Currency);
 
+                    var accountNonTaxableResult = book.GetAccount(AccountType.NonTaxableResult, std.AssetType, portfolio, std.Currency);
+
                     bookingDate = std.SettlementDate;
 
                     book.Enqueue(accountAssetDerecognition, bookingDate, std.Index, description + "(asset derecognition)", -assetDerecognitionAmount);
                     book.Enqueue(accountCashSettlement, bookingDate, std.Index, description + "(sale amount payment)", std.Amount);
                     book.Enqueue(accountCashSettlement, bookingDate, std.Index, description + "(sale fee payment)", -std.Fee);
-                    book.Enqueue(accountFeeCost, bookingDate, std.Index, description + "(sale fee cost recognition)", std.Fee);
-                    book.Enqueue(accountUnrealizedFeeDerecognition, bookingDate, std.Index, description + "(purchase fee deferred tax asset derecognition)", -purchaseFee);
-                    book.Enqueue(accountFeeCost, bookingDate, std.Index, description + "(purchase fee cost recognition)", purchaseFee);
 
-                    if ((std.AssetType == AssetType.MoneyMarketFund || std.AssetType == AssetType.EquityMixedFund || std.AssetType == AssetType.TreasuryBondsFund || std.AssetType == AssetType.CorporateBondsFund)
-                        && bookingDate <= Globals.TaxableFundSaleEndDate)
+                    if (Globals.TaxFreePortfolios.Contains(portfolio.UniqueId))
                     {
-                        // Funds (pre-charged tax)      
-                        var accountPrechargedTax = book.GetAccount(AccountType.PrechargedTax, std.AssetType, portfolio, std.Currency);
-                        var accountNonTaxableResult = book.GetAccount(AccountType.NonTaxableResult, std.AssetType, portfolio, std.Currency);
-                        book.Enqueue(accountCashSettlement, bookingDate, std.Index, description + "(pre-charged tax)", -tax);
-                        book.Enqueue(accountPrechargedTax, bookingDate, std.Index, description + "(pre-charged tax)", tax);
-                        book.Enqueue(accountNonTaxableResult, bookingDate, std.Index, description + "(expense)", assetDerecognitionAmount - std.Amount);
+                        book.Enqueue(accountNonTaxableResult, bookingDate, std.Index, description + "(sale fee cost recognition)", std.Fee);
+                        book.Enqueue(accountNonTaxableResult, bookingDate, std.Index, description + "(result)", assetDerecognitionAmount - std.Amount);
                     }
                     else
                     {
-                        // Non-funds (result impacts taxable income)
-                        book.Enqueue(accountRealizedIncomeRecognition, bookingDate, std.Index, description + "(income)", -std.Amount);
-                        book.Enqueue(accountRealizedExpenseRecognition, bookingDate, std.Index, description + "(expense)", assetDerecognitionAmount);
+                        book.Enqueue(accountFeeCost, bookingDate, std.Index, description + "(sale fee cost recognition)", std.Fee);
+                        book.Enqueue(accountUnrealizedFeeDerecognition, bookingDate, std.Index, description + "(purchase fee deferred tax asset derecognition)", -purchaseFee);
+                        book.Enqueue(accountFeeCost, bookingDate, std.Index, description + "(purchase fee cost recognition)", purchaseFee);
+
+                        if ((std.AssetType == AssetType.MoneyMarketFund || std.AssetType == AssetType.EquityMixedFund || std.AssetType == AssetType.TreasuryBondsFund || std.AssetType == AssetType.CorporateBondsFund)
+                            && bookingDate <= Globals.TaxableFundSaleEndDate)
+                        {
+                            // Funds (pre-charged tax)      
+                            var accountPrechargedTax = book.GetAccount(AccountType.PrechargedTax, std.AssetType, portfolio, std.Currency);
+                            book.Enqueue(accountCashSettlement, bookingDate, std.Index, description + "(pre-charged tax)", -tax);
+                            book.Enqueue(accountPrechargedTax, bookingDate, std.Index, description + "(pre-charged tax)", tax);
+                            book.Enqueue(accountNonTaxableResult, bookingDate, std.Index, description + "(expense)", assetDerecognitionAmount - std.Amount);
+                        }
+                        else
+                        {
+                            // Non-funds (result impacts taxable income)
+                            book.Enqueue(accountRealizedIncomeRecognition, bookingDate, std.Index, description + "(income)", -std.Amount);
+                            book.Enqueue(accountRealizedExpenseRecognition, bookingDate, std.Index, description + "(expense)", assetDerecognitionAmount);
+                        }
                     }
                 }
                 else
                 {
                     // REALIZED PROFIT: SALE AMOUNT - AMORTIZED DIRTY AMOUNT ON THE DAY OF SALE
+
+                    foreach (var e in events)
+                    {
+                        assetDerecognitionAmount += e.AmortizedCostDirtyAmount;
+                        purchaseFee += 0;
+                        tax += e.Tax;
+                    }
 
                     bookingDate = std.Timestamp;
 

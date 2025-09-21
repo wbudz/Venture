@@ -125,7 +125,7 @@ namespace Venture
             YieldsToMaturity.Clear();
             // Purchase YTM
             DateTime date = GetPurchaseDate();
-            double price = (double)GetPurchasePrice(false);
+            double price = (double)GetPurchasePrice(false, false);
             double couponRate = (double)GetCouponRate(date);
             double ytm = Financial.FixedIncome.Yield(date, MaturityDate, couponRate, price, 100, CouponFreq, SecurityDefinition.DayCountConvention);
             YieldsToMaturity.Add((date, ytm));
@@ -251,14 +251,14 @@ namespace Venture
             return Common.Round(GetAccruedInterest(time.Date) / 100 * GetNominalAmount(time));
         }
 
-        public override decimal GetPurchaseAmount(TimeArg time, bool dirty)
+        public override decimal GetPurchaseAmount(TimeArg time, bool dirty, bool original)
         {
-            return Common.Round(GetPurchasePrice(time, dirty) / 100 * GetNominalAmount(time));
+            return Common.Round(GetPurchasePrice(time, dirty, original) / 100 * GetNominalAmount(time));
         }
 
-        public override decimal GetPurchaseAmount(bool dirty)
+        public override decimal GetPurchaseAmount(bool dirty, bool original)
         {
-            return Common.Round(GetPurchasePrice(dirty) / 100 * GetNominalAmount());
+            return Common.Round(GetPurchasePrice(dirty, original) / 100 * GetNominalAmount());
         }
 
         public override decimal GetMarketValue(TimeArg time, bool dirty)

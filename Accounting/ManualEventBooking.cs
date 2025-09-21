@@ -18,9 +18,19 @@ namespace Venture
 
                 var accountCashSettlement = book.GetAccount(AccountType.Assets, AssetType.Cash, portfolio, ape.Currency);
                 var accountIncome = book.GetAccount(AccountType.OrdinaryIncomeInflows, AssetType.Cash, portfolio, ape.Currency);
+                var accountNonTaxableResult = book.GetAccount(AccountType.NonTaxableResult, AssetType.Cash, portfolio, ape.Currency);
 
-                book.Enqueue(accountCashSettlement, ape.Timestamp, -1, "Additional premium", ape.Amount);
-                book.Enqueue(accountIncome, ape.Timestamp, -1, "Additional premium", -ape.Amount);
+                string description = ape.Description;
+
+                book.Enqueue(accountCashSettlement, ape.Timestamp, -1, "Additional premium " + description, ape.Amount);
+                if (book.ApplyTaxRules && !ape.IncomeTaxable)
+                {
+                    book.Enqueue(accountNonTaxableResult, ape.Timestamp, -1, "Additional premium " + description, -ape.Amount);
+                }
+                else
+                {
+                    book.Enqueue(accountIncome, ape.Timestamp, -1, "Additional premium " + description, -ape.Amount);
+                }
 
                 book.Commit();
             }
@@ -33,10 +43,20 @@ namespace Venture
                 PortfolioDefinition? portfolio = Definitions.Portfolios.SingleOrDefault(x => x.UniqueId == ace.Portfolio);
 
                 var accountCashSettlement = book.GetAccount(AccountType.Assets, AssetType.Cash, portfolio, ace.Currency);
-                var accountIncome = book.GetAccount(AccountType.OrdinaryIncomeInflows, AssetType.Cash, portfolio, ace.Currency);
+                var accountExpense = book.GetAccount(AccountType.Fees, AssetType.Cash, portfolio, ace.Currency);
+                var accountNonTaxableResult = book.GetAccount(AccountType.NonTaxableResult, AssetType.Cash, portfolio, ace.Currency);
 
-                book.Enqueue(accountCashSettlement, ace.Timestamp, -1, "Additional charge", ace.Amount);
-                book.Enqueue(accountIncome, ace.Timestamp, -1, "Additional charge", -ace.Amount);
+                string description = ace.Description;
+
+                book.Enqueue(accountCashSettlement, ace.Timestamp, -1, "Additional charge " + description, -ace.Amount);
+                if (book.ApplyTaxRules && !ace.IncomeTaxable)
+                {
+                    book.Enqueue(accountNonTaxableResult, ace.Timestamp, -1, "Additional charge " + description, ace.Amount);
+                }
+                else
+                {
+                    book.Enqueue(accountExpense, ace.Timestamp, -1, "Additional charge " + description, ace.Amount);
+                }
 
                 book.Commit();
             }
@@ -135,6 +155,60 @@ namespace Venture
 
                 book.Commit();
             }
+        }
+
+        public static void Process(AdditionalTaxableIncomeEventDefinition atie)
+        {
+            PortfolioDefinition? portfolio = Definitions.Portfolios.SingleOrDefault(x => x.UniqueId == atie.Portfolio);
+
+            object? at;
+            AssetType assetType;
+            Enum.TryParse(typeof(AssetType), atie.AssetType, out at);
+            if (at!=null)
+            {
+                assetType = (AssetType)at;
+            }
+            else
+            {
+                assetType = AssetType.Cash;
+            }
+
+                var accountIncome = Common.TaxBook.GetAccount(AccountType.RealizedIncome, assetType, portfolio, Globals.LocalCurrency);
+            var accountNonTaxableResult = Common.TaxBook.GetAccount(AccountType.NonTaxableResult, assetType, portfolio, Globals.LocalCurrency);
+
+            string description = atie.Description;
+
+            Common.TaxBook.Enqueue(accountNonTaxableResult, atie.Timestamp, -1, "Additional taxable income: " + description, atie.Amount);
+            Common.TaxBook.Enqueue(accountIncome, atie.Timestamp, -1, "Additional taxable income: " + description, -atie.Amount);
+
+            Common.TaxBook.Commit();
+        }
+
+        public static void Process(AdditionalTaxableExpenseEventDefinition atee)
+        {
+            PortfolioDefinition? portfolio = Definitions.Portfolios.SingleOrDefault(x => x.UniqueId == atee.Portfolio);
+
+            object? at;
+            AssetType assetType;
+            Enum.TryParse(typeof(AssetType), atee.AssetType, out at);
+            if (at != null)
+            {
+                assetType = (AssetType)at;
+            }
+            else
+            {
+                assetType = AssetType.Cash;
+            }
+
+            var accountExpense = Common.TaxBook.GetAccount(AccountType.RealizedExpense, assetType, portfolio, Globals.LocalCurrency);
+            var accountNonTaxableResult = Common.TaxBook.GetAccount(AccountType.NonTaxableResult, assetType, portfolio, Globals.LocalCurrency);
+
+            string description = atee.Description;
+
+            Common.TaxBook.Enqueue(accountNonTaxableResult, atee.Timestamp, -1, "Additional taxable expense: " + description, -atee.Amount);
+            Common.TaxBook.Enqueue(accountExpense, atee.Timestamp, -1, "Additional taxable expense: " + description, atee.Amount);
+
+            Common.TaxBook.Commit();
         }
     }
 }

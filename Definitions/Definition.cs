@@ -72,9 +72,12 @@ namespace Venture
             if (Decimal.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out result)) return result / factor;
             else return 0;
         }
+
         protected static bool ConvertToBool(string text)
         {
             bool result;
+            if (text.Trim() == "1") return true;
+            if (text.Trim() == "0") return false;
             if (Boolean.TryParse(text, out result)) return result;
             else return false;
         }

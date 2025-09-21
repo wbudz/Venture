@@ -480,7 +480,7 @@ namespace Venture
                     {
                         RegisterCashDeduction(output, ev);
                     }
-                    // TODO: FuturesValuationBooking.Process(ev);
+                    FuturesRevaluationBooking.Process(ev);
                 }
             }
 
@@ -537,6 +537,16 @@ namespace Venture
                     }
                 }
             }
+
+            foreach (var ati in Definitions.ManualEvents.OfType<AdditionalTaxableIncomeEventDefinition>().Where(x => x.Timestamp <= currentDate && x.Timestamp > previousDate))
+            {
+                ManualEventBooking.Process(ati);
+            }
+            foreach (var ate in Definitions.ManualEvents.OfType<AdditionalTaxableExpenseEventDefinition>().Where(x => x.Timestamp <= currentDate && x.Timestamp > previousDate))
+            {
+                ManualEventBooking.Process(ate);
+            }
+
             TaxIncomeBooking.Process(currentDate);
 
             if (currentDate.Month == 12 && currentDate.Day == 31)
@@ -561,7 +571,7 @@ namespace Venture
             {
                 if (!(asset.IsActive(mn.Timestamp))) continue;
                 decimal count = asset.GetCount(time);
-                decimal price = asset.GetPurchasePrice(time, false);
+                decimal price = asset.GetPurchasePrice(time, false, false);
                 decimal newPrice2 = price; //mn.Amount2 / (mn.Amount2 + mn.Amount3) * price;
                 decimal newPrice3 = price - newPrice2;
                 // Reduce holding
@@ -665,7 +675,7 @@ namespace Venture
             else
             {
                 decimal originalCount = sales.Sum(x => x.ParentAsset.GetCount(time));
-                decimal purchaseAmount = sales.Sum(x => x.ParentAsset.GetPurchaseAmount(time, true));
+                decimal purchaseAmount = sales.Sum(x => x.ParentAsset.GetPurchaseAmount(time, true, true));
                 decimal taxableIncome = Common.Round(tr.Amount - purchaseAmount * tr.Count / originalCount);
                 if (taxableIncome <= 0) return;
                 tax = TaxCalculations.CalculateFromIncome(taxableIncome);
@@ -674,7 +684,7 @@ namespace Venture
             foreach (var evt in sales)
             {
                 decimal originalCountPerEvent = evt.ParentAsset.GetCount(time);
-                decimal originalPricePerEvent = evt.ParentAsset.GetPurchasePrice(time, true);
+                decimal originalPricePerEvent = evt.ParentAsset.GetPurchasePrice(time, true, true);
                 decimal taxableIncomePerEvent = Common.Round((evt.DirtyPrice - originalPricePerEvent) * originalCountPerEvent);
                 if (taxableIncomePerEvent <= 0) continue;
                 decimal taxPerEvent = TaxCalculations.CalculateFromIncome(taxableIncomePerEvent);

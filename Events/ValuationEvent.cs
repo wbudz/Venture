@@ -58,7 +58,7 @@ namespace Venture
 
                 Amount = MarketDirtyAmount;
 
-                decimal purchaseAmount = parentAsset.GetPurchaseAmount(true);
+                decimal purchaseAmount = parentAsset.GetPurchaseAmount(true, false);
                 CumulativeAmortizedCostValuation = AmortizedCostDirtyAmount - purchaseAmount;
                 CumulativeMarketValuation = MarketDirtyAmount - purchaseAmount - CumulativeAmortizedCostValuation;
             }
@@ -76,7 +76,7 @@ namespace Venture
 
                 Amount = MarketDirtyAmount;
 
-                decimal purchaseAmount = parentAsset.GetPurchaseAmount(time, true);
+                decimal purchaseAmount = parentAsset.GetPurchaseAmount(time, true, false);
                 CumulativeAmortizedCostValuation = AmortizedCostDirtyAmount - purchaseAmount;
                 CumulativeMarketValuation = MarketDirtyAmount - purchaseAmount - CumulativeAmortizedCostValuation;
             }

@@ -62,7 +62,7 @@ namespace Venture.Modules
             RecognitionDate = asset.GetPurchaseDate();
             Count = asset.GetCount(time);
             NominalAmount = asset.GetNominalAmount(time);
-            PurchaseAmount = asset.GetPurchaseAmount(time, true);
+            PurchaseAmount = asset.GetPurchaseAmount(time, true, false);
             AmortizedCostValue = asset.GetAmortizedCostValue(time, true);
             MarketValue = asset.GetMarketValue(time, true);
             AccruedInterest = asset.GetInterestAmount(time);

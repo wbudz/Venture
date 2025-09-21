@@ -19,7 +19,7 @@ namespace Venture
             UniqueId = $"{definition.AssetType}_{definition.AssetId}_{btd.Index}";
             AssetType = definition.AssetType;
 
-            Portfolio = Definitions.Portfolios.Single(x=>x.UniqueId == btd.PortfolioDst);
+            Portfolio = Definitions.Portfolios.Single(x => x.UniqueId == btd.PortfolioDst);
 
             Currency = btd.Currency;
             ValuationClass = btd.ValuationClass;
@@ -112,7 +112,7 @@ namespace Venture
             return count;
         }
 
-        public override decimal GetPurchasePrice(TimeArg time, bool dirty)
+        public override decimal GetPurchasePrice(TimeArg time, bool dirty, bool original)
         {
             if (!IsActive(time)) return 0;
 
@@ -120,7 +120,31 @@ namespace Venture
 
             if (evt != null)
             {
-                return dirty ? evt.DirtyPrice : evt.CleanPrice;
+                if (original)
+                {
+                    if (dirty)
+                    {
+                        return evt.OriginalDirtyPrice;
+                    }
+                    else
+                    {
+                        return evt.OriginalCleanPrice;
+
+                    }
+                }
+                else
+                {
+                    if (dirty)
+                    {
+                        return evt.DirtyPrice;
+
+                    }
+                    else
+                    {
+                        return evt.CleanPrice;
+
+                    }
+                }
             }
             else
             {

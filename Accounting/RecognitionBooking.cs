@@ -25,22 +25,43 @@ namespace Venture
                 /// </summary>
                 var accountCashSettlement = book.GetAccount(AccountType.Assets, AssetType.Cash, portfolio, btd.Currency);
 
-
-                /// <summary>
-                /// Cost account for fee recognition
-                /// </summary>
-                var accountFeeRecognition = book.ApplyTaxRules ?
-                    book.GetAccount(AccountType.TaxReserves, null, portfolio, btd.Currency) :
-                    book.GetAccount(AccountType.Fees, btd.AssetType, portfolio, btd.Currency);
+                var accountNonTaxableResult = book.GetAccount(AccountType.NonTaxableResult, btd.AssetType, portfolio, btd.Currency);
 
                 string description = $"Asset purchase of {btd.AssetId} ";
+                DateTime bookingDate = btd.Timestamp;
 
-                DateTime bookingDate = book.ApplyTaxRules ? btd.SettlementDate : btd.Timestamp;
+                if (book.ApplyTaxRules)
+                {
+                    /// <summary>
+                    /// Cost account for fee recognition
+                    /// </summary>
+                    var accountFeeRecognition = book.GetAccount(AccountType.TaxReserves, null, portfolio, btd.Currency);
+                    bookingDate = btd.SettlementDate;
+
+                    if (Globals.TaxFreePortfolios.Contains(portfolio.UniqueId))
+                    {
+                        book.Enqueue(accountNonTaxableResult, bookingDate, btd.Index, description + "(purchase fee cost recognition)", btd.Fee);
+                    }
+                    else
+                    {
+                        book.Enqueue(accountFeeRecognition, bookingDate, btd.Index, description + "(purchase fee deferred tax asset)", btd.Fee);
+                    }
+                }
+                else
+                {
+                    /// <summary>
+                    /// Cost account for fee recognition
+                    /// </summary>
+                    var accountFeeRecognition = book.GetAccount(AccountType.Fees, btd.AssetType, portfolio, btd.Currency);
+                    bookingDate = btd.Timestamp;
+
+                    book.Enqueue(accountFeeRecognition, bookingDate, btd.Index, description + "(purchase fee cost recognition)", btd.Fee);
+
+                }
 
                 book.Enqueue(accountAssetRecognition, bookingDate, btd.Index, description + "(asset recognition)", btd.Amount);
                 book.Enqueue(accountCashSettlement, bookingDate, btd.Index, description + "(purchase amount payment)", -btd.Amount);
                 book.Enqueue(accountCashSettlement, bookingDate, btd.Index, description + "(purchase fee payment)", -btd.Fee);
-                book.Enqueue(accountFeeRecognition, bookingDate, btd.Index, description + (book.ApplyTaxRules ? "(purchase fee deferred tax asset)" : "(purchase fee cost recognition)"), btd.Fee);
 
                 book.Commit();
             }

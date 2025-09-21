@@ -53,7 +53,7 @@ namespace Venture
                     TimeArg time = new(TimeArgDirection.Start, e.Timestamp);
 
                     var nominalAmount = e.ParentAsset.GetNominalAmount(time);
-                    var purchaseAmount = e.ParentAsset.GetPurchaseAmount(time, true);
+                    var purchaseAmount = e.ParentAsset.GetPurchaseAmount(time, true, false);
                     if (book.ApplyTaxRules)
                     {
                         /// <summary>

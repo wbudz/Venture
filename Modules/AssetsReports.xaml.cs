@@ -52,7 +52,7 @@ namespace Venture.Modules
                 {
                     case 0: result[i + DESCRIPTION_COLUMNS_COUNT] = asset.GetCount(new TimeArg(TimeArgDirection.End, dates[i])); break;
                     case 1: result[i + DESCRIPTION_COLUMNS_COUNT] = asset.GetMarketPrice(new TimeArg(TimeArgDirection.End, dates[i]), false); break;
-                    case 2: result[i + DESCRIPTION_COLUMNS_COUNT] = asset.GetPurchasePrice(new TimeArg(TimeArgDirection.End, dates[i]), false); break;
+                    case 2: result[i + DESCRIPTION_COLUMNS_COUNT] = asset.GetPurchasePrice(new TimeArg(TimeArgDirection.End, dates[i]), false, false); break;
                     case 3: result[i + DESCRIPTION_COLUMNS_COUNT] = asset.GetValue(new TimeArg(TimeArgDirection.End, dates[i])); break;
                     case 4: result[i + DESCRIPTION_COLUMNS_COUNT] = asset.GetUnrealizedGainsLossesFromValuation(new TimeArg(TimeArgDirection.End, dates[i])); break;
                     default: break;

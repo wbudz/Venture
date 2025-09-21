@@ -64,7 +64,6 @@ namespace Venture
                 {
                     book.Enqueue(accountCashSettlement, fe.Timestamp, fe.TransactionIndex, description + "(expense)", fe.Amount);
                     book.Enqueue(accountRealizedExpenseRecognition, fe.Timestamp, fe.TransactionIndex, description + "(expense)", -fe.Amount);
-
                 }
 
                 book.Commit();

@@ -514,11 +514,11 @@ namespace Venture
         /// <param name="time">Time at which price is given (it matters for average cost expense method where there could be multiple purchases)</param>
         /// <param name="dirty">If true, dirty price (including interest) will be given</param>
         /// <returns>Purchase price of the investment</returns>
-        public abstract decimal GetPurchasePrice(TimeArg time, bool dirty);
+        public abstract decimal GetPurchasePrice(TimeArg time, bool dirty, bool original);
 
-        public decimal GetPurchasePrice(bool dirty)
+        public decimal GetPurchasePrice(bool dirty, bool original)
         {
-            return GetPurchasePrice(new TimeArg(TimeArgDirection.End, GetPurchaseDate()), dirty);
+            return GetPurchasePrice(new TimeArg(TimeArgDirection.End, GetPurchaseDate()), dirty, original);
         }
 
         /// <summary>
@@ -571,9 +571,9 @@ namespace Venture
         /// <param name="time">Time at which amount is given</param>
         /// <param name="dirty">If true, dirty price (including interest) will be given</param>
         /// <returns>Purchase amount of the investment</returns>
-        public abstract decimal GetPurchaseAmount(TimeArg time, bool dirty);
+        public abstract decimal GetPurchaseAmount(TimeArg time, bool dirty, bool original);
 
-        public abstract decimal GetPurchaseAmount(bool dirty);
+        public abstract decimal GetPurchaseAmount(bool dirty, bool original);
 
         /// <summary>
         /// Gets market value of the investment.

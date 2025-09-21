@@ -52,22 +52,12 @@ namespace Venture
 
             decimal price = Definitions.GetPrice(this.SecurityDefinition, time.Date);
 
-            //PriceDefinition? price = Definitions.Prices.LastOrDefault(x => x.InstrumentUniqueId == this.InstrumentUniqueId && x.Timestamp <= time.Date);
-            //if (price == null)
-            //{
-            //    throw new Exception($"No price for: {UniqueId} at date: {time.Date:yyyy-MM-dd}.");
-            //}
-            //else
-            //{
-            //    return price.Value;
-            //}
-
             return price;
         }
 
         public override decimal GetAmortizedCostPrice(TimeArg time, bool dirty)
         {
-            return GetPurchasePrice(time, dirty);
+            return GetPurchasePrice(time, dirty, false);
         }
 
         public override decimal GetAccruedInterest(DateTime date)
@@ -77,7 +67,7 @@ namespace Venture
 
         public override decimal GetNominalAmount(TimeArg time)
         {
-            return Common.Round(GetPurchaseAmount(time, false));
+            return Common.Round(GetPurchaseAmount(time, false, false));
         }
 
         public override decimal GetInterestAmount(TimeArg time)
@@ -85,14 +75,14 @@ namespace Venture
             return 0;
         }
 
-        public override decimal GetPurchaseAmount(TimeArg time, bool dirty)
+        public override decimal GetPurchaseAmount(TimeArg time, bool dirty, bool original)
         {
-            return Common.Round(GetPurchasePrice(time, dirty) * GetCount(time));
+            return Common.Round(GetPurchasePrice(time, dirty, original) * GetCount(time));
         }
 
-        public override decimal GetPurchaseAmount(bool dirty)
+        public override decimal GetPurchaseAmount(bool dirty, bool original)
         {
-            return Common.Round(GetPurchasePrice(dirty) * GetCount());
+            return Common.Round(GetPurchasePrice(dirty, original) * GetCount());
         }
 
         public override decimal GetMarketValue(TimeArg time, bool dirty)

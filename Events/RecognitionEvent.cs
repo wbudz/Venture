@@ -55,8 +55,8 @@ namespace Venture
 
         public RecognitionEvent(StandardAsset parentAsset, TransferTransactionDefinition ttd, StandardAsset originalAsset) : this(parentAsset, (TransactionDefinition)ttd)
         {
-            OriginalDirtyPrice = originalAsset.GetPurchasePrice(true);
-            OriginalCleanPrice = originalAsset.GetPurchasePrice(false);
+            OriginalDirtyPrice = originalAsset.GetPurchasePrice(true, true);
+            OriginalCleanPrice = originalAsset.GetPurchasePrice(false, true);
             OriginalFee = originalAsset.GetUnrealizedPurchaseFee(new TimeArg(TimeArgDirection.Start, ttd.Timestamp, ttd.Index));
 
             if (parentAsset.IsBond)
@@ -78,8 +78,8 @@ namespace Venture
             CleanPrice = price;
             Fee = 0;
 
-            OriginalDirtyPrice = originalAsset.GetPurchasePrice(true);
-            OriginalCleanPrice = originalAsset.GetPurchasePrice(false);
+            OriginalDirtyPrice = originalAsset.GetPurchasePrice(true, true);
+            OriginalCleanPrice = originalAsset.GetPurchasePrice(false, true);
             if (includeFee)
                 OriginalFee = originalAsset.GetUnrealizedPurchaseFee(new TimeArg(TimeArgDirection.Start, manual.Timestamp));
             else
