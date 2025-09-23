@@ -403,7 +403,7 @@
                         <TextBlock Text="{Binding CouponRate, StringFormat = {}{0:P2}}" />
                     </DataTemplate>
                 </GridViewColumn.CellTemplate>
-            </GridViewColumn>            
+            </GridViewColumn>
         </GridView.Columns>
     </GridView>
     <GridView x:Key="ManualGridView">
@@ -759,6 +759,87 @@
             </GridViewColumn>
         </GridView.Columns>
     </GridView>
+    <GridView x:Key="ValuationsGridView">
+        <GridView.Columns>
+            <GridViewColumn Header="Timestamp" Width="Auto">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Timestamp, StringFormat = {}{0:yyyy-MM-dd}}" ToolTip="{Binding UniqueId}"/>
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="Count" Width="Auto">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Count, StringFormat = {}{0:F4}}" HorizontalAlignment="Right" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="Market price (dirty)" Width="Auto">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding MarketDirtyPrice, StringFormat = {}{0:F4}}" HorizontalAlignment="Right" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="Market price (clean)" Width="Auto">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding MarketCleanPrice, StringFormat = {}{0:F4}}" HorizontalAlignment="Right" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="Amortized cost price (dirty)" Width="Auto">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding AmortizedCostDirtyPrice, StringFormat = {}{0:F4}}" HorizontalAlignment="Right" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="Amortized cost price (clean)" Width="Auto">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding AmortizedCostCleanPrice, StringFormat = {}{0:F4}}" HorizontalAlignment="Right" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="Market amount" Width="Auto">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding MarketDirtyAmount, StringFormat = {}{0:F2}}" HorizontalAlignment="Right" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="Amortized cost amount" Width="Auto">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding AmortizedCostDirtyAmount, StringFormat = {}{0:F2}}" HorizontalAlignment="Right" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="Cumulative market valuation" Width="Auto">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding CumulativeMarketValuation, StringFormat = {}{0:F2}}" HorizontalAlignment="Right" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="Cumulative amortized cost valuation" Width="Auto">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding CumulativeAmortizedCostValuation, StringFormat = {}{0:F2}}" HorizontalAlignment="Right" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+            <GridViewColumn Header="FX rate" Width="Auto">
+                <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding FXRate, StringFormat = {}{0:F4}}" HorizontalAlignment="Right" />
+                    </DataTemplate>
+                </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+        </GridView.Columns>
+    </GridView>
     <GridView x:Key="CashflowGridView">
         <GridView.Columns>
             <GridViewColumn Header="Unique id" Width="Auto">
@@ -957,7 +1038,7 @@
                         <TextBlock Text="{Binding UniqueId}"/>
                     </DataTemplate>
                 </GridViewColumn.CellTemplate>
-            </GridViewColumn>            
+            </GridViewColumn>
             <GridViewColumn Header="Portfolio" Width="Auto">
                 <GridViewColumn.CellTemplate>
                     <DataTemplate>
@@ -985,7 +1066,7 @@
                         <TextBlock Text="{Binding Currency}" />
                     </DataTemplate>
                 </GridViewColumn.CellTemplate>
-            </GridViewColumn>            
+            </GridViewColumn>
             <GridViewColumn Header="Instrument" Width="Auto">
                 <GridViewColumn.CellTemplate>
                     <DataTemplate>

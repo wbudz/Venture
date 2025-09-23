@@ -56,7 +56,7 @@ namespace Venture.Modules
                 VM.OperationsEntries.Add(oe);
             }
 
-            TotalValueTextBlock.Text = $"Total amount: {VM.OperationsEntries.Sum(x => x.Amount):N2} PLN.";
+            TotalValueTextBlock.Text = $"Gross amount: {VM.OperationsEntries.Where(x => x.Amount > 0).Sum(x => x.Amount):N2} PLN."; // Sum is always zero, so we show debit/credit amount.
             TotalValueTextBlock.Visibility = Visibility.Visible;
 
             sw.Stop();
@@ -73,7 +73,7 @@ namespace Venture.Modules
             columns.Add(("Broker", "Broker"));
             columns.Add(("Description", "Description"));
             columns.Add(("Currency", "Currency"));
-            columns.Add(("NetAmount", "Net amount"));
+            columns.Add(("Amount", "Amount"));
             Clipboard.SetText(CSV.Export<AccountEntriesViewEntry>(VM.OperationsEntries, columns));
         }
 

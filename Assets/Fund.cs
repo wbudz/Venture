@@ -77,7 +77,16 @@ namespace Venture
 
         public override decimal GetPurchaseAmount(TimeArg time, bool dirty, bool original)
         {
-            return Common.Round(GetPurchasePrice(time, dirty, original) * GetCount(time));
+            //return Common.Round(GetPurchasePrice(time, dirty, original) * GetCount(time));
+            var evt = Events.OfType<RecognitionEvent>().FirstOrDefault();
+            if (evt != null)
+            {
+                return evt.Amount - GetEventsUntil(time).OfType<DerecognitionEvent>().Sum(x => x.PurchaseDirtyAmount);
+            }
+            else
+            {
+                return 0;
+            }
         }
 
         public override decimal GetPurchaseAmount(bool dirty, bool original)
@@ -92,7 +101,16 @@ namespace Venture
 
         public override decimal GetAmortizedCostValue(TimeArg time, bool dirty)
         {
-            return Common.Round(GetAmortizedCostPrice(time, dirty) * GetCount(time));
+            //return Common.Round(GetAmortizedCostPrice(time, dirty) * GetCount(time));
+            var evt = Events.OfType<RecognitionEvent>().FirstOrDefault();
+            if (evt != null)
+            {
+                return evt.Amount - GetEventsUntil(time).OfType<DerecognitionEvent>().Sum(x => x.AmortizedCostDirtyAmount);
+            }
+            else
+            {
+                return 0;
+            }
         }
 
         #region Parameters

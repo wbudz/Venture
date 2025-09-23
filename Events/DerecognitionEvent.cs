@@ -31,9 +31,9 @@ namespace Venture
 
         public decimal PurchaseCleanAmount { get; protected set; } = 0;
 
-        public decimal AmortizedCostDirtyAmount { get; protected set; } = 0;
+        public decimal AmortizedCostDirtyAmount { get; set; } = 0;
 
-        public decimal AmortizedCostCleanAmount { get; protected set; } = 0;
+        public decimal AmortizedCostCleanAmount { get; set; } = 0;
 
         public decimal OriginalPurchaseDirtyPrice { get; protected set; } = 0;
 

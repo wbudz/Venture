@@ -76,6 +76,7 @@ namespace Venture
                                 Asset asset = Asset.CreateFromTransferTransaction(mtr, (Security)s.ParentAsset);
                                 AddAsset(output, asset, mtr.Timestamp);
                             }
+                            TransferBooking.Process(ttd, sales);
                         }
                     }
                     if (tr is BuyTransactionDefinition btd)

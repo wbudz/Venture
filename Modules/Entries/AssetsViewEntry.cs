@@ -43,6 +43,8 @@ namespace Venture.Modules
 
         public ObservableCollection<PaymentEvent> Payments { get; set; } = new ObservableCollection<PaymentEvent>();
 
+        public ObservableCollection<ValuationEvent> Valuations { get; set; } = new ObservableCollection<ValuationEvent>();
+
         public double YieldToMaturity { get; set; } = 0;
 
         public AssetsViewEntry(Asset asset, DateTime date)
@@ -72,6 +74,7 @@ namespace Venture.Modules
             Sales = new(events.OfType<DerecognitionEvent>());
             Flows = new(events.OfType<FlowEvent>());
             Payments = new(events.OfType<PaymentEvent>());
+            Valuations = new(events.OfType<ValuationEvent>());
             // Bond args
             if (asset is Bond b)
             {

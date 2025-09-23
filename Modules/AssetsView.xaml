@@ -74,6 +74,13 @@
                     View="{Binding Source={StaticResource PaymentsGridView}}"
                     VerticalAlignment="Stretch" SelectionChanged="ListView_AutoSizeColumns"/>
             </TabItem>
+            <TabItem Header="Valuations">
+                <ListView
+                    DataContext="{Binding Source={StaticResource AssetsVM}}"
+                    ItemsSource="{Binding CurrentEntry.Valuations}" 
+                    View="{Binding Source={StaticResource ValuationsGridView}}"
+                    VerticalAlignment="Stretch" SelectionChanged="ListView_AutoSizeColumns"/>
+            </TabItem>
         </TabControl>
         <TextBlock x:Name="TotalValueTextBlock" VerticalAlignment="Bottom" Margin="10,0,0,6" Grid.Row="1" HorizontalAlignment="Left" Visibility="Collapsed"/>
     </Grid>

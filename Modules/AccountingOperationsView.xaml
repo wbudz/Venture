@@ -30,9 +30,9 @@
                 <ComboBox x:Name="BookComboBox" VerticalAlignment="Center" Width="50" DataContext="{Binding Mode=OneWay, Source={StaticResource FiltersVM}}" ItemsSource="{Binding Books}" DisplayMemberPath="Name" SelectedItem="{Binding SelectedBook}" SelectionChanged="ComboBox_SelectionChanged" />
                 <Separator />
                 <TextBlock Text="Operation" VerticalAlignment="Center" Margin="5,0,5,0"/>
-                <TextBox x:Name="OperationTextBox" VerticalAlignment="Center" Width="80" DataContext="{Binding Mode=OneWay, Source={StaticResource FiltersVM}}" KeyDown="TextBox_KeyDown" />
+                <TextBox x:Name="OperationTextBox" VerticalAlignment="Center" Width="80" KeyDown="TextBox_KeyDown" />
                 <TextBlock Text="Transaction" VerticalAlignment="Center" Margin="5,0,5,0"/>
-                <TextBox x:Name="TransactionTextBox" VerticalAlignment="Center" Width="80" DataContext="{Binding Mode=OneWay, Source={StaticResource FiltersVM}}" KeyDown="TextBox_KeyDown" />
+                <TextBox x:Name="TransactionTextBox" VerticalAlignment="Center" Width="80" KeyDown="TextBox_KeyDown" />
                  </ToolBar.Items>
         </ToolBar>
         <ListView x:Name="lvOperations"
