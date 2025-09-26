@@ -40,6 +40,10 @@ namespace Venture
                 /// </summary>
                 //var accountRealizedResultOnFXRecognition = Book.GetAccountingActivity("AssetDerecognitionOnSale", "RealizedResultOnFXRecognition", inv);
 
+                bool fundsPreChargedTax = (std.AssetType == AssetType.MoneyMarketFund || std.AssetType == AssetType.EquityMixedFund || std.AssetType == AssetType.TreasuryBondsFund || std.AssetType == AssetType.CorporateBondsFund)
+                            && std.SettlementDate <= Globals.TaxableFundSaleEndDate;
+                bool retailBondsPreChargedTax = (std.AssetType == AssetType.FixedRetailTreasuryBonds || std.AssetType == AssetType.FloatingRetailTreasuryBonds || std.AssetType == AssetType.IndexedRetailTreasuryBonds);
+
                 decimal assetDerecognitionAmount = 0;
                 decimal purchaseFee = 0;
                 decimal tax = 0;
@@ -90,8 +94,7 @@ namespace Venture
                         book.Enqueue(accountUnrealizedFeeDerecognition, bookingDate, std.Index, description + "(purchase fee deferred tax asset derecognition)", -purchaseFee);
                         book.Enqueue(accountFeeCost, bookingDate, std.Index, description + "(purchase fee cost recognition)", purchaseFee);
 
-                        if ((std.AssetType == AssetType.MoneyMarketFund || std.AssetType == AssetType.EquityMixedFund || std.AssetType == AssetType.TreasuryBondsFund || std.AssetType == AssetType.CorporateBondsFund)
-                            && bookingDate <= Globals.TaxableFundSaleEndDate)
+                        if (fundsPreChargedTax || retailBondsPreChargedTax)
                         {
                             // Funds (pre-charged tax)      
                             var accountPrechargedTax = book.GetAccount(AccountType.PrechargedTax, std.AssetType, portfolio, std.Currency);
@@ -133,8 +136,7 @@ namespace Venture
                     book.Enqueue(accountCashSettlement, bookingDate, std.Index, description + "(sale fee payment)", -std.Fee);
                     book.Enqueue(accountFeeCost, bookingDate, std.Index, description + "(sale fee cost recognition)", std.Fee);
 
-                    if ((std.AssetType == AssetType.MoneyMarketFund || std.AssetType == AssetType.EquityMixedFund || std.AssetType == AssetType.TreasuryBondsFund || std.AssetType == AssetType.CorporateBondsFund)
-                        && bookingDate <= Globals.TaxableFundSaleEndDate)
+                    if (fundsPreChargedTax || retailBondsPreChargedTax)
                     {
                         var accountPrechargedTax = book.GetAccount(AccountType.Tax, std.AssetType, portfolio, std.Currency);
                         var accountNonTaxableResult = book.GetAccount(AccountType.NonTaxableResult, std.AssetType, portfolio, std.Currency);

@@ -16,9 +16,15 @@ namespace Venture
             GenerateFlows();
         }
 
-        public Fund(TransferTransactionDefinition ttd, Fund originalAsset) : base(ttd, originalAsset)
+        public Fund(PortfolioTransferTransactionDefinition pttd, Fund originalAsset) : base(pttd, originalAsset)
         {
-            AddEvent(new RecognitionEvent(this, ttd, originalAsset));
+            AddEvent(new RecognitionEvent(this, pttd, originalAsset));
+            GenerateFlows();
+        }
+
+        public Fund(AssetSwitchTransactionDefinition astd, Fund originalAsset, InstrumentDefinition newDefinition) : base(astd, newDefinition)
+        {
+            AddEvent(new RecognitionEvent(this, astd, originalAsset));
             GenerateFlows();
         }
 

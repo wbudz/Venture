@@ -210,10 +210,8 @@ namespace Venture
         }
     }
 
-    public class TransferTransactionDefinition : TransactionDefinition
+    public abstract class TransferTransactionDefinition : TransactionDefinition
     {
-        public override string UniqueId { get { return $"{Index}_Transfer_{AssetType}_{AssetId}"; } }
-
         public override string AccountSrc { get { return Definitions.Portfolios.SingleOrDefault(x => x.UniqueId == PortfolioSrc)?.CustodyAccount ?? ""; } }
 
         public override string AccountDst { get { return Definitions.Portfolios.SingleOrDefault(x => x.UniqueId == PortfolioDst)?.CustodyAccount ?? ""; } }
@@ -232,6 +230,49 @@ namespace Venture
             PortfolioDst = data["portfoliodst"];
 
             ValuationClass = GetValuationClassFromData(data["valuationclass"]);
+        }
+    }
+
+    public class PortfolioTransferTransactionDefinition : TransferTransactionDefinition
+    {
+        public override string UniqueId { get { return $"{Index}_PortfolioTransfer_{AssetType}_{AssetId}"; } }
+
+        public PortfolioTransferTransactionDefinition(Dictionary<string, string> data) : base(data)
+        {
+        }
+    }
+
+    public class AssetSwitchTransactionDefinition : TransferTransactionDefinition
+    {
+        public override string UniqueId { get { return $"{Index}_Switch_{AssetType}_{AssetId}"; } }
+
+        public string InstrumentUniqueIdTarget
+        {
+            get
+            {
+                return AssetTypeTarget + "_" + AssetIdTarget;
+            }
+        }
+
+        public AssetType AssetTypeTarget { get; private set; }
+
+        public string AssetIdTarget { get; private set; }
+
+        public decimal CountTarget { get; private set; }
+
+        public decimal PriceTarget { get; private set; }
+
+        public AssetSwitchTransactionDefinition(Dictionary<string, string> data) : base(data)
+        {
+            AssetTypeTarget = ConvertToEnum<AssetType>(data["assettype2"]);
+            AssetIdTarget = data["assetid2"];
+            CountTarget = ConvertToDecimal(data["count2"]);
+            PriceTarget = ConvertToDecimal(data["price2"]);
+
+            if (Math.Abs(Common.Round(Count * Price) - Common.Round(CountTarget * PriceTarget)) > 0.01M)
+            {
+                throw new Exception("Switch transaction definition has different source and target amounts.");
+            }
         }
     }
 }

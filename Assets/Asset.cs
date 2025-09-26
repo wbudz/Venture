@@ -202,7 +202,7 @@ namespace Venture
             }
         }
 
-        public static Asset CreateFromTransferTransaction(TransferTransactionDefinition ttd, Asset originalAsset)
+        public static Asset CreateFromPortfolioTransferTransaction(PortfolioTransferTransactionDefinition ttd, Asset originalAsset)
         {
             switch (originalAsset.AssetType)
             {
@@ -226,6 +226,45 @@ namespace Venture
                 case AssetType.TreasuryBondsFund:
                 case AssetType.CorporateBondsFund:
                     return new Fund(ttd, (Fund)originalAsset);
+                case AssetType.Futures:
+                    throw new Exception("Tried creating futures with transfer transaction.");
+                default: throw new Exception("Tried creating asset with unknown instrument type.");
+            }
+        }
+
+        public static Asset CreateFromSwitchTransaction(AssetSwitchTransactionDefinition astd, Asset originalAsset)
+        {
+            switch (originalAsset.AssetType)
+            {
+                case AssetType.Undefined:
+                    throw new Exception("Tried creating asset with undefined instrument type.");
+                case AssetType.Cash:
+                    throw new Exception("Tried creating asset with transfer transaction and cash instrument type.");
+                case AssetType.Equity:
+                case AssetType.ETF:
+                    throw new NotSupportedException();
+                case AssetType.FixedTreasuryBonds:
+                case AssetType.FloatingTreasuryBonds:
+                case AssetType.FixedRetailTreasuryBonds:
+                case AssetType.FloatingRetailTreasuryBonds:
+                case AssetType.IndexedRetailTreasuryBonds:
+                case AssetType.FixedCorporateBonds:
+                case AssetType.FloatingCorporateBonds:
+                    throw new NotSupportedException();
+                case AssetType.MoneyMarketFund:
+                case AssetType.EquityMixedFund:
+                case AssetType.TreasuryBondsFund:
+                case AssetType.CorporateBondsFund:
+                    InstrumentDefinition newDefinition;
+                    try
+                    {
+                        newDefinition = Definitions.Instruments.Single(x => x.UniqueId == astd.InstrumentUniqueIdTarget);
+                    }
+                    catch
+                    {
+                        throw new Exception($"Transaction {astd} definition pointed to unknown instrument id: {astd.InstrumentUniqueIdTarget}.");
+                    }
+                    return new Fund(astd, (Fund)originalAsset, newDefinition);
                 case AssetType.Futures:
                     throw new Exception("Tried creating futures with transfer transaction.");
                 default: throw new Exception("Tried creating asset with unknown instrument type.");

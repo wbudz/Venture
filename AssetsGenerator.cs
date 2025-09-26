@@ -70,13 +70,26 @@ namespace Venture
                         else
                         {
                             var sales = RegisterSale(output, definition, ttd);
-                            foreach (var s in sales)
+                            if (ttd is PortfolioTransferTransactionDefinition pttd)
                             {
-                                var mtr = TransactionDefinition.CreateModifiedTransaction<TransferTransactionDefinition>(ttd, s.Count, s.DirtyPrice, s.Fee);
-                                Asset asset = Asset.CreateFromTransferTransaction(mtr, (Security)s.ParentAsset);
-                                AddAsset(output, asset, mtr.Timestamp);
+                                foreach (var s in sales)
+                                {
+                                    var mtr = TransactionDefinition.CreateModifiedTransaction<TransferTransactionDefinition>(ttd, s.Count, s.DirtyPrice, s.Fee);
+                                    Asset asset = Asset.CreateFromPortfolioTransferTransaction(pttd, (Security)s.ParentAsset);
+                                    AddAsset(output, asset, mtr.Timestamp);
+                                }
+                                TransferBooking.Process(pttd, sales);
                             }
-                            TransferBooking.Process(ttd, sales);
+                            if (ttd is AssetSwitchTransactionDefinition astd)
+                            {
+                                foreach (var s in sales)
+                                {
+                                    var mtr = TransactionDefinition.CreateModifiedTransaction<TransferTransactionDefinition>(ttd, s.Count, s.DirtyPrice, s.Fee);
+                                    Asset asset = Asset.CreateFromSwitchTransaction(astd, (Security)s.ParentAsset);
+                                    AddAsset(output, asset, mtr.Timestamp);
+                                }
+                                SwitchBooking.Process(astd, sales);
+                            }
                         }
                     }
                     if (tr is BuyTransactionDefinition btd)
@@ -137,7 +150,6 @@ namespace Venture
             if (String.IsNullOrEmpty(portfolio)) throw new Exception("Portfolio not specified for cash deduction.");
 
             var cash = list.OfType<Cash>().Where(x => x.IsActive(btd.Timestamp) && x.Currency == btd.Currency && x.CashAccount == btd.AccountSrc && x.PortfolioId == portfolio);
-            var allCash = list.OfType<Cash>().Where(x => x.Currency == btd.Currency && x.CashAccount == btd.AccountSrc && x.PortfolioId == portfolio);
 
             foreach (var c in cash)
             {

@@ -35,7 +35,7 @@ namespace Venture
             GenerateYields();
         }
 
-        public Bond(TransferTransactionDefinition ttd, Bond originalAsset) : base(ttd, originalAsset)
+        public Bond(PortfolioTransferTransactionDefinition ttd, Bond originalAsset) : base(ttd, originalAsset)
         {
             UnitPrice = originalAsset.UnitPrice;
             CouponRate = originalAsset.CouponRate;

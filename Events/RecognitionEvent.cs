@@ -37,6 +37,33 @@ namespace Venture
             FXRate = tr.FXRate;
         }
 
+        public RecognitionEvent(StandardAsset parentAsset, AssetSwitchTransactionDefinition astd, StandardAsset originalAsset) : base(parentAsset, astd.Timestamp)
+        {
+            UniqueId = $"RecognitionEvent_{parentAsset.InstrumentUniqueId}_{astd.Index}_{astd.Timestamp.ToString("yyyyMMdd")}";
+            TransactionIndex = astd.Index;
+
+            DirtyPrice = astd.PriceTarget;
+            CleanPrice = astd.PriceTarget - parentAsset.GetAccruedInterest(astd.Timestamp);
+            Fee = astd.Fee;
+            OriginalFee = Fee;
+
+            Count = astd.CountTarget;
+            FXRate = astd.FXRate;
+
+            OriginalDirtyPrice = originalAsset.GetPurchasePrice(true, true);
+            OriginalCleanPrice = originalAsset.GetPurchasePrice(false, true);
+            OriginalFee = originalAsset.GetUnrealizedPurchaseFee(new TimeArg(TimeArgDirection.Start, astd.Timestamp, astd.Index));
+
+            if (parentAsset.IsBond)
+            {
+                Amount = Common.Round(astd.PriceTarget / 100 * astd.CountTarget * ((Bond)parentAsset).SecurityDefinition.UnitPrice);
+            }
+            else
+            {
+                Amount = Common.Round(astd.PriceTarget * astd.CountTarget);
+            }
+        }
+
         public RecognitionEvent(StandardAsset parentAsset, BuyTransactionDefinition btd) : this(parentAsset,(TransactionDefinition)btd)
         {
             OriginalDirtyPrice = DirtyPrice;
@@ -53,19 +80,19 @@ namespace Venture
             }
         }
 
-        public RecognitionEvent(StandardAsset parentAsset, TransferTransactionDefinition ttd, StandardAsset originalAsset) : this(parentAsset, (TransactionDefinition)ttd)
+        public RecognitionEvent(StandardAsset parentAsset, PortfolioTransferTransactionDefinition pttd, StandardAsset originalAsset) : this(parentAsset, (TransactionDefinition)pttd)
         {
             OriginalDirtyPrice = originalAsset.GetPurchasePrice(true, true);
             OriginalCleanPrice = originalAsset.GetPurchasePrice(false, true);
-            OriginalFee = originalAsset.GetUnrealizedPurchaseFee(new TimeArg(TimeArgDirection.Start, ttd.Timestamp, ttd.Index));
+            OriginalFee = originalAsset.GetUnrealizedPurchaseFee(new TimeArg(TimeArgDirection.Start, pttd.Timestamp, pttd.Index));
 
             if (parentAsset.IsBond)
             {
-                Amount = Common.Round(ttd.Price / 100 * ttd.Count * ((Bond)parentAsset).SecurityDefinition.UnitPrice);
+                Amount = Common.Round(pttd.Price / 100 * pttd.Count * ((Bond)parentAsset).SecurityDefinition.UnitPrice);
             }
             else
             {
-                Amount = Common.Round(ttd.Price * ttd.Count);
+                Amount = Common.Round(pttd.Price * pttd.Count);
             }
         }
 

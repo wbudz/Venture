@@ -94,7 +94,8 @@ namespace Venture
                     case "buy": newItem = new BuyTransactionDefinition(item); break;
                     case "sell": newItem = new SellTransactionDefinition(item); break;
                     case "pay": newItem = new PayTransactionDefinition(item); break;
-                    case "transfer": newItem = new TransferTransactionDefinition(item); break;
+                    case "transfer": newItem = new PortfolioTransferTransactionDefinition(item); break;
+                    case "switch": newItem = new AssetSwitchTransactionDefinition(item); break;
                     default:
                         continue;
                 }
@@ -161,6 +162,7 @@ namespace Venture
                     case "incometaxdeductionbooking": newItem = new IncomeTaxDeductionBookingEventDefinition(item); break;
                     case "additionaltaxableincome": newItem = new AdditionalTaxableIncomeEventDefinition(item); break;
                     case "additionaltaxableexpense": newItem = new AdditionalTaxableExpenseEventDefinition(item); break;
+                    case "": continue;
                     default:
                         throw new Exception($"Incorrect manual event definition: {item}.");
                 }

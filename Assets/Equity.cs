@@ -16,7 +16,12 @@ namespace Venture
             GenerateFlows();
         }
 
-        public Equity(TransferTransactionDefinition ttd, Equity originalAsset) : base(ttd, originalAsset)
+        public Equity(PortfolioTransferTransactionDefinition ttd, Equity originalAsset) : base(ttd, originalAsset)
+        {
+            AddEvent(new RecognitionEvent(this, ttd, originalAsset));
+            GenerateFlows();
+        }
+        public Equity(AssetSwitchTransactionDefinition ttd, Equity originalAsset) : base(ttd, originalAsset)
         {
             AddEvent(new RecognitionEvent(this, ttd, originalAsset));
             GenerateFlows();

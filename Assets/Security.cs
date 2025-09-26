@@ -27,6 +27,19 @@ namespace Venture
             SecurityDefinition = definition;
         }
 
+        public Security(AssetSwitchTransactionDefinition astd, InstrumentDefinition definition) : base()
+        {
+            UniqueId = $"{definition.AssetType}_{definition.AssetId}_{astd.Index}";
+            AssetType = definition.AssetType;
+
+            Portfolio = Definitions.Portfolios.Single(x => x.UniqueId == astd.PortfolioDst);
+
+            Currency = astd.Currency;
+            ValuationClass = astd.ValuationClass;
+
+            SecurityDefinition = definition;
+        }
+
         public Security(TransferTransactionDefinition ttd, Security originalAsset) : base()
         {
             UniqueId = $"{originalAsset.SecurityDefinition.AssetType}_{originalAsset.SecurityDefinition.AssetId}_{ttd.Index}";

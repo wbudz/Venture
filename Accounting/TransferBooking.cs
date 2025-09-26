@@ -9,7 +9,7 @@ namespace Venture
 {
     public static class TransferBooking
     {
-        public static void Process(TransferTransactionDefinition ttd, IEnumerable<DerecognitionEvent> events)
+        public static void Process(PortfolioTransferTransactionDefinition ttd, IEnumerable<DerecognitionEvent> events)
         {
             PortfolioDefinition? portfolioSrc = Definitions.Portfolios.Single(x => x.UniqueId == ttd.PortfolioSrc);
             PortfolioDefinition? portfolioDst = Definitions.Portfolios.Single(x => x.UniqueId == ttd.PortfolioDst);
